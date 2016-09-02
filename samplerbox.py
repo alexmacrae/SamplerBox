@@ -267,9 +267,11 @@ def ActuallyLoad():
     globalvolume = 10 ** (-12.0/20)  # -12dB default global volume
     globaltranspose = 0
 
-    basename = next((f for f in os.listdir(SAMPLES_DIR) if f.startswith("%d " % preset)), None)      # or next(glob.iglob("blah*"), None)
+    samplesdir = SAMPLES_DIR if os.listdir(SAMPLES_DIR) else '.'      # use current folder (containing 0 Saw) if no user media containing samples has been found
+
+    basename = next((f for f in os.listdir(samplesdir) if f.startswith("%d " % preset)), None)      # or next(glob.iglob("blah*"), None)
     if basename:
-        dirname = os.path.join(SAMPLES_DIR, basename)
+        dirname = os.path.join(samplesdir, basename)
     if not basename:
         print 'Preset empty: %s' % preset
         display("E%03d" % preset)
