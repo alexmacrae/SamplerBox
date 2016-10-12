@@ -14,8 +14,8 @@
 # CONFIG
 #########################################
 
-AUDIO_DEVICE_ID = 2                     # change this number to use another soundcard
-SAMPLES_DIR = "."                       # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
+AUDIO_DEVICE_ID = 4                     # change this number to use another soundcard
+SAMPLES_DIR = "./media"                       # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
 USE_SERIALPORT_MIDI = False             # Set to True to enable MIDI IN via SerialPort (e.g. RaspberryPi's GPIO UART pins)
 USE_I2C_7SEGMENTDISPLAY = False         # Set to True to use a 7-segment display via I2C
 USE_BUTTONS = False                     # Set to True to use momentary buttons (connected to RaspberryPi's GPIO pins) to change preset
@@ -175,6 +175,7 @@ globaltranspose = 0
 #########################################
 
 def AudioCallback(outdata, frame_count, time_info, status):
+
     global playingsounds
     rmlist = []
     playingsounds = playingsounds[-MAX_POLYPHONY:]
@@ -195,6 +196,7 @@ def MidiCallback(message, time_stamp):
     note = message[1] if len(message) > 1 else None
     midinote = note
     velocity = message[2] if len(message) > 2 else None
+
 
     if messagetype == 9 and velocity == 0:
         messagetype = 8
@@ -462,7 +464,7 @@ if USE_SERIALPORT_MIDI:
 #
 #########################################
 
-preset = 0
+preset = 1
 LoadSamples()
 
 
