@@ -1,3 +1,12 @@
+#  SamplerBox Navigator
+#
+#  author:    Alex MacRae (alex.finlay.macrae@gmail.com)
+#  url:       https://github.com/alexmacrae/
+#  license:   Creative Commons ShareAlike 3.0 (http://creativecommons.org/licenses/by-sa/3.0/)
+#
+#  samplerbox2.py: Main file
+#
+
 #########################################
 # Import
 #
@@ -8,6 +17,9 @@ import psutil
 import sys
 import rtmidi2
 import time
+import threading
+import loadsamples as ls
+import globalvars as gvars
 
 #
 #customCharMapping = {
@@ -27,21 +39,18 @@ import time
 MIDI_CONFIG_DIR    = "midi config/"
 CONFIG_FILE_PATH    = "system config/config.ini"
 SETLIST_FILE_PATH   = "setlist/setlist.txt"
-SAMPLES_DIR          = "media/"
-SONG_FOLDERS_LIST   = os.listdir(SAMPLES_DIR)
+SONG_FOLDERS_LIST   = os.listdir(gvars.SAMPLES_DIR)
 
 USING_CONFIG_FILE   = False
 
+TESTING = False
 
 
-
-welcome_str = '''
-   /==============================//
-  /== FUNCTIONS BY ALEX MACRAE ==//
- /========== DID A COOL THING ==//
+print '''
+  /==============================//
+ /== NAVIGATOR by ALEX MACRAE ==//
 /==============================//
 '''
-print welcome_str
 
 def write_setlist(list_to_write):
     print('-= WRITING NEW SETLIST =-')
@@ -82,13 +91,11 @@ def findMissingFolders():
             i += 1
         k += 1
             
-    #print (songsInSetlist)
     if (changes):
         write_setlist(songsInSetlist)
     else:
         print('-= No missing folders detected =-\n')
         
-
 
 def findAndAddNewFolders():
     # Check for new song folders and add them to the end of the setlist
@@ -128,30 +135,10 @@ def findAndAddNewFolders():
 findMissingFolders()                
 findAndAddNewFolders()
 #______________________________________________________________________________  
-  
 
-
-    
-# This is how a 16x2 LCD screen might look
-'''
- 1234567812345678
- ________________
-|1YouDon 3Stairw |
-|2WAIDH  *INTAY  |
-|________________|
-
-'''
-#    
-  
-#______________________________________________________________________________   
-
-
-preset = 0
-currentVoice = 1
-
-#______________________________________________________________________________   
 
 class Navigator:
+
     menu = {
         0: {
             'name': 'Setlist',
@@ -187,51 +174,55 @@ class Navigator:
             }
         }
     }
-    state           = None
-    menuCoords      = [0]
-    menuPosition    = menu
-    config          = configparser.ConfigParser()
-    
-    def __init__(self, initState=None):
-        self.state = initState
+    state               = None
+    menuCoords          = [0]
+    menuPosition        = menu
+    config              = configparser.ConfigParser()
+
+    def __init__(self, initState):
+        Navigator.state = initState
+        self.loadState(Navigator.state)
+        self.runState()
+
         
     def loadState(self, theClass):
-        self.state = theClass
-    
+        Navigator.state = theClass
+
     def runState(self):
-        self.state = self.state()
+        Navigator.state = Navigator.state()
     
     def setMenuPosition(self):
-        if len(self.menuCoords) == 1:
-            self.menuPosition = self.menu
-        if len(self.menuCoords) == 2:
-            self.menuPosition = self.menu[self.menuCoords[0]]['submenu']
-        if len(self.menuCoords) == 3:
-            self.menuPosition = self.menu[self.menuCoords[0]]['submenu'][self.menuCoords[1]]['submenu']
+        if len(Navigator.menuCoords) == 1:
+            print '1'
+            Navigator.menuPosition = Navigator.menu
+        if len(Navigator.menuCoords) == 2:
+            print '2'
+            Navigator.menuPosition = Navigator.menu[Navigator.menuCoords[0]]['submenu']
+        if len(Navigator.menuCoords) == 3:
+            print '3'
+            Navigator.menuPosition = Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['submenu']
         
-    def getMenuPosition(self):
-        return self.menuPosition
 
 
     def parseConfig(self):
         if self.config.read(CONFIG_FILE_PATH):
             print '-= Reading settings from config.ini =-'
-            self.USING_CONFIG_FILE = True
-            self.MAX_POLYPHONY     = int(self.config['DEFAULT']['MAX_POLYPHONY'])
-            self.MIDI_CHANNEL      = int(self.config['DEFAULT']['MIDI_CHANNEL'])
-            self.CHANNELS          = int(self.config['DEFAULT']['CHANNELS'])
-            self.BUFFERSIZE        = int(self.config['DEFAULT']['BUFFERSIZE'])
-            self.SAMPLERATE        = int(self.config['DEFAULT']['SAMPLERATE'])
-            self.GLOBAL_VOLUME     = int(self.config['DEFAULT']['GLOBAL_VOLUME'])
+            Navigator.USING_CONFIG_FILE = True
+            Navigator.MAX_POLYPHONY     = int(self.config['DEFAULT']['MAX_POLYPHONY'])
+            Navigator.MIDI_CHANNEL      = int(self.config['DEFAULT']['MIDI_CHANNEL'])
+            Navigator.CHANNELS          = int(self.config['DEFAULT']['CHANNELS'])
+            Navigator.BUFFERSIZE        = int(self.config['DEFAULT']['BUFFERSIZE'])
+            Navigator.SAMPLERATE        = int(self.config['DEFAULT']['SAMPLERATE'])
+            Navigator.GLOBAL_VOLUME     = int(self.config['DEFAULT']['GLOBAL_VOLUME'])
         else:
             print '!! config.ini does not exist - using defaults !!'
-            self.USING_CONFIG_FILE  = False
-            self.MAX_POLYPHONY      = 80
-            self.MIDI_CHANNEL       = 1
-            self.CHANNELS           = 2
-            self.BUFFERSIZE         = 128
-            self.SAMPLERATE         = 44100
-            self.GLOBAL_VOLUME      = 100
+            Navigator.USING_CONFIG_FILE  = False
+            Navigator.MAX_POLYPHONY      = 80
+            Navigator.MIDI_CHANNEL       = 1
+            Navigator.CHANNELS           = 2
+            Navigator.BUFFERSIZE         = 128
+            Navigator.SAMPLERATE         = 44100
+            Navigator.GLOBAL_VOLUME      = 100
 
     def writeConfig(self):
 
@@ -242,134 +233,137 @@ class Navigator:
         self.config['DEFAULT']['SAMPLERATE']     = str(self.SAMPLERATE)
         self.config['DEFAULT']['GLOBAL_VOLUME']   = str(self.GLOBAL_VOLUME)
         print 'WRITING CONFIG'
-        with open(CONFIG_FILE_PATH, 'w') as configfile:  
+        with open(CONFIG_FILE_PATH, 'w') as configfile:
             self.config.write(configfile)
 
+    def getMenuPathStr(self):
+        path_list = []
+        if len(Navigator.menuCoords) == 1:
+            path_list = [Navigator.menu[Navigator.menuCoords[0]]['name']]
+        if len(Navigator.menuCoords) == 2:
+            path_list = [Navigator.menu[Navigator.menuCoords[0]]['name'],
+                         Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['name']]
+        if len(Navigator.menuCoords) == 3:
+            path_list = [Navigator.menu[Navigator.menuCoords[0]]['name'],
+                         Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['name'],
+                         Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['submenu'][
+                             Navigator.menuCoords[2]]['name']]
 
+        menu_msg = '>>> [Menu]'
+        for name in path_list:
+            menu_msg += '->[' + name + ']'
 
-#______________________________________________________________________________
-
-
-def getMenuPathStr():
-    path_list = []
-    if len(n.menuCoords) == 1:
-        path_list = [n.menu[n.menuCoords[0]]['name']]
-    if len(n.menuCoords) == 2:
-        path_list = [n.menu[n.menuCoords[0]]['name'], n.menu[n.menuCoords[0]]['submenu'][n.menuCoords[1]]['name']]
-    if len(n.menuCoords) == 3:
-        path_list = [n.menu[n.menuCoords[0]]['name'], n.menu[n.menuCoords[0]]['submenu'][n.menuCoords[1]]['name'], n.menu[n.menuCoords[0]]['submenu'][n.menuCoords[1]]['submenu'][n.menuCoords[2]]['name']]
-
-    menu_msg = '>>> [Menu]'
-    for name in path_list:
-        menu_msg += '->[' + name + ']'
-    
-    return menu_msg
-
+        return menu_msg
 
 
 
 #______________________________________________________________________________
+
+
+
+
 
 
                 
-class PresetNav:
+class PresetNav(Navigator):
     
     
     
     def __init__(self):
         
         self.setlistList = open(SETLIST_FILE_PATH).read().splitlines()
-        self.numFolders = len(os.walk(SAMPLES_DIR).next()[1])
+        self.numFolders = len(os.walk(gvars.SAMPLES_DIR).next()[1])
         print '-= Welcome to preset land =-'
-        print '[' + str(preset + 1) + '] ' + str(self.setlistList[preset])
+        print '[' + str(gvars.preset + 1) + '] ' + str(self.setlistList[gvars.preset])
 
     def right(self):
-        global preset, currentVoice
-        preset += 1
-        currentVoice = 1
-        if(preset >= self.numFolders):
-            preset = 0
-        print '[' + str(preset + 1) + '] ' + str(self.setlistList[preset])
-        #LoadSamples()
+        gvars.preset += 1
+        
+        gvars.current_voice = 1
+        if(gvars.preset >= self.numFolders):
+            gvars.preset = 0
+        print '[' + str(gvars.preset + 1) + '] ' + str(self.setlistList[gvars.preset])
+        ls.LoadSamples()
 
     def left(self):
-        global preset, currentVoice
-        preset -= 1
-        currentVoice = 1
-        if(preset < 0):
-            preset = self.numFolders-1
-        print '[' + str(preset + 1) + '] ' + str(self.setlistList[preset])
-        #LoadSamples()
+        gvars.preset -= 1
+        
+        gvars.current_voice = 1
+        if(gvars.preset < 0):
+            gvars.preset = self.numFolders-1
+        print '[' + str(gvars.preset + 1) + '] ' + str(self.setlistList[gvars.preset])
+        ls.LoadSamples()
             
     def enter(self):
-        n.loadState(MenuNav)
-        n.runState()
+        self.loadState(MenuNav)
+        self.runState()
         
     
     def cancel(self): # can remove empty class methods
         pass
-        print '-= Does nothing in preset land =-'
+        print '-= Does nothing. Perhaps cycle display modes =-'
+        # eg CPU/RAM, battery life, time, wifi/bluetooth status
 
 
 
 
 #______________________________________________________________________________
 
-class MenuNav:
+class MenuNav(Navigator):
 
     def __init__(self):
-       
-        n.menu_pos = n.menuCoords[-1]
-        print getMenuPathStr()
+
+        self.menu_pos = self.menuCoords[-1]
+        print self.getMenuPathStr()
         
 
     #select next menu item
     def right(self):
 
-        if  n.menu_pos < len(n.getMenuPosition())-1:
-            n.menu_pos += 1
-            n.menuCoords[-1] = n.menu_pos
-            print getMenuPathStr()
+        if  self.menu_pos < len(self.menuPosition)-1:
+            self.menu_pos += 1
+            self.menuCoords[-1] = self.menu_pos
+            print self.getMenuPathStr()
         else:
-            print getMenuPathStr() + ' (end)'
+            print self.getMenuPathStr() + ' (end)'
 
     #select previous menu item
     def left(self):
 
-        if  n.menu_pos > 0:
-            n.menu_pos -= 1
-            n.menuCoords[-1] = n.menu_pos
-            print getMenuPathStr()
+        if  self.menu_pos > 0:
+            self.menu_pos -= 1
+            self.menuCoords[-1] = self.menu_pos
+            print self.getMenuPathStr()
         else:
-            print getMenuPathStr() + ' (start)'
+            print self.getMenuPathStr() + ' (start)'
             
     def enter(self):
 
-        if 'submenu' in n.getMenuPosition()[n.menuCoords[-1]]:
-            print ' > Entering submenu for [' + n.menuPosition[n.menuCoords[-1]]['name'] + ']'
-            n.menuCoords.append(0)
-            n.setMenuPosition()
-            n.loadState(MenuNav)
-            n.runState()
-        elif 'fn' in n.getMenuPosition()[n.menuCoords[-1]]:
-            print '** Entering [' + n.getMenuPosition()[n.menuCoords[-1]]['name'] + '] function'
-            fn = n.getMenuPosition()[n.menuCoords[-1]]['fn']
+        if 'submenu' in self.menuPosition[self.menuCoords[-1]]:
+            print ' > Entering submenu for [' + self.menuPosition[self.menuCoords[-1]]['name'] + ']'
+            self.menuCoords.append(0)
+            self.setMenuPosition()
+            self.loadState(MenuNav)
+            self.runState()
+        elif 'fn' in self.menuPosition[self.menuCoords[-1]]:
+            print '** Entering [' + self.menuPosition[self.menuCoords[-1]]['name'] + '] function'
+            fn = self.menuPosition[self.menuCoords[-1]]['fn']
             if isinstance(fn, list):
                 fn = eval(fn[0])
             else:
                 fn = eval(fn)
-            n.loadState(fn)
-            n.runState()
+            self.loadState(fn)
+            self.runState()
     
     def cancel(self):
-        if len(n.menuCoords) > 1:
-            n.menuCoords.pop()
-            n.setMenuPosition()
-            n.loadState(MenuNav)
-            n.runState()
+        if len(self.menuCoords) > 1:
+            self.menuCoords.pop()
+            self.setMenuPosition()
+            self.loadState(MenuNav)
+            self.runState()
         else:
-            n.loadState(PresetNav)# this will become the presets state
-            n.runState() 
+            self.loadState(PresetNav)# this will become the gvars.presets state
+            self.runState()
     
 
 
@@ -378,80 +372,75 @@ class MenuNav:
 #______________________________________________________________________________
         
      
-class SelectSong:        
+class SelectSong(Navigator):
     
     def __init__(self):
-        
         self.setlistList = open(SETLIST_FILE_PATH).read().splitlines()
-        self.nextState = eval(n.getMenuPosition()[n.menuCoords[-1]]['fn'][1])
-        print ' * Current song selection: <' + str(preset + 1) + " " + str(self.setlistList[preset]) + '>'
+        self.nextState = eval(self.menuPosition[self.menuCoords[-1]]['fn'][1])
+        print ' * Current song selection: <' + str(gvars.preset + 1) + " " + str(self.setlistList[gvars.preset]) + '>'
     
     # next song
     def right(self):
-        global preset
-        if(preset < len(self.setlistList)-1):
-            preset += 1
-        print " * Song selected: <" + str(preset + 1) + " " + str(self.setlistList[preset]) + '>'
+        if(gvars.preset < len(self.setlistList)-1):
+            gvars.preset += 1
+        print " * Song selected: <" + str(gvars.preset + 1) + " " + str(self.setlistList[gvars.preset]) + '>'
 
     # previous song
     def left(self):
-        global preset
-        if(preset > 0):
-            preset -= 1
-        print " * Song selected: <" + str(preset + 1) + " " + str(self.setlistList[preset]) + '>'
+        if(gvars.preset > 0):
+            gvars.preset -= 1
+        print " * Song selected: <" + str(gvars.preset + 1) + " " + str(self.setlistList[gvars.preset]) + '>'
         
     def enter(self):
-        n.loadState(self.nextState)
-        n.runState()
+        self.loadState(self.nextState)
+        self.runState()
         
         
     def cancel(self):
-        n.loadState(MenuNav)
-        n.runState()
+        self.loadState(MenuNav)
+        self.runState()
 
 
 #______________________________________________________________________________
 
-class MoveSong:    
+class MoveSong(Navigator):
     
     def __init__(self):
         self.setlistList = open(SETLIST_FILE_PATH).read().splitlines()
-        self.prevState = eval(n.getMenuPosition()[n.menuCoords[-1]]['fn'][0])
-        print ' ** Moving song: <' + str(preset + 1) + " " + str(self.setlistList[preset]) + '>'
+        self.prevState = eval(self.menuPosition[self.menuCoords[-1]]['fn'][0])
+        print ' ** Moving song: <' + str(gvars.preset + 1) + " " + str(self.setlistList[gvars.preset]) + '>'
 
     # Move song up the setlist
     def left(self):
-        global preset
-        if(preset > 0):
-            self.setlistList[int(preset)], self.setlistList[int(preset) - 1] = self.setlistList[int(preset) - 1], self.setlistList[int(preset)]
-            preset -= 1
+        if(gvars.preset > 0):
+            self.setlistList[int(gvars.preset)], self.setlistList[int(gvars.preset) - 1] = self.setlistList[int(gvars.preset) - 1], self.setlistList[int(gvars.preset)]
+            gvars.preset -= 1
             #write_setlist(self.setlistList)
-        print 'New position: <' + str(preset + 1) + " " + str(self.setlistList[int(preset)]) + '>'
+        print 'New position: <' + str(gvars.preset + 1) + " " + str(self.setlistList[int(gvars.preset)]) + '>'
    
     # Move song down the setlist
     def right(self):
-        global preset
-        if(preset < len(self.setlistList) - 1):
-            self.setlistList[int(preset)], self.setlistList[int(preset) + 1] = self.setlistList[int(preset) + 1], self.setlistList[int(preset)]
-            preset += 1
+        if(gvars.preset < len(self.setlistList) - 1):
+            self.setlistList[int(gvars.preset)], self.setlistList[int(gvars.preset) + 1] = self.setlistList[int(gvars.preset) + 1], self.setlistList[int(gvars.preset)]
+            gvars.preset += 1
             #write_setlist(self.setlistList)
-        print 'New position: <' + str(preset + 1) + " " + str(self.setlistList[int(preset)]) + '>'
+        print 'New position: <' + str(gvars.preset + 1) + " " + str(self.setlistList[int(gvars.preset)]) + '>'
         
     
     def enter(self):
         write_setlist(self.setlistList)
-        n.loadState(self.prevState)
-        n.runState()
+        self.loadState(self.prevState)
+        self.runState()
     
     def cancel(self):
-        n.loadState(self.prevState)
-        n.runState()
+        self.loadState(self.prevState)
+        self.runState()
 
 
 
 #______________________________________________________________________________
 
-class SetlistRemoveMissing():
+class SetlistRemoveMissing(Navigator):
     
     def __init__(self):
         
@@ -469,93 +458,92 @@ class SetlistRemoveMissing():
                 write_setlist(songsInSetlist)
             i += 1
         
-        n.loadState(MenuNav)
-        n.runState()
+        self.loadState(MenuNav)
+        self.runState()
         
     def right(self):
         pass
     def left(self):
         pass
     def cancel(self):
-        n.loadState(MenuNav)
-        n.runState()
+        self.loadState(MenuNav)
+        self.runState()
 
 
 #______________________________________________________________________________   
 
 
-class DeleteSong:
+class DeleteSong(Navigator):
     
     def __init__(self):
         
-        self.prevState = eval(n.getMenuPosition()[n.menuCoords[-1]]['fn'][0])
+        self.prevState = eval(self.menuPosition[self.menuCoords[-1]]['fn'][0])
         self.setlistList = open(SETLIST_FILE_PATH).read().splitlines()
         print 'Are you sure? [Y/N]'
         print 'WARNING: will crash if we delete all songs'
         
     def enter(self):
-        global preset
         print self.setlistList
-        del self.setlistList[preset]
+        del self.setlistList[gvars.preset]
         write_setlist(self.setlistList)
         print self.setlistList
-        if preset != 0:
-            preset -= 1
+        if gvars.preset != 0:
+            gvars.preset -= 1
         
         
-        n.loadState(self.prevState)
-        n.runState()
+        self.loadState(self.prevState)
+        self.runState()
 
     def cancel(self):    
-        n.loadState(self.prevState)
-        n.runState()
+        self.loadState(self.prevState)
+        self.runState()
 
 
 #______________________________________________________________________________
   
 
-class MaxPolyphonyConfig:
+class MaxPolyphonyConfig(Navigator):
     def __init__(self):
         print '-= Max polyphony =-'
-        print 'Current polyphony = ' + str(n.MAX_POLYPHONY)
+        print 'Current polyphony = ' + str(self.MAX_POLYPHONY)
 
     def left(self):
-        n.MAX_POLYPHONY = max(n.MAX_POLYPHONY - 8, 1)
-        print n.MAX_POLYPHONY
+        self.MAX_POLYPHONY = max(self.MAX_POLYPHONY - 8, 1)
+        print self.MAX_POLYPHONY
         
     def right(self):
-        n.MAX_POLYPHONY = min(n.MAX_POLYPHONY + 8, 128)
-        print n.MAX_POLYPHONY
+        self.MAX_POLYPHONY = min(self.MAX_POLYPHONY + 8, 128)
+        print self.MAX_POLYPHONY
     
     def enter(self):
-        n.writeConfig()
+        self.writeConfig()
         print '-- requires a restart --' # or a reinstantiation of the sounddevice
-        n.loadState(MenuNav)
-        n.runState()
+        self.loadState(MenuNav)
+        self.runState()
     
     def cancel(self):
         self.enter()
   
 #______________________________________________________________________________    
     
-class MidiChannelConfig:
+class MidiChannelConfig(Navigator):
     def __init__(self):
         print '-= MIDI Channel !IMPORTANT: All MIDI ports are open with rtmidi2 =-'
-        print 'Current MIDI Channel = ' + str(n.MIDI_CHANNEL)
+        print 'Current MIDI Channel = ' + str(self.MIDI_CHANNEL)
 
     def left(self):
-        n.MIDI_CHANNEL = max(n.MIDI_CHANNEL - 1, 1)
-        print n.MIDI_CHANNEL
+        self.MIDI_CHANNEL = max(self.MIDI_CHANNEL - 1, 1)
+        print self.MIDI_CHANNEL
         
     def right(self):
-        n.MIDI_CHANNEL = min(n.MIDI_CHANNEL + 1, 16)
-        print n.MIDI_CHANNEL
+        self.MIDI_CHANNEL = min(self.MIDI_CHANNEL + 1, 16)
+        print self.MIDI_CHANNEL
     
     def enter(self):
-        n.writeConfig()
+        self.writeConfig()
         print '-- requires a restart (maybe?) --' # or a reinstantiation of the sounddevice
-        n.loadState(MenuNav)
-        n.runState()
+        self.loadState(MenuNav)
+        self.runState()
     
     def cancel(self):
         self.enter()
@@ -563,33 +551,33 @@ class MidiChannelConfig:
 
 #______________________________________________________________________________
 
-class ChannelsConfig:
+class ChannelsConfig(Navigator):
     def __init__(self):
         print '-= Audio Channels =-'
-        print 'Current number of channels = ' + str(n.CHANNELS)
+        print 'Current number of channels = ' + str(self.CHANNELS)
         self.options = [1, 2, 4, 6, 8]
         self.i = 1
         for x in self.options:
-            if x == n.CHANNELS:
+            if x == self.CHANNELS:
                 self.i = self.options.index(x)
         
     def left(self):
         if self.i > 0:
             self.i -= 1
-        n.CHANNELS = max(self.options[self.i], self.options[0])
-        print n.CHANNELS
+        self.CHANNELS = max(self.options[self.i], self.options[0])
+        print self.CHANNELS
         
     def right(self):
         if self.i < len(self.options):
             self.i += 1
-        n.CHANNELS = min(self.options[self.i], self.options[-1])
-        print n.CHANNELS
+        self.CHANNELS = min(self.options[self.i], self.options[-1])
+        print self.CHANNELS
     
     def enter(self):
-        n.writeConfig()
+        self.writeConfig()
         print '-- requires a restart (maybe?) --' # or a reinstantiation of the sounddevice
-        n.loadState(MenuNav)
-        n.runState()
+        self.loadState(MenuNav)
+        self.runState()
     
     def cancel(self):
         self.enter()
@@ -597,33 +585,33 @@ class ChannelsConfig:
 
 #______________________________________________________________________________
 
-class BufferSizeConfig:
+class BufferSizeConfig(Navigator):
     def __init__(self):
         print '-= Buffer size =-'
-        print 'Current buffer size = ' + str(n.BUFFERSIZE)
+        print 'Current buffer size = ' + str(self.BUFFERSIZE)
         self.options = [16, 32, 64, 128, 256, 512, 1024, 2048]
         self.i = 3
         for x in self.options:
-            if x == n.BUFFERSIZE:
+            if x == self.BUFFERSIZE:
                 self.i = self.options.index(x)
         
     def left(self):
         if self.i > 0:
             self.i -= 1
-        n.BUFFERSIZE = max(self.options[self.i], self.options[0])
-        print n.BUFFERSIZE
+        self.BUFFERSIZE = max(self.options[self.i], self.options[0])
+        print self.BUFFERSIZE
         
     def right(self):
         if self.i < len(self.options):
             self.i += 1
-        n.BUFFERSIZE = min(self.options[self.i], self.options[-1])
-        print n.BUFFERSIZE
+        self.BUFFERSIZE = min(self.options[self.i], self.options[-1])
+        print self.BUFFERSIZE
     
     def enter(self):
-        n.writeConfig()
+        self.writeConfig()
         print '-- requires a restart (maybe?) --' # or a reinstantiation of the sounddevice
-        n.loadState(MenuNav)
-        n.runState()
+        self.loadState(MenuNav)
+        self.runState()
     
     def cancel(self):
         self.enter()
@@ -631,33 +619,33 @@ class BufferSizeConfig:
 
 #______________________________________________________________________________
 
-class SampleRateConfig:
+class SampleRateConfig(Navigator):
     def __init__(self):
         print '-= Buffer size =-'
-        print 'Current buffer size = ' + str(n.SAMPLERATE)
+        print 'Current buffer size = ' + str(self.SAMPLERATE)
         self.options = [44100, 48000, 96000]
         self.i = 0
         for x in self.options:
-            if x == n.SAMPLERATE:
+            if x == self.SAMPLERATE:
                 self.i = self.options.index(x)
         
     def left(self):
         if self.i > 0:
             self.i -= 1
-        n.SAMPLERATE = max(self.options[self.i], self.options[0])
-        print n.SAMPLERATE
+        self.SAMPLERATE = max(self.options[self.i], self.options[0])
+        print self.SAMPLERATE
         
     def right(self):
         if self.i < len(self.options):
             self.i += 1
-        n.SAMPLERATE = min(self.options[self.i], self.options[-1])
-        print n.SAMPLERATE
+        self.SAMPLERATE = min(self.options[self.i], self.options[-1])
+        print self.SAMPLERATE
     
     def enter(self):
-        n.writeConfig()
+        self.writeConfig()
         print '-- requires a restart (maybe?) --' # or a reinstantiation of the sounddevice
-        n.loadState(MenuNav)
-        n.runState()
+        self.loadState(MenuNav)
+        self.runState()
     
     def cancel(self):
         self.enter()
@@ -665,16 +653,16 @@ class SampleRateConfig:
 
 #______________________________________________________________________________
   
-class MasterVolumeConfig:
+class MasterVolumeConfig(Navigator):
     
     def __init__(self):
         print '-= Master volume =-'
-        print 'Current global volume = ' + str(n.GLOBAL_VOLUME)
+        print 'Current global volume = ' + str(self.GLOBAL_VOLUME)
         buttonDown = False
 
     def left(self):
-        n.GLOBAL_VOLUME = max(n.GLOBAL_VOLUME - 4, 0)
-        print n.GLOBAL_VOLUME
+        self.GLOBAL_VOLUME = max(self.GLOBAL_VOLUME - 4, 0)
+        print self.GLOBAL_VOLUME
         
         # Would be cool to work out a "do while (condition)" without the infinite
         # loop blocking the "midi button up" message
@@ -689,28 +677,28 @@ class MasterVolumeConfig:
         
     def right(self):
         self.buttonDown = True
-        n.GLOBAL_VOLUME = min(n.GLOBAL_VOLUME + 4, 100)
-        print n.GLOBAL_VOLUME
+        self.GLOBAL_VOLUME = min(self.GLOBAL_VOLUME + 4, 100)
+        print self.GLOBAL_VOLUME
     
     def enter(self):
-        n.writeConfig()
-        n.loadState(MenuNav)
-        n.runState()
+        self.writeConfig()
+        self.loadState(MenuNav)
+        self.runState()
     
     def cancel(self):
-        n.writeConfig()
-        n.loadState(MenuNav)
-        n.runState()
+        self.writeConfig()
+        self.loadState(MenuNav)
+        self.runState()
 
 #_____________________________________________________________________________
 
-class MidiMapper:
+class MidiMapper(Navigator):
     
     MIDI_LEARN = False
 
     def __init__(self):
         MidiMapper.MIDI_LEARN = True
-        #self.next_state = eval(str(n.getMenuPosition()['fn'][1]))
+        #self.next_state = eval(str(self.menuPosition['fn'][1]))
             
     def learn(self, src, message):
         self.deviceName = src[:src.rfind(" "):] # Strips the port number(s) from after the final space.
@@ -721,8 +709,8 @@ class MidiMapper:
     
     def enter(self):
         print 'here'
-        #n.loadState(self.next_state)
-        #n.runState()
+        #self.loadState(self.next_state)
+        #self.runState()
     
     def writeMidiDeviceConfig(self):
         #print self.deviceName
@@ -742,113 +730,116 @@ class MidiMapper:
     
     def cancel(self):
         MidiMapper.MIDI_LEARN = False
-        n.loadState(MenuNav)
-        n.runState()
+        self.loadState(MenuNav)
+        self.runState()
   
 #########################################
 # LOAD THE
 # NAVIGATOR
 #########################################
 
-n = Navigator()
-n.parseConfig()
-n.loadState(PresetNav)
-n.runState()
+# n = Navigator()
+# Navigator.parseConfig()
+# Navigator.loadState(PresetNav)
+# Navigator.runState()
 
 
 #______________________________________________________________________________
 
-def MidiCallback(src, message, time_stamp):
-    global preset
-    
-    messagetype = message[0] >> 4
-    if messagetype == 13:
-        return
-    
-    messagechannel = (message[0] & 15) + 1
-   
-    note = message[1] if len(message) > 1 else None
-    midinote = note
-    velocity = message[2] if len(message) > 2 else None
 
-#    if (messagetype != 14):
-#        print "ch: " + str(messagechannel) + " type: " + str(messagetype) + " raw: " + str(message) + " SRC: " + str(src)
-    
-    if MidiMapper.MIDI_LEARN and note != 49:
-        n.state.learn(src, message)
-        
-    if(messagetype == 11):
-         
-        
-        if(note == 49): # Enter button
+if TESTING:
+
+    def MidiCallback(src, message, time_stamp):
+
+        messagetype = message[0] >> 4
+        if messagetype == 13:
+            return
+
+        messagechannel = (message[0] & 15) + 1
+
+        note = message[1] if len(message) > 1 else None
+        midinote = note
+        velocity = message[2] if len(message) > 2 else None
+
+    #    if (messagetype != 14):
+    #        print "ch: " + str(messagechannel) + " type: " + str(messagetype) + " raw: " + str(message) + " SRC: " + str(src)
+
+        if MidiMapper.MIDI_LEARN and note != 49:
+            Navigator.state.learn(src, message)
+
+        if(messagetype == 11):
+
+
+            if(note == 49): # Enter button
+                if(velocity == 127):
+                    if Navigator:
+                        Navigator.state.enter()
+    #            else:
+    #                Navigator.state.enterUp()
+
+
+
+
+        if(note == 48): # Left arrow button
             if(velocity == 127):
-                if n:
-                    n.state.enter()
-#            else:
-#                n.state.enterUp()
-            
-           
-        
-        
-    if(note == 48): # Left arrow button
-        if(velocity == 127):
-            n.state.left()
-#            else:
-#                n.state.leftUp()
-    
-        
-    if(note == 50): # Right arrow button
-        if(velocity == 127):
-            n.state.right() 
-#            else:
-#                n.state.rightUp()
-            
-                
-    if(note == 65): # Cancel button
-        if(velocity == 127):
-            n.state.cancel() 
-#            else:
-#                n.state.cancelUp()
-        
-        
+                Navigator.state.left()
+    #            else:
+    #                Navigator.state.leftUp()
+
+
+        if(note == 50): # Right arrow button
+            if(velocity == 127):
+                Navigator.state.right()
+    #            else:
+    #                Navigator.state.rightUp()
+
+
+        if(note == 65): # Cancel button
+            if(velocity == 127):
+                Navigator.state.cancel()
+    #            else:
+    #                Navigator.state.cancelUp()
 
 
 
 
-stopit = False
-midi_in = rtmidi2.MidiInMulti()#.open_ports("*")
-curr_ports = []
-prev_ports = []
-first_loop = True
 
 
-while True:
-    
-    #System info
-    #print 'CPU usage: '+ str (psutil.cpu_percent(None)) + '%  ////  RAM usage: ' + str(float(psutil.virtual_memory().percent)) + '%'
-    
-    if stopit:
-        break
-    curr_ports = rtmidi2.get_in_ports()
-    #print curr_ports
-    if (len(prev_ports) != len(curr_ports)):
-        midi_in.close_ports()
+
+
+    def mididevicesearch():
+        stopit = False
+        midi_in = rtmidi2.MidiInMulti()  # .open_ports("*")
+        curr_ports = []
         prev_ports = []
-    for port in curr_ports:
-        if port not in prev_ports and 'Midi Through' not in port and (len(prev_ports) != len(curr_ports)):
-            midi_in.open_ports(port)
-            midi_in.callback = MidiCallback
-            if first_loop:
-                print ('Opened MIDI port: ' + port)
-            else:
-                print ('Reopening MIDI port: ' + port)
-    prev_ports = curr_ports    
-    first_loop = False
-    time.sleep(2)
+        first_loop = True
+        while True:
 
+            #System info
+            #print 'CPU usage: '+ str (psutil.cpu_percent(None)) + '%  ////  RAM usage: ' + str(float(psutil.virtual_memory().percent)) + '%'
 
+            if stopit:
+                break
+            curr_ports = rtmidi2.get_in_ports()
+            #print curr_ports
+            if (len(prev_ports) != len(curr_ports)):
+                midi_in.close_ports()
+                prev_ports = []
+            for port in curr_ports:
+                if port not in prev_ports and 'Midi Through' not in port and (len(prev_ports) != len(curr_ports)):
+                    midi_in.open_ports(port)
+                    midi_in.callback = MidiCallback
+                    if first_loop:
+                        print ('Opened MIDI port: ' + port)
+                    else:
+                        print ('Reopening MIDI port: ' + port)
+            prev_ports = curr_ports
+            first_loop = False
+            time.sleep(2)
 
-
+    MidiDeviceThread = threading.Thread(target=mididevicesearch)
+    MidiDeviceThread.daemon = True
+    MidiDeviceThread.start()
 
 
 
