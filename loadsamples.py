@@ -85,7 +85,7 @@ def ActuallyLoad():
                         s = gvars.basename + "                  "
                         PercentLoaded = FileCntCur * 100 / FileCnt
                         lcd.display(s[:16], 1)
-                        lcd.display('>' * int(PercentLoaded*0.16 + 1), 2)
+                        lcd.display(unichr(1) * int(PercentLoaded*0.16 + 1), 2)
                         FileCntCur += 1
                         if LoadingInterrupt:
                             SampleLoading = False
