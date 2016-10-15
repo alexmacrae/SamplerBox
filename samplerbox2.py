@@ -14,7 +14,6 @@
 # MODULES
 #########################################
 import time
-import wave
 usleep = lambda x: time.sleep(x / 1000000.0)
 msleep = lambda x: time.sleep(x / 1000.0)
 #import curses
@@ -23,7 +22,6 @@ import os
 import glob
 import re
 import pyaudio
-import sounddevice
 import threading
 from chunk import Chunk
 import struct
@@ -31,7 +29,6 @@ import struct
 import rtmidi2               # Use rtmidi2 instead. Make sure when installing rtmidi2 to change RPI date: $sudo date -s "Sept 23 18:31 2016". Then installing takes a while
 
 import ctypes # For freeverb
-import samplerbox_audio
 #from filters import FilterType, Filter, FilterChain
 #from utility import byteToPCM, floatToPCM, pcmToFloat, sosfreqz
 from collections import OrderedDict
@@ -40,11 +37,12 @@ from time import sleep
 
 
 import globalvars as gvars
-import loadsamples
+import loadsamples as ls
 import sound
 import navigator
 import midicallback
 import lcd
+import buttons
 
 
 #########################################
@@ -106,6 +104,13 @@ def setClickVol(vol):                 # volume in db
 setSamplerVol(50)
 setBackVol(50)
 setClickVol(50)
+
+
+
+
+
+
+
 
 
 
@@ -246,161 +251,14 @@ except:
 
 
 
-#########################################
-##  LCD DISPLAY 
-##  (HD44780 based 16x2)
-#########################################
-# if gvars.USE_HD44780_16x2_LCD:
-#     import RPi.GPIO as GPIO
-#
-#     lcd = HD44780(7, 8, [27, 17, 18, 4])
-#     DS1 = "Starting..."
-#     DS1Cur = "--"
-#     DS2 = "  "
-#     DS2Cur = "  "
-#
-#     def display(s):
-#         global DS1, DS2
-#
-#         DS2 = s
-#         if DS2 == "": DS2 = basename
-#         print DS2
-#
-#
-#     TimeOutReset = 30   # 3 sec
-#     TimeOut = TimeOutReset
-#     DisplaySamplerName = True
-#
-#     def LCD_Process():
-#         global DS1, DS1Cur, DS2, DS2Cur
-#         global TimeOut, TimeOutReset, basename
-#         global basename, MIDI_CHANNEL, globalvolumeDB, backvolumeDB, clickvolumeDB, BackingRunning, BackLoaded, BackLoadingPerc, BackLen, BackIndex
-#
-#         lcd.message('{:<16}'.format(gvars.VERSION1) + "\n" + '{:<16}'.format(gvars.VERSION2))
-#         sleep(1)
-#
-#         while True:
-#             if TimeOut > 0:
-#                 TimeOut -= 1
-#
-#             if BackingRunning:
-#                 ttotsec = (BackLen-BackIndex) / 48000 / 2
-#                 tmin = ttotsec / 60
-#                 tsec = ttotsec % 60
-#                 ba = " %02d:%02d" % (tmin, tsec)
-#             elif BackLoaded:
-#                 ba = Backbasename[-6:] #" Ready"
-#             elif BackLoadingPerc > 0:
-#                 ba = "  %3d%%" % BackLoadingPerc
-#             else:
-#                 ba = " Empty"
-#
-#             DS1 = "%03d%03d%03d %s" % (globalvolumeDB, backvolumeDB, clickvolumeDB, ba)
-#
-#             if TimeOut == 1:
-#                 DS2 = basename
-#
-#             if (DS2Cur != DS2) or (DS1Cur != DS1):
-#                 if (DS2Cur != DS2):
-#                     TimeOut = TimeOutReset
-#                 lcd.message(DS1 + "\n" + '{:<16}'.format(DS2))
-#                 DS1Cur = DS1
-#                 DS2Cur = DS2
-#             sleep(0.2)
-#
-#     LCDThread = threading.Thread(target=LCD_Process)
-#     LCDThread.deamon = True
-#     LCDThread.start()
-#
-#
-# else:
-#
-#     def display(s):
-#         if(gvars.LCD_DEBUG):
-#             print s
-#             #pass
-
 
 #########################################
 
-# if gvars.USE_BUTTONS:
-#     import RPi.GPIO as GPIO
-#
-#     lastbuttontime = 0
-#
-#     def Buttons():
-#         GPIO.setmode(GPIO.BCM)
-#         GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-#         GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-#         global lastbuttontime #, preset
-#         while True:
-#             now = time.time()
-#             if not GPIO.input(18) and (now - lastbuttontime) > 0.2:
-#                 lastbuttontime = now
-#                 gvars.preset -= 1
-#                 if gvars.preset < 0:
-#                     gvars.preset = 127
-#                 loadsamples.LoadSamples()
-#
-#             elif not GPIO.input(17) and (now - lastbuttontime) > 0.2:
-#                 lastbuttontime = now
-#                 gvars.preset += 1
-#                 if gvars.preset > 127:
-#                     gvars.preset = 0
-#                 loadsamples.LoadSamples()
-#
-#             time.sleep(0.020)
-#
-#     ButtonsThread = threading.Thread(target=Buttons)
-#     ButtonsThread.daemon = True
-#     ButtonsThread.start()
+if gvars.USE_BUTTONS and gvars.IS_DEBIAN:
+    ButtonsThread = threading.Thread(target=buttons.Buttons)
+    ButtonsThread.daemon = True
+    ButtonsThread.start()
 
-
-
-
-#
-# def Buttons():
-#     GPIO.setmode(GPIO.BCM)
-#     GPIO.setup(6, GPIO.IN)
-#     GPIO.setup(13, GPIO.IN)
-#     GPIO.setup(19, GPIO.IN)
-#     GPIO.setup(26, GPIO.IN)
-#
-#     global lastbuttontime #, preset
-#     while True:
-#         now = time.time()
-#         if GPIO.input(6) and (now - lastbuttontime) > 0.2:
-#             lastbuttontime = now
-#             gvars.preset += 1
-#             the_str = 'Preset: ' + str(gvars.preset)
-#             lcd_string('-=SAMPLERBOX=- !', LCD_LINE_1)
-#             lcd_string(the_str, LCD_LINE_2)
-#         if GPIO.input(13):
-#             lcd_string('Button: 2', LCD_LINE_1)
-#         if GPIO.input(19):
-#             lcd_string('Button: 3', LCD_LINE_1)
-#         if GPIO.input(26):
-#             lcd_string('Button: 4', LCD_LINE_1)
-#         time.sleep(0.01)
-#
-#
-# ButtonsThread = threading.Thread(target=Buttons)
-# ButtonsThread.daemon = True
-# ButtonsThread.start()
-#
-
-
-
-# try:
-#     lcd_main()
-#
-#     #Buttons()
-# except KeyboardInterrupt:
-#     pass
-# finally:
-#     lcd_byte(0x01, LCD_CMD)
-#     lcd_string("Goodbye!", LCD_LINE_1)
-#     GPIO.cleanup()
 
 #########################################
 # MIDI IN via SERIAL PORT
@@ -447,7 +305,7 @@ print 'freeverb Width: ' + str(fvgetwidth())
 #
 
 
-loadsamples.LoadSamples()
+ls.LoadSamples()
 
 
 #########################################

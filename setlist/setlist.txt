@@ -1,4 +1,5 @@
-0 Juno
-2 Saw
-3 Trumpet
-1 Mellotron MkII Flute
+Saw
+Juno
+GrandPiano
+Trumpet
+Mellotron MkII Flute
