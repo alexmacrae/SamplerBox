@@ -1,2 +1,4 @@
 nb-configuration.xml
 .idea/
+*.pyc
+testRPLCD.py
