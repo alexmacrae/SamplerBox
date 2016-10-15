@@ -3,40 +3,29 @@ SamplerBox
 
 An open-source audio sampler project based on RaspberryPi.
 
-Website: www.samplerbox.org
+
+[Modifications](#modifications)
+----
+
+This is a modified version of [Joseph Ernest's ](https://github.com/josephernest/SamplerBox) SamplerBox, as well as pieces from [Hans](http://homspace.xs4all.nl/homspace/samplerbox/index.html) and [Erik](http://www.nickyspride.nl/sb2/) (SamplerBox2).
+
+The original samplerbox.py code was getting too big to manage so I have split it up into modules.
+ 
+A menu system (Navigator) has been implemented to let the user change: the order of the setlist, master volume, system settings etc.
+
+System .ini config files are also read and written. The plan is also to have MIDI mapping configs for any unique MIDI controller that is connected to the SamplerBox.
+
+
+Website: [www.samplerbox.org](http://www.samplerbox.org)
 
 [![](http://gget.it/flurexml/1.jpg)](https://www.youtube.com/watch?v=yz7GZ8YOjTw)
 
-[Install](#install)
+[![](http://img.youtube.com/vi/-JsubgWiJeg/sddefault.jpg)](https://www.youtube.com/watch?v=-JsubgWiJeg)
+
+[Installation and how to use it](#installhowto)
 ----
 
-SamplerBox works with the RaspberryPi's built-in soundcard, but it is recommended to use a USB DAC (such as [this 6€ one](http://www.ebay.fr/itm/1Pc-PCM2704-5V-Mini-USB-Alimente-Sound-Carte-DAC-decodeur-Board-pr-ordinateur-PC-/231334667385?pt=LH_DefaultDomain_71&hash=item35dc9ee479)) for better sound quality.
-
-1. Install the required dependencies (Python-related packages and audio libraries):
-
-  ~~~
-  sudo apt-get update ; sudo apt-get -y install git python-dev python-pip python-numpy cython python-smbus portaudio19-dev libportaudio2 libffi-dev
-  sudo pip install rtmidi-python pyaudio cffi sounddevice
-  ~~~
-
-2. Download SamplerBox and build it with: 
-
-  ~~~
-  git clone -b testing https://github.com/josephernest/SamplerBox.git
-  cd SamplerBox ; sudo python setup.py build_ext --inplace
-  ~~~
-
-3. Run the soft with `python samplerbox.py`.
-
-4. Play some notes on the connected MIDI keyboard, you'll hear some sound!  
-
-*(Optional)*  Modify `samplerbox.py`'s first lines if you want to change root directory for sample-sets, default soundcard, etc.
-
-
-[How to use it](#howto)
-----
-
-See the [FAQ](http://www.samplerbox.org/faq) on www.samplerbox.org.
+See the [FAQ](http://www.samplerbox.org/faq) on [www.samplerbox.org](http://www.samplerbox.org).
 
 
 [About](#about)
