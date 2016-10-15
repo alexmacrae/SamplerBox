@@ -19,7 +19,7 @@ SAMPLERATE              = 44100
 VERSION1                = " -=SAMPLER-BOX=- "
 VERSION2                = "V2.0.1 15-06-2016"
 
-LCD_DEBUG = False                                                # Print LCD messages to python
+LCD_DEBUG = True                                                # Print LCD messages to python
 IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian' # Determine if running on RPi (True or False)
 
 

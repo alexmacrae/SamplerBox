@@ -29,12 +29,16 @@ def LoadSamples():
 
 
 NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
-
+gvars.preset = 0
 SampleLoading = False
 
 def ActuallyLoad():
 
-    global SampleLoading
+    global SampleLoading, LoadingThread
+
+    setlistList = open(navigator.SETLIST_FILE_PATH).read().splitlines()
+    print setlistList
+    print '         ' + str(gvars.preset)
 
     gvars.playingsounds = []
     gvars.samples = {}
@@ -42,31 +46,39 @@ def ActuallyLoad():
     gvars.globaltranspose = 0
     voices = []
 
-    gvars.basename = next((f for f in os.listdir(gvars.SAMPLES_DIR) if f.startswith("%d " % gvars.preset)),
-                    None)  # or next(glob.iglob("blah*"), None)
+    gvars.basename = setlistList[gvars.preset]
 
     if gvars.basename:
         dirname = os.path.join(gvars.SAMPLES_DIR, gvars.basename)
     if not gvars.basename:
         lcd.display('Preset empty: %s' % gvars.preset)
         return
-    lcd.display('load: ' + gvars.basename)
+    lcd.display('load: ' + gvars.basename, 1)
 
     SampleLoading = True
 
     definitionfname = os.path.join(dirname, "definition.txt")
+    FileCnt = len(os.listdir(dirname))
+    FileCntCur = 0
+
     if os.path.isfile(definitionfname):
 
+        numberOfPatterns = len(list(enumerate(open(definitionfname, 'r'))))
+
         with open(definitionfname, 'r') as definitionfile:
+
+
+
             for i, pattern in enumerate(definitionfile):
                 try:
                     if r'%%volume' in pattern:  # %%paramaters are global parameters
                         gvars.globalvolume *= 10 ** (float(pattern.split('=')[1].strip()) / 20)
                         continue
                     if r'%%transpose' in pattern:
-                        globaltranspose = int(pattern.split('=')[1].strip())
+                        gvars.globaltranspose = int(pattern.split('=')[1].strip())
                         continue
                     defaultparams = {'midinote': '0', 'velocity': '127', 'notename': '', 'voice': '1'}
+
                     if len(pattern.split(',')) > 1:
                         defaultparams.update(dict([item.split('=') for item in
                                                    pattern.split(',', 1)[1].replace(' ', '').replace('%', '').split(
@@ -78,13 +90,13 @@ def ActuallyLoad():
                         .replace(r"\%voice", r"(?P<voice>\d+)") \
                         .replace(r"\%notename", r"(?P<notename>[A-Ga-g]#?[0-9])") \
                         .replace(r"\*", r".*?").strip()  # .*? => non greedy
-                    FileCnt = len(os.listdir(dirname))
-                    FileCntCur = 0
-                    PercentLoaded = 0
+
                     for fname in os.listdir(dirname):
-                        s = gvars.basename + "                  "
-                        PercentLoaded = FileCntCur * 100 / FileCnt
-                        lcd.display(s[:16], 1)
+
+
+                        PercentLoaded = (FileCntCur * (100 / numberOfPatterns)) / FileCnt # more accurate loading progress
+                        #s = str(gvars.preset) + ' ' + gvars.basename + "                  "
+                        #lcd.display(s[:16], 1)
                         lcd.display(unichr(1) * int(PercentLoaded*0.16 + 1), 2)
                         FileCntCur += 1
                         if LoadingInterrupt:
@@ -115,6 +127,10 @@ def ActuallyLoad():
             if os.path.isfile(file):
                 gvars.samples[midinote, 127, 1] = sound.Sound(file, midinote, 127)
 
+            PercentLoaded = (FileCntCur * 100 ) / FileCnt  # more accurate loading progress
+            lcd.display(unichr(1) * int(PercentLoaded * 0.16 + 1), 2)
+            FileCntCur += 1
+
     initial_keys = set(gvars.samples.keys())
     voices = list(set(voices))  # Remove duplicates by converting to a set
     total_voices = len(voices)
@@ -139,7 +155,7 @@ def ActuallyLoad():
                         pass
 
     if len(initial_keys) == 0:
-        lcd.display('Preset empty: ' + str(gvars.preset))
+        lcd.display('Preset empty: ' + str(gvars.preset), 1)
     else:
-        lcd.display('Loaded 100%')
+        lcd.display('Loaded 100%', 1)
     SampleLoading = False

@@ -28,6 +28,8 @@ if gvars.USE_HD44780_16x2_LCD and gvars.IS_DEBIAN:
     STRING_2   = ''
     LCD_CHARS = [0x40, 0x48, 0x50, 0x58, 0x60, 0x68, 0x70, 0x78]
 
+
+
     # Timing constants
     E_PULSE = 0.0005
     E_DELAY = 0.0005
