@@ -28,7 +28,7 @@ import struct
 #import rtmidi_python as rtmidi
 import rtmidi2               # Use rtmidi2 instead. Make sure when installing rtmidi2 to change RPI date: $sudo date -s "Sept 23 18:31 2016". Then installing takes a while
 
-import ctypes # For freeverb
+#import ctypes # For freeverb
 #from filters import FilterType, Filter, FilterChain
 #from utility import byteToPCM, floatToPCM, pcmToFloat, sosfreqz
 from collections import OrderedDict
@@ -40,37 +40,9 @@ import globalvars as gvars
 import loadsamples as ls
 import sound
 import navigator
-import midicallback
 import lcd
 import buttons
-
-
-#########################################
-# LOCAL
-# CONFIG
-#########################################
-
-gvars.AUDIO_DEVICE_ID         = 3                  # change this number to use another soundcard
-gvars.AUDIO_DEVICE_NAME       = "USB Audio DAC"   # If we know the name (or part of the name), match by name instead
-#gvars.SAMPLES_DIR            = "../../media"     # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
-gvars.SAMPLES_DIR             = "./media"         # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
-gvars.USE_SERIALPORT_MIDI     = False             # Set to True to enable MIDI IN via SerialPort (e.g. RaspberryPi's GPIO UART pins)
-gvars.USE_I2C_7SEGMENTDISPLAY = False             # Set to True to use a 7-segment display via I2C
-gvars.USE_BUTTONS             = False             # Set to True to use momentary buttons (connected to RaspberryPi's GPIO pins) to change preset
-gvars.MAX_POLYPHONY           = 80                # This can be set higher, but 80 is a safe value
-gvars.MIDI_CHANNEL            = 1
-gvars.USE_HD44780_16x2_LCD    = True             # Set to True to use a HD44780 based 16x2 LCD
-gvars.USE_FREEVERB            = False             # Set to True to enable FreeVerb
-gvars.USE_TONECONTOL          = False	            # Set to True to enable Tonecontrol (also remove comments in code
-gvars.CHANNELS                = 2	                # set to 2 for normal stereo output, 4 for 4 channel playback
-gvars.BUFFERSIZE              = 64              # Buffersize: lower means less latency, higher more polyphony and stability
-gvars.SAMPLERATE              = 44100
-gvars.VERSION1                = " -=SAMPLER-BOX=- "
-gvars.VERSION2                = "V2.0.1 15-06-2016"
-
-gvars.LCD_DEBUG = True                       # Print LCD messages to python
-
-#lcd.init()
+import midicallback
 
 ############################################################
 # Start the Navigator
@@ -79,8 +51,7 @@ gvars.LCD_DEBUG = True                       # Print LCD messages to python
 gvars.nav = navigator.Navigator(navigator.PresetNav)
 gvars.nav.parseConfig()
 
-
-
+############################################################
 # Volumes from 0-127 0=-20db, 127=0db
 
 # Set Sampler volume
@@ -350,7 +321,8 @@ except KeyboardInterrupt:
 except:
   print "Other Error"
 finally:
-    lcd.display('Stopped')
+    lcd.display('  -=STOPPED=-   ', 1)
+    lcd.display(unichr(2)*16, 2)
     sleep(0.5)
     if gvars.IS_DEBIAN:
         import RPi.GPIO as GPIO

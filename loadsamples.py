@@ -38,7 +38,6 @@ def ActuallyLoad():
 
     setlistList = open(navigator.SETLIST_FILE_PATH).read().splitlines()
     print setlistList
-    print '         ' + str(gvars.preset)
 
     gvars.playingsounds = []
     gvars.samples = {}
@@ -53,7 +52,7 @@ def ActuallyLoad():
     if not gvars.basename:
         lcd.display('Preset empty: %s' % gvars.preset)
         return
-    lcd.display('load: ' + gvars.basename, 1)
+    lcd.display(str(gvars.preset+1) + unichr(2)+ gvars.basename, 1)
 
     SampleLoading = True
 
@@ -77,7 +76,31 @@ def ActuallyLoad():
                     if r'%%transpose' in pattern:
                         gvars.globaltranspose = int(pattern.split('=')[1].strip())
                         continue
-                    defaultparams = {'midinote': '0', 'velocity': '127', 'notename': '', 'voice': '1'}
+
+                    ###    # From Hans' changes
+                    # if r'%%volume' in pattern:        # %%parameters are global parameters
+                    #    volume = int(pattern.split('=')[1].strip())
+                    #    amix.setvolume(volume)
+                    #    getvolume()
+                    #    continue
+                    # if r'%%gain' in pattern:
+                    #     gain = float(pattern.split('=')[1].strip())
+                    #     continue
+                    # if r'%%release' in pattern:
+                    #     release = int(pattern.split('=')[1].strip())
+                    #     continue
+                    # if r'%%mode' in pattern:
+                    #     mode = pattern.split('=')[1].strip().title()
+                    #     # print 'found mode ' + mode
+                    #     if mode == PLAYLIVE or mode == PLAYBACK or mode == PLAYSTOP or mode == PLAYLOOP or mode == PLAYLO2X: sample_mode = mode
+                    #     # print 'sample mode = ' + sample_mode
+                    #     continue
+                    # if r'%%velmode' in pattern:
+                    #     mode = pattern.split('=')[1].strip().title()
+                    #     if mode == VELSAMPLE or mode == VELACCURATE: velocity_mode = mode
+                    #     # print 'velocity mode = ' + velocity_mode
+                    #     continue
+                    defaultparams = {'midinote': '0', 'velocity': '127', 'notename': '', 'voice': '1', 'mode': 'keyb', 'velmode': 'accurate', 'release': '3', 'gain': '1', 'transpose': '0'}
 
                     if len(pattern.split(',')) > 1:
                         defaultparams.update(dict([item.split('=') for item in
@@ -88,11 +111,15 @@ def ActuallyLoad():
                     pattern = pattern.replace(r"\%midinote", r"(?P<midinote>\d+)") \
                         .replace(r"\%velocity", r"(?P<velocity>\d+)") \
                         .replace(r"\%voice", r"(?P<voice>\d+)") \
+                        .replace(r"\%mode", r"(?P<mode>\d+)") \
+                        .replace(r"\%velmode", r"(?P<velmode>\d+)") \
+                        .replace(r"\%release", r"(?P<release>\d+)") \
+                        .replace(r"\%gain", r"(?P<gain>\d+)") \
+                        .replace(r"\%transpose", r"(?P<transpose>\d+)") \
                         .replace(r"\%notename", r"(?P<notename>[A-Ga-g]#?[0-9])") \
                         .replace(r"\*", r".*?").strip()  # .*? => non greedy
 
                     for fname in os.listdir(dirname):
-
 
                         PercentLoaded = (FileCntCur * (100 / numberOfPatterns)) / FileCnt # more accurate loading progress
                         #s = str(gvars.preset) + ' ' + gvars.basename + "                  "
@@ -109,10 +136,20 @@ def ActuallyLoad():
                             voices.append(voice)
                             midinote = int(info.get('midinote', defaultparams['midinote']))
                             velocity = int(info.get('velocity', defaultparams['velocity']))
+                            mode = str(info.get('velocity', defaultparams['mode']))
+                            mode = mode.strip(' \t\n\r')
+                            velmode = str(info.get('velocity', defaultparams['velmode']))
+                            velmode = velmode.strip(' \t\n\r')
+                            release = int(info.get('release', defaultparams['release']))
+                            gain = int(info.get('gain', defaultparams['gain']))
+                            transpose = int(info.get('transpose', defaultparams['transpose']))
                             notename = info.get('notename', defaultparams['notename'])
                             if notename:
                                 midinote = NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
                             gvars.samples[midinote, velocity, voice] = sound.Sound(os.path.join(dirname, fname), midinote, velocity)
+
+
+
 
                 except:
                     print "Error in definition file, skipping line %s." % (i + 1)
@@ -133,9 +170,9 @@ def ActuallyLoad():
 
     initial_keys = set(gvars.samples.keys())
     voices = list(set(voices))  # Remove duplicates by converting to a set
-    total_voices = len(voices)
+    gvars.totalVoices = len(voices)
 
-    for voice in xrange(total_voices):
+    for voice in xrange(gvars.totalVoices):
         voice += 1
         for midinote in xrange(128):
             lastvelocity = None
@@ -155,7 +192,9 @@ def ActuallyLoad():
                         pass
 
     if len(initial_keys) == 0:
-        lcd.display('Preset empty: ' + str(gvars.preset), 1)
+        lcd.display(' Error loading ', 1)
+        lcd.display(str(gvars.preset+1) + unichr(2)+ gvars.basename, 2)
     else:
-        lcd.display('Loaded 100%', 1)
+        #lcd.display('Loaded 100%', 1)
+        pass
     SampleLoading = False

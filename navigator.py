@@ -112,12 +112,26 @@ def findAndAddNewFolders():
     else:
         print('-= No new folders found =-\n')
 
+    # ______________________________________________________________________________
+
+
+def removeMissingSetlistSongs():
+    songsInSetlist = open(SETLIST_FILE_PATH).read().splitlines()
+    i = 0
+    for song in songsInSetlist:
+        if ('* ' in song):
+            del songsInSetlist[i]
+            write_setlist(songsInSetlist)
+        i += 1
+
+
+
 
 # ______________________________________________________________________________
 # On startup detect missing folders and add any new ones found                
 findMissingFolders()
+removeMissingSetlistSongs()
 findAndAddNewFolders()
-
 
 # ______________________________________________________________________________
 
@@ -220,8 +234,10 @@ class Navigator:
 
     def getMenuPathStr(self):
         path_list = []
+        menu_msg = ''
         if len(Navigator.menuCoords) == 1:
             path_list = [Navigator.menu[Navigator.menuCoords[0]]['name']]
+            menu_msg += 'Menu' + unichr(2)
         if len(Navigator.menuCoords) == 2:
             path_list = [Navigator.menu[Navigator.menuCoords[0]]['name'],
                          Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['name']]
@@ -231,10 +247,10 @@ class Navigator:
                          Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['submenu'][
                              Navigator.menuCoords[2]]['name']]
 
-        menu_msg = '[Menu]'
+
         # for name in path_list:
         #     menu_msg += '->[' + name + ']'
-        menu_msg += '>[' + path_list[-1] + ']'
+        menu_msg += path_list[-1]
 
         return menu_msg
 
@@ -254,16 +270,15 @@ class PresetNav(Navigator):
         lcd.resetModes()
         lcd.inPresetMode = True
         self.display()
-        lcd.display('aaaaaaa', 2)
 
     def display(self):
         p = gvars.preset
-        s1 = '[' + str(p + 1) + '] ' + str(self.setlistList[p])
+        s1 = str(p + 1) + unichr(2) + str(self.setlistList[p])
         if p == self.numFolders - 1:
             p = 0
         else:
             p += 1
-        s2 = '[' + str(p + 1) + '] ' + str(self.setlistList[p])
+        s2 = str(p + 1) + unichr(2) + str(self.setlistList[p])
 
         lcd.display(s1, 1, True)
         lcd.display(s2, 2, True)
@@ -294,6 +309,7 @@ class PresetNav(Navigator):
         self.runState()
 
     def cancel(self):  # can remove empty class methods
+        lcd.TimeOut = lcd.TimeOutReset
         lcd.resetModes()
         lcd.inSysMode = True
         # eg CPU/RAM, battery life, time, wifi/bluetooth status

@@ -9,7 +9,7 @@ import pyaudio
 from chunk import Chunk
 import struct
 import globalvars as gvars
-
+import freeverb
 
 
 #########################################
@@ -98,16 +98,16 @@ class Sound:
         self.fname = filename
         self.midinote = midinote
         self.velocity = velocity
+        self.mode = mode
         if wf.getloops():
             self.loop = wf.getloops()[0][0]
             self.nframes = wf.getloops()[0][1] + 2
         else:
             self.loop = -1
             self.nframes = wf.getnframes()
-
         self.data = self.frames2array(wf.readframes(self.nframes), wf.getsampwidth(), wf.getnchannels())
-
         wf.close()
+
 
     def play(self, note, vel):
         snd = PlayingSound(self, note, vel)
@@ -144,6 +144,10 @@ def AudioCallback(outdata, frame_count, time_info, status):
 
     b = samplerbox_audio.mixaudiobuffers(gvars.playingsounds, rmlist, frame_count, gvars.FADEOUT, gvars.FADEOUTLENGTH, gvars.SPEED)
 
+    if gvars.USE_FREEVERB:
+        b_temp = b
+        freeverb.freeverbprocess(b_temp.ctypes.data_as(freeverb.c_float_p), b.ctypes.data_as(freeverb.c_float_p), frame_count)
+
     for e in rmlist:
         try:
             gvars.playingsounds.remove(e)
@@ -153,17 +157,11 @@ def AudioCallback(outdata, frame_count, time_info, status):
     # b *= gvars.globalvolume
     # outdata[:] = b.reshape(outdata.shape)
 
-    #
-    '''
-    if USE_FREEVERB:
-        b_temp = b
-        freeverbprocess(b_temp.ctypes.data_as(c_float_p), b.ctypes.data_as(c_float_p), frame_count)
 
-    if USE_TONECONTOL
-    #	b = numpy.array(chain.filter(bb))
-    #	b=bb
-    '''
-    #
+    # if USE_TONECONTOL
+    # 	b = numpy.array(chain.filter(bb))
+    # 	b=bb
+
 
     if gvars.CHANNELS == 4:  # 4 channel playback
 
