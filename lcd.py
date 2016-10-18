@@ -59,8 +59,12 @@ if USE_LCD and IS_DEB:
     lcd = CharLCD(pin_rs=LCD_RS, pin_rw=None, pin_e=LCD_E, pins_data=[LCD_D4, LCD_D5, LCD_D6, LCD_D7],
                   numbering_mode=GPIO.BCM, cols=16, rows=2)
 
+
     # Write custom codes to the LCD
     lcd.create_char(1, lcdcc.block)
+    lcd.create_char(2, lcdcc.arrow_right_01)
+    lcd.create_char(3, lcdcc.voice_button_on)
+    lcd.create_char(4, lcdcc.voice_button_off)
 
 
 def resetModes():
@@ -70,6 +74,14 @@ def resetModes():
     inSysMode = False
     menuMode = False
 
+def makeVoiceButtons():
+    button_str = ''
+    for v in xrange(gvars.totalVoices):
+        if(v == gvars.current_voice-1):
+            button_str += unichr(3)
+        else:
+            button_str += unichr(4)
+    return button_str
 
 def lcd_main():
     # Main program block
@@ -84,27 +96,32 @@ def lcd_main():
 
     while True:
         if displayCalled:
-            for i in xrange(int(TimeOutReset)):
+            for i in xrange(int(TimeOut)):
                 lcd_string(STRING_1, 1)
                 lcd_string(STRING_2, 2)
+                TimeOut -= 1
                 time.sleep(WhileSleep)
-            displayCalled = False
+            if TimeOut == 0: displayCalled = False
 
         elif inPresetMode:
-            lcd_string(STRING_1_PRIORITY, 1)
+            lcd_string(STRING_1_PRIORITY[:12] + makeVoiceButtons(), 1)
             lcd_string(STRING_2_PRIORITY, 2)
         elif inSysMode:
-            for i in xrange(int(TimeOutReset)):
-                cpu = int(psutil.cpu_percent(None) / 12)
-                ram = int(float(psutil.virtual_memory().percent) / 12)
-                lcd_string('CPU ' + (unichr(1) * cpu), 1)
-                lcd_string('RAM ' + (unichr(1) * ram), 2)
+            TimeOut = TimeOutReset
+            for i in xrange(int(TimeOut)):
+                cpu = int(psutil.cpu_percent(None) / 12) + 1
+                ram = int(float(psutil.virtual_memory().percent) / 12) + 1
+                lcd_string('CPU' + (unichr(1) * cpu), 1)
+                lcd_string('RAM' + (unichr(1) * ram), 2)
+                TimeOut -= 1
                 time.sleep(WhileSleep)
                 if not inSysMode:
                     break
-            inPresetMode = True
+            if TimeOut == 0:
+                resetModes()
+                inPresetMode = True
         else:
-            lcd_string(STRING_1, 1)
+            lcd_string(STRING_1[:12] + (unichr(4)*gvars.totalVoices), 1)
             lcd_string(STRING_2, 2)
 
         time.sleep(WhileSleep)
@@ -124,7 +141,7 @@ def lcd_string(message, line):
         print '{line ' + str(line) + '} -->  ' + message[:16]
 
 
-def display(message, line, is_priority=False, customTimeout=None):
+def display(message, line=1, is_priority=False, customTimeout=None):
     global STRING_1, STRING_2, STRING_1_PRIORITY, STRING_2_PRIORITY, displayCalled, TimeOut
 
     displayCalled = True

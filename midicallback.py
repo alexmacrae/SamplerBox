@@ -1,6 +1,9 @@
 import globalvars as gvars
 import os
 import loadsamples
+import lcdcustomchars as lcdcc
+import lcd
+import freeverb
 
 #########################################
 # MIDI CALLBACK
@@ -110,6 +113,19 @@ def MidiCallback(src, message, time_stamp):
                 gvars.current_voice = 4
             print 'VOICE [' + str(gvars.current_voice) + ']'
 
+    # FREEVERB
+        if (messagetype == 11):
+
+            if (note == 21):
+                freeverb.setroomsize(velocity)
+            if (note == 22):
+                freeverb.setdamp(velocity)
+            if (note == 23):
+                freeverb.setwet(velocity)
+            if (note == 19):
+                freeverb.setdry(velocity)
+            if (note == 20):
+                freeverb.setwidth(velocity)
 
 
     # SUSTAIN PEDAL
@@ -127,8 +143,10 @@ def MidiCallback(src, message, time_stamp):
 
     # GLOBAL VOLUME
         elif (messagetype == 11) and (note == 7) and ("nanoKONTROL" in src):
+            i = int(float(velocity / 127.0) * 13) + 1
+            lcd.display('VOL' + (unichr(1) * i), 2)
             gvars.globalvolume = (10.0 ** (-12.0 / 20.0)) * (float(velocity) / 127.0)
-            print gvars.globalvolume
+            #print gvars.globalvolume
 
     # STARTBACKING TRACK
     #  elif (message[0]==176) and (message[1]==29) and (message[2]==127):

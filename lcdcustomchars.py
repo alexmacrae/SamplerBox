@@ -7,6 +7,7 @@
 
 # We can (kind of) cheat this by overwriting a location. Good for battery status or a clock.
 # Not good for a custom font because overwriting A with B will then show all A characters as the new B
+# UPDATE: have run into some issues with this method. Perhaps not feasible after all :(
 #
 # Write it to memory:
 # lcd.create_char(location, bitmap)
@@ -53,3 +54,9 @@ alex = [letter_A, letter_L, letter_E, letter_X]
 
 voice_button_off = (0b01110, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b11111)
 voice_button_on = (0b01110, 0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11111)
+
+arrow_right_01 = (0b00000, 0b11000, 0b10100, 0b10010, 0b10001, 0b10010, 0b10100, 0b11000)
+arrow_right_02 = (0b00000, 0b11000, 0b11100, 0b10110, 0b10011, 0b10110, 0b11100, 0b11000)
+arrow_right_03 = (0b00000, 0b11000, 0b11100, 0b11110, 0b11111, 0b11110, 0b11100, 0b11000)
+arrow_right_04 = (0b00000, 0b01000, 0b01100, 0b01110, 0b01100, 0b01000, 0b00000, 0b00000)
+arrow_right = [arrow_right_01, arrow_right_02, arrow_right_03]

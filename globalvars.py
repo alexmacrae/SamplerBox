@@ -10,8 +10,8 @@ USE_I2C_7SEGMENTDISPLAY = False             # Set to True to use a 7-segment dis
 USE_BUTTONS             = False             # Set to True to use momentary buttons (connected to RaspberryPi's GPIO pins) to change preset
 MAX_POLYPHONY           = 80                # This can be set higher, but 80 is a safe value
 MIDI_CHANNEL            = 1
-USE_HD44780_16x2_LCD    = False             # Set to True to use a HD44780 based 16x2 LCD
-USE_FREEVERB            = False             # Set to True to enable FreeVerb
+USE_HD44780_16x2_LCD    = True             # Set to True to use a HD44780 based 16x2 LCD
+USE_FREEVERB            = True             # Set to True to enable FreeVerb
 USE_TONECONTOL          = False	            # Set to True to enable Tonecontrol (also remove comments in code
 CHANNELS                = 2	                # set to 2 for normal stereo output, 4 for 4 channel playback
 BUFFERSIZE              = 128               # Buffersize: lower means less latency, higher more polyphony and stability
@@ -22,6 +22,8 @@ VERSION2                = "V2.0.1 15-06-2016"
 LCD_DEBUG = True                                                # Print LCD messages to python
 IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian' # Determine if running on RPi (True or False)
 
+if not IS_DEBIAN:
+    USE_FREEVERB = False
 
 
 # settings for ToneControl
@@ -46,6 +48,7 @@ SPEED = numpy.power(2, numpy.arange(0.0, 84.0) / 12).astype(numpy.float32)
 # administration Sampler
 samples = {}
 playingnotes = {}
+totalVoices = 1
 sustainplayingnotes = []
 sustain = False
 playingsounds = []
