@@ -34,8 +34,6 @@ import rtmidi2               # Use rtmidi2 instead. Make sure when installing rt
 from collections import OrderedDict
 from time import sleep
 
-
-
 import globalvars as gvars
 import loadsamples as ls
 import sound
@@ -44,12 +42,13 @@ import lcd
 import buttons
 import midicallback
 
+
 ############################################################
 # Start the Navigator
 ############################################################
 
 gvars.nav = navigator.Navigator(navigator.PresetNav)
-gvars.nav.parseConfig()
+#gvars.nav.parseConfig()
 
 ############################################################
 # Volumes from 0-127 0=-20db, 127=0db
@@ -306,7 +305,7 @@ try:
             midi_in.close_ports()
             prev_ports = []
         for port in curr_ports:
-            if port not in prev_ports and 'Midi Through' not in port and (len(prev_ports) != len(curr_ports)):
+            if port not in prev_ports and 'Midi Through' not in port and (len(prev_ports) != len(curr_ports) and 'LoopBe Internal' not in port):
                 midi_in.open_ports(port)
                 midi_in.callback = midicallback.MidiCallback
                 if first_loop:
