@@ -7,6 +7,7 @@ import psutil
 import time
 import lcdcustomchars as lcdcc
 
+
 USE_LCD = gvars.USE_HD44780_16x2_LCD
 IS_DEB = gvars.IS_DEBIAN
 LCD_DEBUG = gvars.LCD_DEBUG
@@ -83,6 +84,9 @@ def makeVoiceButtons():
             button_str += unichr(4)
     return button_str
 
+def getTimeOut():
+    return TimeOut
+
 def lcd_main():
     # Main program block
     global TimeOut, displayCalled, inPresetMode
@@ -96,12 +100,15 @@ def lcd_main():
 
     while True:
         if displayCalled:
+            if TimeOut == 0: TimeOut = 1
             for i in xrange(int(TimeOut)):
                 lcd_string(STRING_1, 1)
                 lcd_string(STRING_2, 2)
                 TimeOut -= 1
+                if TimeOut <= 0:
+                    displayCalled = False
+                    break
                 time.sleep(WhileSleep)
-            if TimeOut == 0: displayCalled = False
 
         elif inPresetMode:
             lcd_string(STRING_1_PRIORITY[:12] + makeVoiceButtons(), 1)
@@ -146,7 +153,7 @@ def display(message, line=1, is_priority=False, customTimeout=None):
 
     displayCalled = True
 
-    if customTimeout:
+    if customTimeout != None:
         TimeOut = customTimeout/WhileSleep
     else:
         TimeOut = TimeOutReset

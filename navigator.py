@@ -22,12 +22,7 @@ import loadsamples as ls
 import globalvars as gvars
 import lcd
 
-MIDI_CONFIG_DIR = "midi config/"
-CONFIG_FILE_PATH = "system config/config.ini"
-SETLIST_FILE_PATH = "setlist/setlist.txt"
-SONG_FOLDERS_LIST = os.listdir(gvars.SAMPLES_DIR)
 
-USING_CONFIG_FILE = False
 
 print '''
   /==============================//
@@ -38,7 +33,7 @@ print '''
 
 def write_setlist(list_to_write):
     print('-= WRITING NEW SETLIST =-')
-    setlist = open(SETLIST_FILE_PATH, "w")
+    setlist = open(gvars.SETLIST_FILE_PATH, "w")
     list_to_write = list(filter(None, list_to_write))  # remove empty strings / empty lines
     for song in list_to_write:
         setlist.write(song + '\n')
@@ -49,13 +44,13 @@ def findMissingFolders():
     # Check to see if the song name in the setlist matches the name of a folder.
     # If it doesn't, mark it by prepending an *asterix and rewrite the setlist file.
 
-    songsInSetlist = open(SETLIST_FILE_PATH).read().splitlines()
+    songsInSetlist = open(gvars.SETLIST_FILE_PATH).read().splitlines()
     songsInSetlist = list(filter(None, songsInSetlist))  # remove empty strings / empty lines
     changes = False
     k = 0
     for song_name in songsInSetlist:
         i = 0
-        for song_folder_name in SONG_FOLDERS_LIST:
+        for song_folder_name in gvars.SONG_FOLDERS_LIST:
 
             if (song_name == song_folder_name):
                 # print(song_name + ' was found')
@@ -65,7 +60,7 @@ def findMissingFolders():
                 songsInSetlist[k] = song_name.replace('* ', '')
                 # break
             else:
-                if (i == len(SONG_FOLDERS_LIST) - 1):
+                if (i == len(gvars.SONG_FOLDERS_LIST) - 1):
                     print(song_name + ' WAS NOT FOUND. ')
                     songsInSetlist[k] = '* ' + song_name.replace('* ', '')
                     changes = True
@@ -83,13 +78,13 @@ def findMissingFolders():
 def findAndAddNewFolders():
     # Check for new song folders and add them to the end of the setlist
 
-    songsInSetlist = open(SETLIST_FILE_PATH).read().splitlines()
+    songsInSetlist = open(gvars.SETLIST_FILE_PATH).read().splitlines()
     songsInSetlist = list(filter(None, songsInSetlist))  # remove empty strings / empty lines
     changes = False
 
-    if (set(songsInSetlist).intersection(SONG_FOLDERS_LIST) != len(SONG_FOLDERS_LIST) and len(songsInSetlist) != 0):
+    if (set(songsInSetlist).intersection(gvars.SONG_FOLDERS_LIST) != len(gvars.SONG_FOLDERS_LIST) and len(songsInSetlist) != 0):
 
-        for song_folder_name in SONG_FOLDERS_LIST:
+        for song_folder_name in gvars.SONG_FOLDERS_LIST:
             i = 0
             for song_name in songsInSetlist:
                 if (song_folder_name == song_name):
@@ -102,7 +97,7 @@ def findAndAddNewFolders():
 
                 i += 1
     elif (len(songsInSetlist) == 0):
-        songsInSetlist = SONG_FOLDERS_LIST
+        songsInSetlist = gvars.SONG_FOLDERS_LIST
         changes = True
         print ('Setlist empty - adding all foldings')
 
@@ -116,7 +111,7 @@ def findAndAddNewFolders():
 
 
 def removeMissingSetlistSongs():
-    songsInSetlist = open(SETLIST_FILE_PATH).read().splitlines()
+    songsInSetlist = open(gvars.SETLIST_FILE_PATH).read().splitlines()
     i = 0
     for song in songsInSetlist:
         if ('* ' in song):
@@ -170,7 +165,7 @@ class Navigator:
                 3: {'name': 'Buffer size', 'fn': 'BufferSizeConfig'},
                 4: {'name': 'Sample rate', 'fn': 'SampleRateConfig'}
             }
-            }
+        }
     }
     state = None
     menuCoords = [0]
@@ -200,37 +195,7 @@ class Navigator:
             Navigator.menuPosition = Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]][
                 'submenu']
 
-    def parseConfig(self):
-        if self.config.read(CONFIG_FILE_PATH):
-            print '-= Reading settings from config.ini =-'
-            Navigator.USING_CONFIG_FILE = True
-            Navigator.MAX_POLYPHONY = int(self.config['DEFAULT']['MAX_POLYPHONY'])
-            Navigator.MIDI_CHANNEL = int(self.config['DEFAULT']['MIDI_CHANNEL'])
-            Navigator.CHANNELS = int(self.config['DEFAULT']['CHANNELS'])
-            Navigator.BUFFERSIZE = int(self.config['DEFAULT']['BUFFERSIZE'])
-            Navigator.SAMPLERATE = int(self.config['DEFAULT']['SAMPLERATE'])
-            Navigator.GLOBAL_VOLUME = int(self.config['DEFAULT']['GLOBAL_VOLUME'])
-        else:
-            print '!! config.ini does not exist - using defaults !!'
-            Navigator.USING_CONFIG_FILE = False
-            Navigator.MAX_POLYPHONY = 80
-            Navigator.MIDI_CHANNEL = 1
-            Navigator.CHANNELS = 2
-            Navigator.BUFFERSIZE = 128
-            Navigator.SAMPLERATE = 44100
-            Navigator.GLOBAL_VOLUME = 100
 
-    def writeConfig(self):
-
-        self.config['DEFAULT']['MAX_POLYPHONY'] = str(self.MAX_POLYPHONY)
-        self.config['DEFAULT']['MIDI_CHANNEL'] = str(self.MIDI_CHANNEL)
-        self.config['DEFAULT']['CHANNELS'] = str(self.CHANNELS)
-        self.config['DEFAULT']['BUFFERSIZE'] = str(self.BUFFERSIZE)
-        self.config['DEFAULT']['SAMPLERATE'] = str(self.SAMPLERATE)
-        self.config['DEFAULT']['GLOBAL_VOLUME'] = str(self.GLOBAL_VOLUME)
-        print 'WRITING CONFIG'
-        with open(CONFIG_FILE_PATH, 'w') as configfile:
-            self.config.write(configfile)
 
     def getMenuPathStr(self):
         path_list = []
@@ -264,7 +229,7 @@ class Navigator:
 class PresetNav(Navigator):
     def __init__(self):
 
-        self.setlistList = open(SETLIST_FILE_PATH).read().splitlines()
+        self.setlistList = open(gvars.SETLIST_FILE_PATH).read().splitlines()
         self.numFolders = len(os.walk(gvars.SAMPLES_DIR).next()[1])
         print '-= Welcome to preset land =-'
         lcd.resetModes()
@@ -381,7 +346,7 @@ class MenuNav(Navigator):
 
 class SelectSong(Navigator):
     def __init__(self):
-        self.setlistList = open(SETLIST_FILE_PATH).read().splitlines()
+        self.setlistList = open(gvars.SETLIST_FILE_PATH).read().splitlines()
         self.nextState = eval(self.menuPosition[self.menuCoords[-1]]['fn'][1])
         self.display()
 
@@ -414,7 +379,7 @@ class SelectSong(Navigator):
 
 class MoveSong(Navigator):
     def __init__(self):
-        self.setlistList = open(SETLIST_FILE_PATH).read().splitlines()
+        self.setlistList = open(gvars.SETLIST_FILE_PATH).read().splitlines()
         self.prevState = eval(self.menuPosition[self.menuCoords[-1]]['fn'][0])
         self.display()
 
@@ -463,7 +428,7 @@ class SetlistRemoveMissing(Navigator):
 
     def enter(self):
 
-        songsInSetlist = open(SETLIST_FILE_PATH).read().splitlines()
+        songsInSetlist = open(gvars.SETLIST_FILE_PATH).read().splitlines()
         i = 0
         for song in songsInSetlist:
             if ('* ' in song):
@@ -491,7 +456,7 @@ class SetlistRemoveMissing(Navigator):
 class DeleteSong(Navigator):
     def __init__(self):
         self.prevState = eval(self.menuPosition[self.menuCoords[-1]]['fn'][0])
-        self.setlistList = open(SETLIST_FILE_PATH).read().splitlines()
+        self.setlistList = open(gvars.SETLIST_FILE_PATH).read().splitlines()
         lcd.display('Are you sure? [Y/N]', 1)
         lcd.display('WARNING: will crash if we delete all songs', 2)
 
@@ -752,7 +717,7 @@ class MidiMapper(Navigator):
         config.set('MIDIMAP', 'mmessage', str(self.midiMessage))
 
         # Writing our configuration file to 'example.cfg'
-        with open(MIDI_CONFIG_DIR + self.deviceName + '.ini', 'wb') as configfile:
+        with open(gvars.MIDI_CONFIG_DIR + self.deviceName + '.ini', 'wb') as configfile:
             config.write(configfile)
         self.cancel()
 
@@ -761,15 +726,6 @@ class MidiMapper(Navigator):
         self.loadState(MenuNav)
         self.runState()
 
-#########################################
-# LOAD THE
-# NAVIGATOR
-#########################################
-
-# n = Navigator()
-# Navigator.parseConfig()
-# Navigator.loadState(PresetNav)
-# Navigator.runState()
 
 
 # ______________________________________________________________________________

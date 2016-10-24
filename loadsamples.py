@@ -2,6 +2,7 @@
 # LOAD SAMPLES
 #
 #########################################
+
 import threading
 import navigator
 import os
@@ -28,6 +29,8 @@ def LoadSamples():
     LoadingThread.start()
 
 
+
+
 NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
 gvars.preset = 0
 SampleLoading = False
@@ -36,7 +39,7 @@ def ActuallyLoad():
 
     global SampleLoading, LoadingThread
 
-    setlistList = open(navigator.SETLIST_FILE_PATH).read().splitlines()
+    setlistList = open(gvars.SETLIST_FILE_PATH).read().splitlines()
     print setlistList
 
     gvars.playingsounds = []
@@ -149,8 +152,6 @@ def ActuallyLoad():
                             gvars.samples[midinote, velocity, voice] = sound.Sound(os.path.join(dirname, fname), midinote, velocity)
 
 
-
-
                 except:
                     print "Error in definition file, skipping line %s." % (i + 1)
 
@@ -195,6 +196,5 @@ def ActuallyLoad():
         lcd.display(' Error loading ', 1)
         lcd.display(str(gvars.preset+1) + unichr(2)+ gvars.basename, 2)
     else:
-        #lcd.display('Loaded 100%', 1)
-        pass
+        lcd.display('', 1, customTimeout=0) # as soon as the sample set is loaded, go straight to play screen
     SampleLoading = False

@@ -98,7 +98,6 @@ class Sound:
         self.fname = filename
         self.midinote = midinote
         self.velocity = velocity
-        self.mode = mode
         if wf.getloops():
             self.loop = wf.getloops()[0][0]
             self.nframes = wf.getloops()[0][1] + 2
