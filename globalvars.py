@@ -3,7 +3,12 @@ import platform
 import os
 import configparser
 
-AUDIO_DEVICE_ID         = 4                  # change this number to use another soundcard
+IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian' # Determine if running on RPi (True or False)
+
+if IS_DEBIAN:
+    AUDIO_DEVICE_ID     = 2
+else:
+    AUDIO_DEVICE_ID     = 4                 # change this number to use another soundcard
 AUDIO_DEVICE_NAME       = "USB Audio DAC"   # If we know the name (or part of the name), match by name instead
 SAMPLES_DIR             = "./media"         # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
 USE_SERIALPORT_MIDI     = False             # Set to True to enable MIDI IN via SerialPort (e.g. RaspberryPi's GPIO UART pins)
@@ -17,7 +22,8 @@ SETLIST_FILE_PATH = "setlist/setlist.txt"
 SONG_FOLDERS_LIST = os.listdir(SAMPLES_DIR)
 
 LCD_DEBUG = True                                                # Print LCD messages to python output
-IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian' # Determine if running on RPi (True or False)
+
+
 
 
 def parseConfig():
@@ -120,4 +126,8 @@ clickvolumeDB = 0
 # PRESETS
 preset = 0
 current_voice = 1
+
+# MIDI LEARNING
+midimaps = None
+learningMode = False
 

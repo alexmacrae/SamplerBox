@@ -8,7 +8,6 @@
 #  samplerbox2.py:  Main file
 #
 
-
 #########################################
 # IMPORT
 # MODULES
@@ -25,7 +24,6 @@ import pyaudio
 import threading
 from chunk import Chunk
 import struct
-#import rtmidi_python as rtmidi
 import rtmidi2               # Use rtmidi2 instead. Make sure when installing rtmidi2 to change RPI date: $sudo date -s "Sept 23 18:31 2016". Then installing takes a while
 
 #import ctypes # For freeverb
@@ -41,13 +39,15 @@ import navigator
 import lcd
 import buttons
 import midicallback
-
+import midimaps
 
 ############################################################
 # Start the Navigator
 ############################################################
 
+gvars.midimaps = midimaps.MidiMapping().maps
 gvars.nav = navigator.Navigator(navigator.PresetNav)
+
 #gvars.nav.parseConfig()
 
 ############################################################
@@ -74,12 +74,6 @@ def setClickVol(vol):                 # volume in db
 setSamplerVol(50)
 setBackVol(50)
 setClickVol(50)
-
-
-
-
-
-
 
 
 
@@ -224,10 +218,12 @@ except:
 
 #########################################
 
-if gvars.USE_BUTTONS and gvars.IS_DEBIAN:
-    ButtonsThread = threading.Thread(target=buttons.Buttons)
-    ButtonsThread.daemon = True
-    ButtonsThread.start()
+# !!! WARNING: this was causing issues with the LCD - haven't looked into it
+
+# if gvars.USE_BUTTONS and gvars.IS_DEBIAN:
+#     ButtonsThread = threading.Thread(target=buttons.Buttons)
+#     ButtonsThread.daemon = True
+#     ButtonsThread.start()
 
 
 #########################################

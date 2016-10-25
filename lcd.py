@@ -42,7 +42,7 @@ menuMode = False
 if IS_DEB:
     WhileSleep = 0.1
 else:
-    WhileSleep = 0.5
+    WhileSleep = 1
 
 TimeOutReset = 3  # 3 sec
 TimeOutReset /= WhileSleep  # Adjust according to while loop sleep time
