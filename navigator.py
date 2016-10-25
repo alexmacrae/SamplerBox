@@ -24,6 +24,8 @@ import lcd
 
 
 
+
+
 print '''
   /==============================//
  /== NAVIGATOR by ALEX MACRAE ==//
@@ -82,7 +84,8 @@ def findAndAddNewFolders():
     songsInSetlist = list(filter(None, songsInSetlist))  # remove empty strings / empty lines
     changes = False
 
-    if (set(songsInSetlist).intersection(gvars.SONG_FOLDERS_LIST) != len(gvars.SONG_FOLDERS_LIST) and len(songsInSetlist) != 0):
+    if (set(songsInSetlist).intersection(gvars.SONG_FOLDERS_LIST) != len(gvars.SONG_FOLDERS_LIST) and len(
+            songsInSetlist) != 0):
 
         for song_folder_name in gvars.SONG_FOLDERS_LIST:
             i = 0
@@ -107,7 +110,7 @@ def findAndAddNewFolders():
     else:
         print('-= No new folders found =-\n')
 
-    # ______________________________________________________________________________
+        # ______________________________________________________________________________
 
 
 def removeMissingSetlistSongs():
@@ -120,68 +123,34 @@ def removeMissingSetlistSongs():
         i += 1
 
 
-
-
 # ______________________________________________________________________________
 # On startup detect missing folders and add any new ones found                
 findMissingFolders()
 removeMissingSetlistSongs()
 findAndAddNewFolders()
 
+
 # ______________________________________________________________________________
 
 
 class Navigator:
-    menu = {
-        0: {
-            'name': 'Setlist',
-            'submenu': {
-                0: {'name': 'Rearrange/Move song', 'fn': ['SelectSong', 'MoveSong']},
-                1: {'name': 'Remove missing', 'fn': 'SetlistRemoveMissing'},
-                2: {'name': 'Delete songs', 'fn': ['SelectSong', 'DeleteSong']}
-            }
-        },
-        1: {'name': 'All songs', 'fn': ''},
-        2: {'name': 'Master volume', 'fn': 'MasterVolumeConfig'},
-        3: {'name': 'MIDI Mapping',
-            'submenu': {
-                0: {'name': 'Master Volume', 'fn': ['MidiMapper', 'MasterVolumeConfig']},
-                1: {'name': 'Voices',
-                    'submenu': {
-                        0: {'name': 'Voice 1', 'fn': ['MidiMapper', '!voices!']},
-                        1: {'name': 'Voice 2', 'fn': ['MidiMapper', '!voices!']},
-                        2: {'name': 'Voice 3', 'fn': ['MidiMapper', '!voices!']},
-                        3: {'name': 'Voice 4', 'fn': ['MidiMapper', '!voices!']}
-                    }
-                    },
-                2: {'name': 'Sys Left/Right', 'fn': ['MidiMapper', '!sys pos changer!']}
-            }
-            },
-        4: {'name': 'System settings',
-            'submenu': {
-                0: {'name': 'Max polyphony', 'fn': 'MaxPolyphonyConfig'},
-                1: {'name': 'MIDI channel', 'fn': 'MidiChannelConfig'},
-                2: {'name': 'Audio channels', 'fn': 'ChannelsConfig'},
-                3: {'name': 'Buffer size', 'fn': 'BufferSizeConfig'},
-                4: {'name': 'Sample rate', 'fn': 'SampleRateConfig'}
-            }
-        }
-    }
+    import menudict
+    menu = menudict.menu
+
+
     state = None
     menuCoords = [0]
-    menuPosition = menu
+    menuPointer = 0
+    function = None
     config = configparser.ConfigParser()
 
     def __init__(self, initState):
         Navigator.state = initState
         self.loadState(Navigator.state)
-        self.runState()
+        
 
     def loadState(self, theClass):
-        Navigator.state = theClass
-
-    def runState(self):
-        Navigator.state = Navigator.state()
+        Navigator.state = theClass()
 
     def setMenuPosition(self):
         if len(Navigator.menuCoords) == 1:
@@ -195,29 +164,39 @@ class Navigator:
             Navigator.menuPosition = Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]][
                 'submenu']
 
-
-
     def getMenuPathStr(self):
-        path_list = []
-        menu_msg = ''
-        if len(Navigator.menuCoords) == 1:
-            path_list = [Navigator.menu[Navigator.menuCoords[0]]['name']]
-            menu_msg += 'Menu' + unichr(2)
-        if len(Navigator.menuCoords) == 2:
-            path_list = [Navigator.menu[Navigator.menuCoords[0]]['name'],
-                         Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['name']]
-        if len(Navigator.menuCoords) == 3:
-            path_list = [Navigator.menu[Navigator.menuCoords[0]]['name'],
-                         Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['name'],
-                         Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['submenu'][
-                             Navigator.menuCoords[2]]['name']]
+        # path_list = []
+        # menu_msg = ''
+        # if len(Navigator.menuCoords) == 1:
+        #     path_list = [Navigator.menu[Navigator.menuCoords[0]]['name']]
+        #     menu_msg += 'Menu' + unichr(2)
+        # if len(Navigator.menuCoords) == 2:
+        #     path_list = [Navigator.menu[Navigator.menuCoords[0]]['name'],
+        #                  Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['name']]
+        # if len(Navigator.menuCoords) == 3:
+        #     path_list = [Navigator.menu[Navigator.menuCoords[0]]['name'],
+        #                  Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['name'],
+        #                  Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['submenu'][
+        #                      Navigator.menuCoords[2]]['name']]
+        #
+        # # for name in path_list:
+        # #     menu_msg += '->[' + name + ']'
+        # menu_msg += path_list[-1]
 
+        menuMsg = self.getMenu().get(self.menuPointer).get('name')
 
-        # for name in path_list:
-        #     menu_msg += '->[' + name + ']'
-        menu_msg += path_list[-1]
+        return menuMsg
 
-        return menu_msg
+    def getMenu(self, mc=None):
+        if not mc:
+            mc = Navigator.menuCoords
+        menu = Navigator.menu.get('submenu')
+        i = 0
+        while i < len(mc):
+            if i > 0:
+                menu = menu.get(mc[i - 1]).get('submenu')
+            i += 1
+        return menu
 
 
 # ______________________________________________________________________________
@@ -248,7 +227,6 @@ class PresetNav(Navigator):
         lcd.display(s1, 1, True)
         lcd.display(s2, 2, True)
 
-
     def right(self):
         gvars.preset += 1
         lcd.resetModes()
@@ -271,7 +249,7 @@ class PresetNav(Navigator):
 
     def enter(self):
         self.loadState(MenuNav)
-        self.runState()
+
 
     def cancel(self):  # can remove empty class methods
         lcd.TimeOut = lcd.TimeOutReset
@@ -281,73 +259,78 @@ class PresetNav(Navigator):
 
 
 # ______________________________________________________________________________
+functionToMap = None
+functionNiceName = None
 
 class MenuNav(Navigator):
     def __init__(self):
 
-        self.menu_pos = self.menuCoords[-1]
+        self.menuPointer = self.menuCoords[-1]
+
         lcd.resetModes()
+
         lcd.menuMode = True
         lcd.display(self.getMenuPathStr(), 1)
         lcd.display('-------------------------', 2)
 
-    # select next menu item
-    def right(self):
 
-        if self.menu_pos < len(self.menuPosition) - 1:
-            self.menu_pos += 1
-            self.menuCoords[-1] = self.menu_pos
-            lcd.display(self.getMenuPathStr(), 1)
-        else:
-            lcd.display(self.getMenuPathStr() + ' (end)', 1)
-
-    # select previous menu item
     def left(self):
 
-        if self.menu_pos > 0:
-            self.menu_pos -= 1
-            self.menuCoords[-1] = self.menu_pos
-            lcd.display(self.getMenuPathStr(), 1)
+        if self.menuPointer > 0:
+            self.menuPointer -= 1
+            self.menuCoords[-1] = self.menuPointer
+            lcd.display(self.getMenu().get(self.menuPointer).get('name'))
         else:
-            lcd.display(self.getMenuPathStr() + ' (start)', 1)
+            lcd.display(self.getMenu().get(self.menuPointer).get('name') + '(start)')
+
+    def right(self):
+
+        if self.menuPointer < len(self.getMenu()) - 1:
+            self.menuPointer += 1
+            self.menuCoords[-1] = self.menuPointer
+            lcd.display(self.getMenu().get(self.menuPointer).get('name'))
+        else:
+            lcd.display(self.getMenu().get(self.menuPointer).get('name') + '(end)')
 
     def enter(self):
+        global functionToMap, functionNiceName
+        menu = self.getMenu().get(self.menuPointer)
+        try:
+            if menu.has_key('submenu'):
+                lcd.display('Entering submenu for [' + menu.get('name') + ']')
+                if menu.has_key('functionToMap'):
+                    functionToMap = menu.get('functionToMap')
+                    functionNiceName = menu.get('name')
+                self.menuCoords.append(0)
+                self.loadState(MenuNav)
+            if menu.has_key('fn'):
 
-        if 'submenu' in self.menuPosition[self.menuCoords[-1]]:
-            lcd.display('Entering submenu for [' + self.menuPosition[self.menuCoords[-1]]['name'] + ']', 1)
-            self.menuCoords.append(0)
-            self.setMenuPosition()
-            self.loadState(MenuNav)
-            self.runState()
-        elif 'fn' in self.menuPosition[self.menuCoords[-1]]:
-            lcd.display('Entering [' + self.menuPosition[self.menuCoords[-1]]['name'] + '] function', 1)
-            fn = self.menuPosition[self.menuCoords[-1]]['fn']
-            if isinstance(fn, list):
-                fn = eval(fn[0])
-            else:
-                fn = eval(fn)
-            self.loadState(fn)
-            self.runState()
+                if menu.get('fn') == 'MidiLearn':
+                    self.menuCoords.append(0)
+                    Navigator.state = eval(menu.get('fn'))(functionToMap, functionNiceName)
+                elif isinstance(menu.get('fn'), list):
+                    Navigator.state = eval(menu.get('fn')[0])(eval(menu.get('fn')[1])) # for SelectSong
+                else:
+                    Navigator.state = eval(menu.get('fn'))()
+
+        except:
+            pass
 
     def cancel(self):
         if len(self.menuCoords) > 1:
             self.menuCoords.pop()
-            self.setMenuPosition()
             self.loadState(MenuNav)
-            self.runState()
         else:
             self.loadState(PresetNav)  # this will become the gvars.presets state
-            self.runState()
-
 
 
 # ______________________________________________________________________________
 
 
 class SelectSong(Navigator):
-    def __init__(self):
+    def __init__(self, nextState):
         self.setlistList = open(gvars.SETLIST_FILE_PATH).read().splitlines()
-        self.nextState = eval(self.menuPosition[self.menuCoords[-1]]['fn'][1])
+        self.nextState = nextState
         self.display()
 
     def display(self):
@@ -367,12 +350,11 @@ class SelectSong(Navigator):
         self.display()
 
     def enter(self):
+
         self.loadState(self.nextState)
-        self.runState()
 
     def cancel(self):
         self.loadState(MenuNav)
-        self.runState()
 
 
 # ______________________________________________________________________________
@@ -380,7 +362,7 @@ class SelectSong(Navigator):
 class MoveSong(Navigator):
     def __init__(self):
         self.setlistList = open(gvars.SETLIST_FILE_PATH).read().splitlines()
-        self.prevState = eval(self.menuPosition[self.menuCoords[-1]]['fn'][0])
+        self.prevState = SelectSong
         self.display()
 
     def display(self):
@@ -411,12 +393,10 @@ class MoveSong(Navigator):
 
     def enter(self):
         write_setlist(self.setlistList)
-        self.loadState(self.prevState)
-        self.runState()
+        Navigator.state = self.prevState(MoveSong)
 
     def cancel(self):
-        self.loadState(self.prevState)
-        self.runState()
+        Navigator.state =  self.prevState(MoveSong)
 
 
 # ______________________________________________________________________________
@@ -437,7 +417,6 @@ class SetlistRemoveMissing(Navigator):
             i += 1
 
         self.loadState(MenuNav)
-        self.runState()
 
     def right(self):
         pass
@@ -447,7 +426,6 @@ class SetlistRemoveMissing(Navigator):
 
     def cancel(self):
         self.loadState(MenuNav)
-        self.runState()
 
 
 # ______________________________________________________________________________
@@ -469,11 +447,78 @@ class DeleteSong(Navigator):
             gvars.preset -= 1
 
         self.loadState(self.prevState)
-        self.runState()
 
     def cancel(self):
         self.loadState(self.prevState)
-        self.runState()
+
+# ______________________________________________________________________________
+
+
+
+class MidiLearn(Navigator):
+    def __init__(self, functionToMap, functionNiceName):
+
+        self.midimaps = gvars.midimaps
+        # src[:src.rfind(" "):] # use this to strip the port number off the end of src
+
+        gvars.learningMode = True
+        self.functionToMap = functionToMap
+        self.functionNiceName = functionNiceName
+        self.learnedMidiMessage = None
+        self.learnedMidiDevice = None
+        lcd.display('Learning', 1)
+        lcd.display('Select a control', 2)
+
+    def sendControlToMap(self, learnedMidiMessage, learnedMidiDevice):
+        self.learnedMidiMessage = learnedMidiMessage
+        self.learnedMidiDevice = learnedMidiDevice
+        lcd.display(str(learnedMidiMessage[0]) +':'+ str(learnedMidiMessage[1]) + ' ' + learnedMidiDevice, 2)
+        self.enter() #
+        #print learnedMidiMessage, learnedMidiDevice
+
+    def enter(self):
+
+        mm = self.midimaps
+
+        try:
+            src = self.learnedMidiDevice
+            messagetype = self.learnedMidiMessage[0]
+            note = self.learnedMidiMessage[1]
+            messageKey = (messagetype, note)
+            if src not in mm:
+                mm[src] = {}  # create new empty dict key for device
+                print 'Creating new device in dict'
+            else:
+                print 'Device is in dict - do nothing'
+            if messageKey not in mm.get(src):
+                mm.get(src)[messageKey] = {}  # create new empty dict key for messageKey
+                print 'Creating new dict for the messageKey'
+            else:
+                print '!! Already mapped to:', mm.get(src).get(messageKey).get('name')
+                print 'Do you want to overwrite? Well too bad - doing it anyway ;)'
+
+            mm.get(src)[messageKey] = {'name': self.functionNiceName, 'fn': self.functionToMap}
+
+            import midimaps
+            midimaps.MidiMapping().saveMaps(mm)
+
+            self.cancel()  # Go back
+
+
+        except:
+            print 'failed for some reason'
+            pass
+
+    def cancel(self):
+        # print devices
+        lcd.display('----------------',2)
+        gvars.learningMode = False
+        if len(self.menuCoords) > 1:
+            self.menuCoords.pop()
+            self.loadState(MenuNav)
+        else:
+            self.loadState(MenuNav)  # this will become the gvars.presets state
+
 
 
 # ______________________________________________________________________________
@@ -487,7 +532,6 @@ class MaxPolyphonyConfig(Navigator):
         lcd.display('Max polyphony', 1)
         lcd.display(str(self.MAX_POLYPHONY) + ' (1-128)', 2)
 
-
     def left(self):
         self.MAX_POLYPHONY = max(self.MAX_POLYPHONY - 8, 1)
         self.display()
@@ -500,7 +544,6 @@ class MaxPolyphonyConfig(Navigator):
         self.writeConfig()
         print '-- requires a restart --'  # or a reinstantiation of the sounddevice
         self.loadState(MenuNav)
-        self.runState()
 
     def cancel(self):
         self.enter()
@@ -523,9 +566,8 @@ class MidiChannelConfig(Navigator):
 
     def enter(self):
         self.writeConfig()
-        print '-- requires a restart (maybe?) --'  # or a reinstantiation of the sounddevice
+        print '-- requires a restart (maybe?) --'  # or a reinstantiation of the audio device
         self.loadState(MenuNav)
-        self.runState()
 
     def cancel(self):
         self.enter()
@@ -544,8 +586,7 @@ class ChannelsConfig(Navigator):
 
     def display(self):
         lcd.display('Audio Channels', 1)
-        lcd.display('['+str(self.CHANNELS)+']' + ' (1,2,4,6,8)', 2)
-
+        lcd.display('[' + str(self.CHANNELS) + ']' + ' (1,2,4,6,8)', 2)
 
     def left(self):
         if self.i > 0:
@@ -563,7 +604,6 @@ class ChannelsConfig(Navigator):
         self.writeConfig()
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the sounddevice
         self.loadState(MenuNav)
-        self.runState()
 
     def cancel(self):
         self.enter()
@@ -599,7 +639,6 @@ class BufferSizeConfig(Navigator):
         self.writeConfig()
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the sounddevice
         self.loadState(MenuNav)
-        self.runState()
 
     def cancel(self):
         self.enter()
@@ -635,7 +674,6 @@ class SampleRateConfig(Navigator):
         self.writeConfig()
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the sounddevice
         self.loadState(MenuNav)
-        self.runState()
 
     def cancel(self):
         self.enter()
@@ -645,15 +683,12 @@ class SampleRateConfig(Navigator):
 
 class MasterVolumeConfig(Navigator):
     def __init__(self):
-
-
         buttonDown = False
         self.display()
 
     def display(self):
         lcd.display('Master volume', 1)
         lcd.display(self.GLOBAL_VOLUME, 2)
-
 
     def left(self):
         self.GLOBAL_VOLUME = max(self.GLOBAL_VOLUME - 4, 0)
@@ -678,57 +713,14 @@ class MasterVolumeConfig(Navigator):
     def enter(self):
         self.writeConfig()
         self.loadState(MenuNav)
-        self.runState()
 
     def cancel(self):
         self.writeConfig()
         self.loadState(MenuNav)
-        self.runState()
 
 
 # _____________________________________________________________________________
 
-class MidiMapper(Navigator):
-    MIDI_LEARN = False
-
-    def __init__(self):
-        MidiMapper.MIDI_LEARN = True
-        # self.next_state = eval(str(self.menuPosition['fn'][1]))
-
-    def learn(self, src, message):
-        self.deviceName = src[:src.rfind(" "):]  # Strips the port number(s) from after the final space.
-        # These numbers change depending on the USB port.
-        self.midiMessage = message
-        MidiMapper.MIDI_LEARN = False
-        self.writeMidiDeviceConfig()
-
-    def enter(self):
-        print 'here'
-        # self.loadState(self.next_state)
-        # self.runState()
-
-    def writeMidiDeviceConfig(self):
-        # print self.deviceName
-        # print self.midiMessage
-
-        config = configparser.RawConfigParser()
-        config.add_section('MIDIMAP')
-        config.set('MIDIMAP', 'device_name', str(self.deviceName))
-        config.set('MIDIMAP', 'mmessage', str(self.midiMessage))
-
-        # Writing our configuration file to 'example.cfg'
-        with open(gvars.MIDI_CONFIG_DIR + self.deviceName + '.ini', 'wb') as configfile:
-            config.write(configfile)
-        self.cancel()
-
-    def cancel(self):
-        MidiMapper.MIDI_LEARN = False
-        self.loadState(MenuNav)
-        self.runState()
-
-
-
-# ______________________________________________________________________________
 
 
 

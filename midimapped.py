@@ -1,7 +1,7 @@
 import rtmidi2
 import time
 from collections import OrderedDict
-import midimapped_dict as mm_dict
+import menudict as mm_dict
 import configparser
 import numpy as np
 import cPickle  # faster alternative
@@ -16,9 +16,9 @@ import cPickle  # faster alternative
 
 # -----------------------------------------------------------
 
-class Remapper:
+class Navigator:
     state = None
-    mp = mm_dict.availableFunctions
+    mp = mm_dict.menu
     menuCoords = [0]
     menuPointer = 0
     function = None
@@ -26,20 +26,23 @@ class Remapper:
     def __init__(self, initFunction):
         print 'init!'
 
-        Remapper.state = initFunction
-        Remapper.state = Remapper.state()
-        # Remapper.menuPointer = Remapper.menuCoords[-1]
-        # Remapper.menuPosition = self.getMenu()
+        Navigator.state = initFunction
+        Navigator.state = Navigator.state()
+        # Navigator.menuPointer = Navigator.menuCoords[-1]
+        # Navigator.menuPosition = self.getMenu()
 
     def loadState(self, theClass):
-            Remapper.state = theClass()
+        Navigator.state = theClass()
 
     def left(self):
         pass
+
     def right(self):
         pass
+
     def enter(self):
         pass
+
     def cancel(self):
         pass
 
@@ -55,14 +58,14 @@ class Remapper:
     def delete(self):
         print 'Delete init'
 
-    def getMenu(self, mc = None):
+    def getMenu(self, mc=None):
         if not mc:
-            mc = Remapper.menuCoords
-        mp = Remapper.mp.get('submenu')
+            mc = Navigator.menuCoords
+        mp = Navigator.mp.get('submenu')
         i = 0
         while i < len(mc):
             if i > 0:
-                mp = mp.get(mc[i-1]).get('submenu')
+                mp = mp.get(mc[i - 1]).get('submenu')
             i += 1
         return mp
 
@@ -70,12 +73,13 @@ class Remapper:
 # ______________________________________________________________________________
 
 functionToMap = None
+functionNiceName = None
 
-class MenuNav(Remapper):
+
+class MenuNav(Navigator):
     def __init__(self):
         self.menuPointer = self.menuCoords[-1]
         print self.getMenu().get(self.menuPointer).get('name')
-
 
     def left(self):
 
@@ -88,7 +92,7 @@ class MenuNav(Remapper):
 
     def right(self):
 
-        if self.menuPointer < len(self.getMenu()) -1:
+        if self.menuPointer < len(self.getMenu()) - 1:
             self.menuPointer += 1
             self.menuCoords[-1] = self.menuPointer
             print self.getMenu().get(self.menuPointer).get('name')
@@ -96,17 +100,19 @@ class MenuNav(Remapper):
             print self.getMenu().get(self.menuPointer).get('name'), '(end)'
 
     def enter(self):
-        global functionToMap
+        global functionToMap, functionNiceName
         menu = self.getMenu().get(self.menuPointer)
         try:
             if menu.has_key('submenu'):
                 print 'Entering submenu for [' + menu.get('name') + ']'
                 if menu.has_key('functionToMap'):
                     functionToMap = menu.get('functionToMap')
+                    functionNiceName = menu.get('name')
                 self.menuCoords.append(0)
                 self.loadState(MenuNav)
             if menu.has_key('fn'):
-                Remapper.state = eval(menu.get('fn'))(functionToMap)
+                self.menuCoords.append(0)
+                Navigator.state = eval(menu.get('fn'))(functionToMap, functionNiceName)
 
         except:
             pass
@@ -120,18 +126,20 @@ class MenuNav(Remapper):
             self.loadState(MenuNav)  # this will become the gvars.presets state
 
 
-
 # ______________________________________________________________________________
 
 learningMode = False
 
-class Learn(Remapper):
-    def __init__(self, functionToMap):
+
+class MidiLearn(Navigator):
+    def __init__(self, functionToMap, functionNiceName):
         global learningMode
         learningMode = True
         self.functionToMap = functionToMap
+        self.functionNiceName = functionNiceName
         self.learnedMidiMessage = None
         self.learnedMidiDevice = None
+        print '-- Entered MIDI Learning Mode --'
 
     def sendControlToMap(self, learnedMidiMessage, learnedMidiDevice):
         self.learnedMidiMessage = learnedMidiMessage
@@ -139,13 +147,45 @@ class Learn(Remapper):
         print learnedMidiMessage, learnedMidiDevice
 
     def enter(self):
-        print 'Map:', self.learnedMidiMessage, self.learnedMidiDevice
-        print 'To:', self.functionToMap
+        global devices
+
+        try:
+            src = self.learnedMidiDevice
+            messagetype = self.learnedMidiMessage[0]
+            note = self.learnedMidiMessage[1]
+            messageKey = (messagetype, note)
+            if src not in devices:
+                devices[src] = {}  # create new empty dict key for device
+                print 'Creating new device in dict'
+            else:
+                print 'Device is in dict - do nothing'
+
+            if messageKey not in devices.get(src):
+                devices.get(src)[messageKey] = {}  # create new empty dict key for messageKey
+                print 'Creating new dict for the messageKey'
+            else:
+                print '!! Already mapped to:', devices.get(src).get(messageKey).get('name')
+                print 'Do you want to overwrite? Well too bad - doing it anyway ;)'
+
+            devices.get(src)[messageKey] = {'name': self.functionNiceName, 'fn': self.functionToMap}
+
+            self.cancel() # Go back
 
 
 
+        except:
+            print 'failed for some reason'
+            pass
 
-
+    def cancel(self):
+        #print devices
+        global learningMode
+        learningMode = False
+        if len(self.menuCoords) > 1:
+            self.menuCoords.pop()
+            self.loadState(MenuNav)
+        else:
+            self.loadState(MenuNav)  # this will become the gvars.presets state
 
 
 # ______________________________________________________________________________
@@ -153,27 +193,27 @@ class Learn(Remapper):
 
 devices = {
     'Launchkey 61 3': {
-        'mapping': {
-            176: {
-                48: 'attack'
-                # maybe a velocity range
-            },
-            144: {
-                60: 1
-            },
-            128: {
-                60: 1
-            }
+        (176, 41): {
+            'name': 'Attack',
+            'fn': 'attack'
+            # maybe a velocity range
+        },
+        (144, 60): {
+            'note': 1
+        },
+        (128, 60): {
+            'note': 1
         }
     },
     'nanoKONTROL2 1': {
-        'mapping': {
-            176: {
-                64: 'decay'
-            }
+        (176, 64): {
+            'name': 'Decay',
+            'fn': 'decay'
         }
     }
-}  # SAVE FOR LATER
+}
+
+# SAVE FOR LATER
 # def save_obj(obj, name ):
 #     with open(MIDI_CONFIG_FILE_PATH + name + '.pkl', 'wb') as f:
 #         cPickle.dump(obj, f, 0)
@@ -196,12 +236,32 @@ devices = {
 ##############
 
 
-rm = Remapper(MenuNav)
+rm = Navigator(MenuNav)
+# rm.state.right()
+# rm.state.enter()
+# rm.state.enter()
+# Navigator.state.sendControlToMap([176, 1, 83], 'nanoKONTROL2 1')
+# rm.state.enter()
+# rm.state.cancel()
 
 
 ############################
 # ACTUAL DO STUFF FUNCTIONS
 ############################
+
+class Reverb:
+    def roomsize(self, vel):
+        print 'Roomsize:', vel
+
+    def damping(self, vel):
+        print 'Damping:', vel
+
+    def wet(self, vel):
+        print 'Wet:', vel
+
+    def dry(self, vel):
+        print 'Dry:', vel
+
 
 def attack(val):
     print 'Attack:', val
@@ -212,15 +272,18 @@ def decay(val):
 
 
 def noteon(messagetype, note, vel):
-    print messagetype, note, vel
+    # print messagetype, note, vel
+    pass
 
 
 def noteoff(messagetype, note, vel):
-    print messagetype, note, vel
+    # print messagetype, note, vel
+    pass
 
 
-def setvolume(note, velocity):
-    print 'Volume: ' + str(velocity) + ' (' + str(note) + ')'
+class MasterVolume:
+    def setvolume(self, vel):
+        print 'Volume: ' + str(vel)
 
 
 #########################################
@@ -232,7 +295,7 @@ def MidiCallback(src, message, time_stamp):
     cc_remapped = False
 
     messagetype = message[0] >> 4
-    buttons = [48,49,50,65]
+    buttons = [48, 49, 50, 65]  # temporary until GPIO buttons used
 
     if messagetype == 13:
         return
@@ -244,26 +307,30 @@ def MidiCallback(src, message, time_stamp):
     velocity = message[2] if len(message) > 2 else None
     # if (messagetype != 14):
     # print "ch: " + str(messagechannel) + " type: " + str(messagetype) + " raw: " + str(message) + " SRC: " + str(src)
-    # print message
 
 
-    if learningMode and note not in buttons:
+    if learningMode and note not in buttons and messagetype != 8:
 
-         Remapper.state.sendControlToMap(message, src)
+        Navigator.state.sendControlToMap(message, src)
 
     else:
-
-
         try:
-            if (devices.get(src).get('mapping').get(message[0]).has_key(note)):
-                key = devices.get(src).get('mapping').get(message[0])
+
+            messageKey = (message[0], message[1])
+
+            if devices.get(src).has_key(messageKey):
+
                 # remap note to a function
-                if isinstance(key.get(note), str):
-                    eval(key.get(note))(velocity)  # eval the string as a function name, and call it
+                if devices.get(src).get(messageKey).has_key('fn'):
+
+                    fnSplit = devices.get(src).get(messageKey).get('fn').split('.')
+                    getattr(eval(fnSplit[0])(), fnSplit[1])(
+                        velocity)  # runs method from class. ie getattr(MasterVolume(), 'setvolume')
                     cc_remapped = True
+
                 # remap note to a key
-                elif isinstance(key.get(note), int):
-                    note = key.get(note)
+                elif isinstance(devices.get(src).get(messageKey).get('note'), int):
+                    note = devices.get(src).get(messageKey).get('note')
 
         except:
             pass
@@ -272,7 +339,7 @@ def MidiCallback(src, message, time_stamp):
         if not cc_remapped and messagetype != 9 and messagetype != 8 and messagetype == 11:
 
             if (note == 7):
-                setvolume(note, velocity)
+                MasterVolume().setvolume(velocity)
 
 
                 # print 'CC not remapped'
@@ -344,7 +411,7 @@ try:
         for port in curr_ports:
 
             if port not in prev_ports and 'Midi Through' not in port and (
-                    len(prev_ports) != len(curr_ports) and 'LoopBe Internal' not in port):
+                            len(prev_ports) != len(curr_ports) and 'LoopBe Internal' not in port):
                 midi_in.open_ports(port)
                 midi_in.callback = MidiCallback
                 if first_loop:
