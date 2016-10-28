@@ -1,7 +1,5 @@
 import globalvars as gvars
-import os
 import loadsamples
-import lcdcustomchars as lcdcc
 import lcd
 import freeverb
 import navigator
@@ -75,6 +73,15 @@ class Voices:
             print 'Voice 4 activated'
 
 
+class PresetNav:
+    def left(self, vel):
+        if vel != 0:
+            navigator.PresetNav().left()
+
+    def right(self, vel):
+        if vel != 0:
+            navigator.PresetNav().right()
+
 #########################################
 # MIDI CALLBACK
 #########################################
@@ -123,8 +130,10 @@ def MidiCallback(src, message, time_stamp):
                 # remap note to a function
                 if midimaps.get(src).get(messageKey).has_key('fn'):
                     fnSplit = midimaps.get(src).get(messageKey).get('fn').split('.')
+
                     getattr(eval(fnSplit[0])(), fnSplit[1])(
                         velocity)  # runs method from class. ie getattr(MasterVolume(), 'setvolume')
+
                     cc_remapped = True
 
                 # remap note to a key

@@ -26,7 +26,6 @@ from chunk import Chunk
 import struct
 import rtmidi2               # Use rtmidi2 instead. Make sure when installing rtmidi2 to change RPI date: $sudo date -s "Sept 23 18:31 2016". Then installing takes a while
 
-#import ctypes # For freeverb
 #from filters import FilterType, Filter, FilterChain
 #from utility import byteToPCM, floatToPCM, pcmToFloat, sosfreqz
 from collections import OrderedDict
@@ -41,16 +40,17 @@ import buttons
 import midicallback
 import midimaps
 
-############################################################
+###########################
+# Load MIDI mappings
 # Start the Navigator
-############################################################
+###########################
 
 gvars.midimaps = midimaps.MidiMapping().maps
 gvars.nav = navigator.Navigator(navigator.PresetNav)
 
-#gvars.nav.parseConfig()
 
-############################################################
+###########################
+
 # Volumes from 0-127 0=-20db, 127=0db
 
 # Set Sampler volume

@@ -13,24 +13,10 @@
 #########################################
 import configparser
 import os
-import psutil
-import sys
-import rtmidi2
-import time
-import threading
 import loadsamples as ls
 import globalvars as gvars
 import lcd
-
-
-
-
-
-print '''
-  /==============================//
- /== NAVIGATOR by ALEX MACRAE ==//
-/==============================//
-'''
+import menudict
 
 
 def write_setlist(list_to_write):
@@ -134,9 +120,8 @@ findAndAddNewFolders()
 
 
 class Navigator:
-    import menudict
-    menu = menudict.menu
 
+    menu = menudict.menu
 
     state = None
     menuCoords = [0]
@@ -152,40 +137,13 @@ class Navigator:
     def loadState(self, theClass):
         Navigator.state = theClass()
 
-    def setMenuPosition(self):
-        if len(Navigator.menuCoords) == 1:
-            print 'Menu level: [1]'
-            Navigator.menuPosition = Navigator.menu
-        if len(Navigator.menuCoords) == 2:
-            print 'Menu level: [2]'
-            Navigator.menuPosition = Navigator.menu[Navigator.menuCoords[0]]['submenu']
-        if len(Navigator.menuCoords) == 3:
-            print 'Menu level: [3]'
-            Navigator.menuPosition = Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]][
-                'submenu']
 
     def getMenuPathStr(self):
-        # path_list = []
-        # menu_msg = ''
-        # if len(Navigator.menuCoords) == 1:
-        #     path_list = [Navigator.menu[Navigator.menuCoords[0]]['name']]
-        #     menu_msg += 'Menu' + unichr(2)
-        # if len(Navigator.menuCoords) == 2:
-        #     path_list = [Navigator.menu[Navigator.menuCoords[0]]['name'],
-        #                  Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['name']]
-        # if len(Navigator.menuCoords) == 3:
-        #     path_list = [Navigator.menu[Navigator.menuCoords[0]]['name'],
-        #                  Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['name'],
-        #                  Navigator.menu[Navigator.menuCoords[0]]['submenu'][Navigator.menuCoords[1]]['submenu'][
-        #                      Navigator.menuCoords[2]]['name']]
-        #
-        # # for name in path_list:
-        # #     menu_msg += '->[' + name + ']'
-        # menu_msg += path_list[-1]
 
         menuMsg = self.getMenu().get(self.menuPointer).get('name')
 
         return menuMsg
+
 
     def getMenu(self, mc=None):
         if not mc:

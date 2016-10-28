@@ -4,7 +4,7 @@
 import globalvars as gvars
 
 if gvars.IS_DEBIAN and gvars.USE_FREEVERB:
-    import ctypes # For freeverb
+    import ctypes
     from ctypes import *
     import lcd
     freeverb = cdll.LoadLibrary('./freeverb/revmodel.so')
@@ -68,7 +68,7 @@ if gvars.IS_DEBIAN and gvars.USE_FREEVERB:
     freeverbprocess = freeverb.process
     freeverbprocess.argtypes = [c_float_p, c_float_p, c_int]
 
-    # no used:
+    # not used:
     freeverbmix = freeverb.mix
     freeverbmix.argtypes = [c_short_p, c_float_p, c_float, c_int]
     freeverbmixback = freeverb.mixback
