@@ -5,30 +5,12 @@ import configparser
 
 IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian' # Determine if running on RPi (True or False)
 
-if IS_DEBIAN:
-    AUDIO_DEVICE_ID     = 2
-else:
-    AUDIO_DEVICE_ID     = 4                 # change this number to use another soundcard
-AUDIO_DEVICE_NAME       = "USB Audio DAC"   # If we know the name (or part of the name), match by name instead
-SAMPLES_DIR             = "./media"         # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
-USE_SERIALPORT_MIDI     = False             # Set to True to enable MIDI IN via SerialPort (e.g. RaspberryPi's GPIO UART pins)
-USE_I2C_7SEGMENTDISPLAY = False             # Set to True to use a 7-segment display via I2C
-VERSION1                = " -=SAMPLER-BOX=- "
-VERSION2                = "V2.0.1 15-06-2016"
 
-MIDI_CONFIG_DIR = "midi config/"
 CONFIG_FILE_PATH = "system config/config.ini"
-SETLIST_FILE_PATH = "setlist/setlist.txt"
-SONG_FOLDERS_LIST = os.listdir(SAMPLES_DIR)
-
-LCD_DEBUG = True                                                # Print LCD messages to python output
-
-
-
 
 def parseConfig():
     global MAX_POLYPHONY, MIDI_CHANNEL, CHANNELS, BUFFERSIZE, SAMPLERATE
-    global GLOBAL_VOLUME, USE_BUTTONS, USE_HD44780_16x2_LCD, USE_FREEVERB, USE_TONECONTROL
+    global GLOBAL_VOLUME, USE_BUTTONS, USE_HD44780_16x2_LCD, USE_FREEVERB, USE_TONECONTROL, SAMPLES_DIR
 
     if config.read(CONFIG_FILE_PATH):
         print '-= Reading settings from config.ini =-'
@@ -42,6 +24,7 @@ def parseConfig():
         USE_HD44780_16x2_LCD = bool(config['DEFAULT']['USE_HD44780_16x2_LCD'])
         USE_FREEVERB = bool(config['DEFAULT']['USE_FREEVERB'])
         USE_TONECONTROL = bool(config['DEFAULT']['USE_TONECONTROL'])
+        SAMPLES_DIR = str(config['DEFAULT']['SAMPLES_DIR'])
     else:
         print '!! config.ini does not exist - using defaults !!'
         MAX_POLYPHONY = 80
@@ -54,10 +37,11 @@ def parseConfig():
         USE_HD44780_16x2_LCD = True
         USE_FREEVERB = True
         USE_TONECONTROL = False
-
+        SAMPLES_DIR = './media'
 
 config = configparser.ConfigParser()
 parseConfig()
+
 
 def writeConfig():
     config['DEFAULT']['MAX_POLYPHONY'] = str(MAX_POLYPHONY)
@@ -70,11 +54,28 @@ def writeConfig():
     config['DEFAULT']['USE_HD44780_16x2_LCD'] = str(USE_HD44780_16x2_LCD)
     config['DEFAULT']['USE_FREEVERB'] = str(USE_FREEVERB)
     config['DEFAULT']['USE_TONECONTOL'] = str(USE_TONECONTROL)
+    config['DEFAULT']['MEDIA_DIR'] = str(SAMPLES_DIR)
     print 'WRITING CONFIG'
     with open(CONFIG_FILE_PATH, 'w') as configfile:
         config.write(configfile)
 
 
+
+if IS_DEBIAN:
+    AUDIO_DEVICE_ID = 2  # An external USB sound device on RPi is usually 2
+else:
+    AUDIO_DEVICE_ID = 4  # change this number to use another sound device in a dev environment
+AUDIO_DEVICE_NAME = "USB Audio DAC"  # If we know the name (or part of the name), match by name instead
+# SAMPLES_DIR             = "./media"         # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
+USE_SERIALPORT_MIDI = False  # Set to True to enable MIDI IN via SerialPort (e.g. RaspberryPi's GPIO UART pins)
+USE_I2C_7SEGMENTDISPLAY = False  # Set to True to use a 7-segment display via I2C
+VERSION1 = " -=SAMPLER-BOX=- "
+VERSION2 = "V2.0.1 15-06-2016"
+
+SONG_FOLDERS_LIST = os.listdir(SAMPLES_DIR)
+SETLIST_FILE_PATH = 'setlist/setlist.txt'
+
+LCD_DEBUG = True  # Print LCD messages to python output
 
 
 # Disable Freeverb when not on Pi

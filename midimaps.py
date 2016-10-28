@@ -1,67 +1,49 @@
 import cPickle
 import os
 
-filename = 'midimaps.pkl'
+
+
 class MidiMapping:
+
     maps = None
+
     def __init__(self):
+
+        self.filename = 'midimaps.pkl'
+        # Load the current mappings into maps var
         MidiMapping.maps = self.loadMaps()
-        print '------------------'
 
 
-    # maps = {
-#     'Launchkey 61 3': {
-#         (176, 41): {
-#             'name': 'Attack',
-#             'fn': 'attack'
-#             # maybe a velocity range
-#         },
-#         (144, 60): {
-#             'note': 1
-#         },
-#         (128, 60): {
-#             'note': 1
-#         }
-#     },
-#     'nanoKONTROL2 1': {
-#         (176, 64): {
-#             'name': 'Decay',
-#             'fn': 'decay'
-#         }
-#     }
-# }
+
+########################
+# EXAMPLE OF MAPPING
+# STORED IN midimaps.pkl
+########################
+#
+# {u'iCON G_Boar V1.01': {(176, 78): {'name': 'Voice 4', 'fn': 'Voices.voice4'},
+#                         (176, 75): {'name': 'Voice 1', 'fn': 'Voices.voice1'},
+#                         (176, 77): {'name': 'Voice 3', 'fn': 'Voices.voice3'},
+#                         (176, 76): {'name': 'Voice 2', 'fn': 'Voices.voice2'}},
+#  u'Launchkey 61': {(153, 37): {'name': 'Voice 2', 'fn': 'Voices.voice2'},
+#                    (153, 38): {'name': 'Voice 3', 'fn': 'Voices.voice3'},
+#                    (153, 36): {'name': 'Voice 1', 'fn': 'Voices.voice1'},
+#                    (153, 39): {'name': 'Voice 4', 'fn': 'Voices.voice4'}},
+#  u'nanoKONTROL2': {(176, 54): {'name': 'Voice 4', 'fn': 'Voices.voice4'}}}
 
 
     def saveMaps(self, obj):
-        global filename
-
-        with open(filename, 'wb') as f:
+        with open(self.filename, 'wb') as f:
             cPickle.dump(obj, f, 0)
             print '-- Saving pkl file --'
 
-
     def loadMaps(self):
-        global filename
-
-        if os.path.isfile(filename):
-            with open(filename, 'rb') as f:
+        if os.path.isfile(self.filename):
+            with open(self.filename, 'rb') as f:
                 try:
                     return cPickle.load(f)
                 except:
-                    return {} # file exists but it's empty. Start afresh with an empty dict
+                    return {}  # file exists but it's empty. Start afresh with an empty dict
 
         else:
-            self.saveMaps({}) # file not found: create a new empty file
+            self.saveMaps({})  # file not found: create a new empty file
 
-
-
-
-#maps = loadMaps()
-
-
-
-#print maps
-
-#print devices.keys()
-
-#exit()

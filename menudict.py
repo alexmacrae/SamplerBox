@@ -88,7 +88,6 @@ menu = {
                 },
                 3: {
                     'name': 'Voices',
-                    'fn': 'voices',
                     'submenu': {
                         0: {
                             'name': 'Voice 1',
@@ -150,11 +149,10 @@ menu = {
                 },
                 7: {
                     'name': 'SamplerBox Navigation',
-                    'fn': 'sbNav',
                     'submenu': {
                         0: {
                             'name': 'Left',
-                            'fn': 'left',
+                            'functionToMap': 'PresetNav2.left',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Delete'}
@@ -162,7 +160,7 @@ menu = {
                         },
                         1: {
                             'name': 'Right',
-                            'fn': 'right',
+                            'functionToMap': 'PresetNav2.right',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Delete'}

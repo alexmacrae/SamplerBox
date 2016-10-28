@@ -10,7 +10,8 @@ from chunk import Chunk
 import struct
 import globalvars as gvars
 import freeverb
-
+from filters import FilterType, Filter, FilterChain
+from collections import OrderedDict
 
 #########################################
 # SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE
@@ -138,7 +139,6 @@ def AudioCallback(outdata, frame_count, time_info, status):
     global BackWav, BackIndex, ClickWav, ClickIndex
     global backvolume, clickvolume
     rmlist = []
-    #print "sounds: " +str(len(playingsounds)) + " notes: " + str(len(playingnotes)) + " sust: " + str(len(sustainplayingnotes))
     gvars.playingsounds = gvars.playingsounds[-gvars.MAX_POLYPHONY:]
 
     b = samplerbox_audio.mixaudiobuffers(gvars.playingsounds, rmlist, frame_count, gvars.FADEOUT, gvars.FADEOUTLENGTH, gvars.SPEED)
@@ -153,13 +153,13 @@ def AudioCallback(outdata, frame_count, time_info, status):
         except:
             pass
 
-    # b *= gvars.globalvolume
-    # outdata[:] = b.reshape(outdata.shape)
+    b *= gvars.globalvolume
+    #outdata[:] = b.reshape(outdata.shape)
 
 
-    # if USE_TONECONTOL
-    # 	b = numpy.array(chain.filter(bb))
-    # 	b=bb
+    # if gvars.USE_TONECONTOL:
+    #      b = numpy.array(chain.filter(bb))
+    #      b=bb
 
 
     if gvars.CHANNELS == 4:  # 4 channel playback
@@ -213,3 +213,61 @@ def AudioCallback(outdata, frame_count, time_info, status):
         return (newdata.astype(numpy.int16).tostring(), pyaudio.paContinue)
 
 
+
+#
+# # EQ
+#
+# filterTypes = OrderedDict({
+#     FilterType.LPButter: 'Low Pass (Flat)',
+#     FilterType.LPBrickwall: 'Low Pass (Brickwall)',
+#     FilterType.HPButter: 'High Pass (Flat)',
+#     FilterType.HPBrickwall: 'High Pass (Brickwall)',
+#     FilterType.LShelving: 'Low Shelf',
+#     FilterType.HShelving: 'High Shelf',
+#     FilterType.Peak: 'Peak'})
+#
+# # fs = 44100
+# fs = 48000
+# eps = 0.0000001
+#
+#
+# class Params:
+#     TYPE = 1
+#     F = 2
+#     G = 3
+#     Q = 4
+#
+#
+# deffs = [80, 1000, 3000, 5000, 15000]
+#
+# chain = None
+#
+#
+# def initFilter():
+#     global deffs, chain, fs
+#
+#     chain = FilterChain()
+#     chain._filters.append(Filter(FilterType.LShelving, LOW_EQ, 0, 1, enabled=True))
+#     # chain._filters.append(Filter(FilterType.HShelving, deffs[4], 0, 1, enabled = True))
+#     # chain._filters.append(Filter(FilterType.Peak, deffs[0], 0, 1, enabled = True))
+#     chain._filters.append(Filter(FilterType.Peak, HIGH_EQ, 0, 1, enabled=True))
+#     # chain._filters.append(Filter(FilterType.LPButter, deffs[3], 0, 1, enabled = True))
+#     # chain._filters.append(Filter(FilterType.HPButter, deffs[3], 0, 1, enabled = True))
+#     chain.reset()
+#
+#
+# def updateFilter(i, fc, g, Q):
+#     global chain
+#     global fs
+#     oldf = chain._filters[i]
+#     type = oldf._type
+#     # print oldf._type, oldf._fc, oldf._g, oldf._Q
+#
+#     # fc_val = fc * 2 / fs
+#     # print fc_val, g, Q
+#
+#     f = Filter(type, fc, g, Q)
+#     chain.updateFilt(i, f)
+#     # chain.changeFilt(i, type, fc, g, Q)
+#     chain.reset()
+#

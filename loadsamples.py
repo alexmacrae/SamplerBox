@@ -4,7 +4,6 @@
 #########################################
 
 import threading
-import navigator
 import os
 import re
 import sound
