@@ -1,3 +1,0 @@
-juno_vel127_note%midinote_voice%voice.wav
-trumpet_note%midinote_voice%voice.wav,%voice=2
-trumpet_note%midinote_voice%voice.wav,%voice=3
