@@ -18,7 +18,7 @@ menu = {
                     'functionToMap': 'notelist',
                     'submenu': {
                         0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                        1: {'name': 'Delete'}
+                        1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                     }
                 },
                 1: {
@@ -28,7 +28,7 @@ menu = {
                         0: {'name': 'Learn', 'fn': 'MidiLearn'},
                         1: {'name': 'Min', 'params': [-70]},
                         2: {'name': 'Max', 'params': [0]},
-                        3: {'name': 'Delete'}
+                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                     }
                 },
                 2: {
@@ -41,7 +41,7 @@ menu = {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Min', 'params': [0]},
                                 2: {'name': 'Max', 'params': [100]},
-                                3: {'name': 'Delete'}
+                                3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                         1: {
@@ -51,7 +51,7 @@ menu = {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Min', 'params': [0]},
                                 2: {'name': 'Max', 'params': [100]},
-                                3: {'name': 'Delete'}
+                                3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                         2: {
@@ -61,7 +61,7 @@ menu = {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Min', 'params': [0]},
                                 2: {'name': 'Max', 'params': [100]},
-                                3: {'name': 'Delete'}
+                                3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                         3: {
@@ -71,7 +71,7 @@ menu = {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Min', 'params': [0]},
                                 2: {'name': 'Max', 'params': [100]},
-                                3: {'name': 'Delete'}
+                                3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                         4: {
@@ -81,7 +81,7 @@ menu = {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Min', 'params': [0]},
                                 2: {'name': 'Max', 'params': [100]},
-                                3: {'name': 'Delete'}
+                                3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         }
                     }
@@ -94,7 +94,7 @@ menu = {
                             'functionToMap': 'Voices.voice1',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete'}
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                         1: {
@@ -102,7 +102,7 @@ menu = {
                             'functionToMap': 'Voices.voice2',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete'}
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                         2: {
@@ -110,7 +110,7 @@ menu = {
                             'functionToMap': 'Voices.voice3',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete'}
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                         3: {
@@ -118,7 +118,7 @@ menu = {
                             'functionToMap': 'Voices.voice4',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete'}
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                     }
@@ -128,7 +128,7 @@ menu = {
                     'functionToMap': 'Sustain.setsustain',
                     'submenu': {
                         0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                        3: {'name': 'Delete'}
+                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                     }
                 },
                 5: {
@@ -136,7 +136,7 @@ menu = {
                     'functionToMap': 'PitchWheel.setpitch',
                     'submenu': {
                         0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                        3: {'name': 'Delete'}
+                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                     }
                 },
                 6: {
@@ -144,7 +144,7 @@ menu = {
                     'functionToMap': 'ModWheel.setmodulation',
                     'submenu': {
                         0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                        3: {'name': 'Delete'}
+                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                     }
                 },
                 7: {
@@ -155,7 +155,7 @@ menu = {
                             'functionToMap': 'PresetNav2.left',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete'}
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                         1: {
@@ -163,7 +163,7 @@ menu = {
                             'functionToMap': 'PresetNav2.right',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete'}
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                         2: {
@@ -171,7 +171,7 @@ menu = {
                             'fn': 'enter',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete'}
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         },
                         3: {
@@ -179,7 +179,7 @@ menu = {
                             'fn': 'cancel',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete'}
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                             }
                         }
                     }
