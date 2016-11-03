@@ -211,31 +211,33 @@ def MidiCallback(src, message, time_stamp):
                     loadsamples.LoadSamples()
 
 
-                    # VOICE CHANGE
+                # VOICE CHANGE
+                # With MIDI mapping available, this is not necessary anymore
 
-            if (messagetype == 11) and (velocity == 127) and (note in voice_notes):
-                if (note == voice_notes[0]):
-                    gvars.current_voice = 1
-                if (note == voice_notes[1]):
-                    gvars.current_voice = 2
-                if (note == voice_notes[2]):
-                    gvars.current_voice = 3
-                if (note == voice_notes[3]):
-                    gvars.current_voice = 4
-                print 'VOICE [' + str(gvars.current_voice) + ']'
+            # if (messagetype == 11) and (velocity == 127) and (note in voice_notes):
+            #     if (note == voice_notes[0]):
+            #         gvars.current_voice = 1
+            #     if (note == voice_notes[1]):
+            #         gvars.current_voice = 2
+            #     if (note == voice_notes[2]):
+            #         gvars.current_voice = 3
+            #     if (note == voice_notes[3]):
+            #         gvars.current_voice = 4
+            #     print 'VOICE [' + str(gvars.current_voice) + ']'
 
                 # FREEVERB
-            if (messagetype == 11):
-                if (note == 21):
-                    freeverb.setroomsize(velocity)
-                if (note == 22):
-                    freeverb.setdamp(velocity)
-                if (note == 23):
-                    freeverb.setwet(velocity)
-                if (note == 19):
-                    freeverb.setdry(velocity)
-                if (note == 20):
-                    freeverb.setwidth(velocity)
+                # With MIDI mapping available, this is not necessary anymore
+            # if (messagetype == 11):
+            #     if (note == 21):
+            #         freeverb.setroomsize(velocity)
+            #     if (note == 22):
+            #         freeverb.setdamp(velocity)
+            #     if (note == 23):
+            #         freeverb.setwet(velocity)
+            #     if (note == 19):
+            #         freeverb.setdry(velocity)
+            #     if (note == 20):
+            #         freeverb.setwidth(velocity)
 
 
                     # SUSTAIN PEDAL
@@ -246,21 +248,13 @@ def MidiCallback(src, message, time_stamp):
                     n.fadeout(50)
                     gvars.sustainplayingnotes = []
                 gvars.sustain = False
-                # print "up"
 
             elif ((messagetype == 11) and (note == 64) and (velocity >= 64)) or (
                                 ("microKEY" in src) and (messagetype == 14) and (note == 64 or note == 0) and (
                                 velocity <= 25)) and (gvars.sustain == False):  # sustain pedal on
                 gvars.sustain = True
-                # print "down"
 
                 # GLOBAL VOLUME
-            elif (messagetype == 11) and (note == 7) and ("nanoKONTROL" in src):
-                i = int(float(velocity / 127.0) * 13) + 1
-                lcd.display('VOL' + (unichr(1) * i), 2)
-                gvars.globalvolume = (10.0 ** (-12.0 / 20.0)) * (float(velocity) / 127.0)
-                # print gvars.globalvolume
 
-                # STARTBACKING TRACK
-                #  elif (message[0]==176) and (message[1]==29) and (message[2]==127):
-                #    StartTrack()
+            elif (messagetype == 11) and (note == 7):
+                MasterVolume().setvolume(velocity)

@@ -263,7 +263,7 @@ class MenuNav(Navigator):
                 self.loadState(MenuNav)
             if menu.has_key('fn'):
 
-                if menu.get('fn') == 'MidiLearn':
+                if (menu.get('fn') == 'MidiLearn') or (menu.get('fn') == 'DeleteMidiMap'):
                     self.menuCoords.append(0)
                     Navigator.state = eval(menu.get('fn'))(functionToMap, functionNiceName)
                 elif isinstance(menu.get('fn'), list):
@@ -476,6 +476,94 @@ class MidiLearn(Navigator):
             self.loadState(MenuNav)
         else:
             self.loadState(MenuNav)  # this will become the gvars.presets state
+
+
+# ______________________________________________________________________________
+
+class DeleteMidiMap(Navigator):
+    def __init__(self, functionToUnmap, functionNiceName):
+
+        self.midimaps = gvars.midimaps
+        # src[:src.rfind(" "):] # use this to strip the port number off the end of src
+
+
+        self.functionToUnmap = functionToUnmap
+        self.functionNiceName = functionNiceName
+
+        matchedMappings = {}
+        i = 0
+        for devices in self.midimaps.iteritems():
+            deviceName = devices[0]
+            deviceMaps = devices[1]
+            for midiKey, midiKeyDict in deviceMaps.iteritems():
+                #print mm2
+                for midiKeyItem in midiKeyDict.iteritems():
+                    fnName = midiKeyItem[1]
+                    if fnName == functionToUnmap:
+                        # Build a new dictionary to build dict addresses for matched keys
+
+                        matchedMappings[i] = [deviceName, midiKey, functionToUnmap]
+                        i += 1
+
+
+        self.matchedMappings = matchedMappings
+        self.i = 0
+
+        self.deleteDisplay()
+
+    def deleteDisplay(self):
+        mm = self.matchedMappings
+        functionNiceName = self.functionNiceName
+        i = self.i
+        #lcd.display(mm[i][2], 1)
+        lcd.display(str(i+1)+' '+functionNiceName, 1)
+        lcd.display(str(mm[i][0])[:8] + str(mm[i][1][:8]), 2)
+
+
+    def left(self):
+        if self.i > 0:
+            self.i -= 1
+            self.deleteDisplay()
+
+    def right(self):
+        if self.i < len(self.matchedMappings) - 1:
+            self.i += 1
+            self.deleteDisplay()
+
+    def enter(self):
+        a={}
+
+        mm = self.midimaps
+        deviceName = self.matchedMappings[self.i][0]
+        midiKey = self.matchedMappings[self.i][1]
+        functionToUnmap = self.matchedMappings[self.i][2]
+        try:
+
+            for device in mm.iteritems():
+                if deviceName in device:
+                    device[1].pop(midiKey)
+
+
+            import midimaps
+            midimaps.MidiMapping().saveMaps(mm)
+
+            self.cancel()  # Go back
+
+
+        except:
+            print 'failed for some reason'
+            pass
+
+    def cancel(self):
+        # print devices
+        lcd.display('----------------', 2)
+        gvars.learningMode = False
+        if len(self.menuCoords) > 1:
+            self.menuCoords.pop()
+            self.loadState(MenuNav)
+        else:
+            self.loadState(MenuNav)  # this will become the gvars.presets state
+
 
 
 
