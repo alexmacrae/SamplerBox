@@ -12,25 +12,22 @@ Navigator = navigator.Navigator
 ############################
 
 class Reverb:
+
     def roomsize(self, vel):
-        print 'Roomsize:', vel
+        freeverb.setroomsize(vel)
 
     def damping(self, vel):
-        print 'Damping:', vel
+        freeverb.setdamp(vel)
 
     def wet(self, vel):
-        print 'Wet:', vel
+        freeverb.setwet(vel)
 
     def dry(self, vel):
-        print 'Dry:', vel
+        freeverb.setdry(vel)
 
+    def width(self, vel):
+        freeverb.setwidth(vel)
 
-def attack(val):
-    print 'Attack:', val
-
-
-def decay(val):
-    print 'Decay:', val
 
 
 def noteon(messagetype, note, vel):
@@ -82,15 +79,15 @@ class PresetNav:
         if vel != 0:
             navigator.PresetNav().right()
 
+
 #########################################
 # MIDI CALLBACK
 #########################################
 
 def MidiCallback(src, message, time_stamp):
-
     midimaps = gvars.midimaps
 
-    src = src[:src.rfind(" "):] # remove the port number from the end
+    src = src[:src.rfind(" "):]  # remove the port number from the end
 
     cc_remapped = False
     preset_notes = [70, 71]
@@ -129,10 +126,10 @@ def MidiCallback(src, message, time_stamp):
 
                 # remap note to a function
                 if midimaps.get(src).get(messageKey).has_key('fn'):
+
                     fnSplit = midimaps.get(src).get(messageKey).get('fn').split('.')
 
-                    getattr(eval(fnSplit[0])(), fnSplit[1])(
-                        velocity)  # runs method from class. ie getattr(MasterVolume(), 'setvolume')
+                    getattr(eval(fnSplit[0])(), fnSplit[1])(velocity)  # runs method from class. ie getattr(MasterVolume(), 'setvolume')
 
                     cc_remapped = True
 
@@ -184,7 +181,8 @@ def MidiCallback(src, message, time_stamp):
                 midinote += gvars.globaltranspose
                 # scale the selected sample based on velocity, the volume will be kept, this will normally make the sound brighter
                 SelectVelocity = (
-                                 velocity * (127 - gvars.VelocitySelectionOffset) / 127) + gvars.VelocitySelectionOffset
+                                     velocity * (
+                                     127 - gvars.VelocitySelectionOffset) / 127) + gvars.VelocitySelectionOffset
 
                 for n in gvars.sustainplayingnotes:
                     if n.note == midinote:
@@ -242,8 +240,8 @@ def MidiCallback(src, message, time_stamp):
 
                     # SUSTAIN PEDAL
             if ((messagetype == 11) and (note == 64) and (velocity < 64)) or (
-                        ("microKEY" in src) and (messagetype == 14) and (note == 64 or note == 0) and (
-                velocity >= 28)) and (gvars.sustain == True):  # sustain pedal off
+                                ("microKEY" in src) and (messagetype == 14) and (note == 64 or note == 0) and (
+                                velocity >= 28)) and (gvars.sustain == True):  # sustain pedal off
                 for n in gvars.sustainplayingnotes:
                     n.fadeout(50)
                     gvars.sustainplayingnotes = []
@@ -251,8 +249,8 @@ def MidiCallback(src, message, time_stamp):
                 # print "up"
 
             elif ((messagetype == 11) and (note == 64) and (velocity >= 64)) or (
-                        ("microKEY" in src) and (messagetype == 14) and (note == 64 or note == 0) and (
-                velocity <= 25)) and (gvars.sustain == False):  # sustain pedal on
+                                ("microKEY" in src) and (messagetype == 14) and (note == 64 or note == 0) and (
+                                velocity <= 25)) and (gvars.sustain == False):  # sustain pedal on
                 gvars.sustain = True
                 # print "down"
 
