@@ -12,7 +12,6 @@ Navigator = navigator.Navigator
 ############################
 
 class Reverb:
-
     def roomsize(self, vel):
         freeverb.setroomsize(vel)
 
@@ -29,7 +28,6 @@ class Reverb:
         freeverb.setwidth(vel)
 
 
-
 def noteon(messagetype, note, vel):
     # print messagetype, note, vel
     pass
@@ -42,9 +40,9 @@ def noteoff(messagetype, note, vel):
 
 class MasterVolume:
     def setvolume(self, vel):
-        print 'Volume: ' + str(vel)
-        i = int(float(vel / 127.0) * 13) + 1
-        lcd.display('VOL' + (unichr(1) * i), 2)
+        i = int(float(vel / 127.0) * (lcd.LCD_COLS - 1)) + 1
+        lcd.display('Volume', 3)
+        lcd.display((unichr(1) * i), 4)
         gvars.globalvolume = (10.0 ** (-12.0 / 20.0)) * (float(vel) / 127.0)
 
 
@@ -92,7 +90,8 @@ def MidiCallback(src, message, time_stamp):
     cc_remapped = False
     preset_notes = [70, 71]
     voice_notes = [66, 67, 68, 69]
-    buttons = [48, 49, 50, 65]  # temporary until GPIO buttons used
+
+
 
     messagetype = message[0] >> 4
     if messagetype == 13:
@@ -105,6 +104,8 @@ def MidiCallback(src, message, time_stamp):
     velocity = message[2] if len(message) > 2 else None
     # if (messagetype != 14):
     #    print "ch: " + str(messagechannel) + " type: " + str(messagetype) + " raw: " + str(message) + " SRC: " + str(src)
+    if gvars.PRINT_MIDI_MESSAGES:
+        print str(message[0]) + ', ' + str(note) + ', <'+src+'>'
 
 
     # special keys from Kurzweil
@@ -113,7 +114,7 @@ def MidiCallback(src, message, time_stamp):
     #
     # if len(message) == 1 and message[0] == 252: # stopbutton Kurzweil
     #     StopTrack()
-    if gvars.learningMode and note not in buttons and messagetype != 8:
+    if gvars.learningMode and messagetype != 8:
 
         Navigator.state.sendControlToMap(message, src)
 
@@ -129,7 +130,8 @@ def MidiCallback(src, message, time_stamp):
 
                     fnSplit = midimaps.get(src).get(messageKey).get('fn').split('.')
 
-                    getattr(eval(fnSplit[0])(), fnSplit[1])(velocity)  # runs method from class. ie getattr(MasterVolume(), 'setvolume')
+                    getattr(eval(fnSplit[0])(), fnSplit[1])(
+                        velocity)  # runs method from class. ie getattr(MasterVolume(), 'setvolume')
 
                     cc_remapped = True
 
@@ -145,33 +147,30 @@ def MidiCallback(src, message, time_stamp):
             if (note == 7):
                 MasterVolume().setvolume(velocity)
 
-        if (messagetype == 11):
 
-            if (note == 49):  # Enter button
-                if (velocity == 127):
-                    if gvars.nav:
-                        gvars.nav.state.enter()
-                        #            else:
-                        #                nav.state.enterUp()
+        ######################
+        # Button navigation
+        # Determined by config
+        ######################
 
-            if (note == 48):  # Left arrow button
-                if (velocity == 127):
-                    gvars.nav.state.left()
-                    #            else:
-                    #                nav.state.leftUp()
+        enter = gvars.BUTTON_ENTER
+        left = gvars.BUTTON_LEFT
+        right = gvars.BUTTON_RIGHT
+        cancel = gvars.BUTTON_CANCEL
 
-            if (note == 50):  # Right arrow button
-                if (velocity == 127):
-                    gvars.nav.state.right()
+        if message[0] == enter[0] and note == enter[1] and velocity > 0 and enter[2] in src: # Enter arrow button
+            gvars.nav.state.enter()
 
-                    #            else:
-                    #                nav.state.rightUp()
+        elif message[0] == left[0] and note == left[1] and velocity > 0 and left[2] in src:  # Left arrow button
+            gvars.nav.state.left()
 
-            if (note == 65):  # Cancel button
-                if (velocity == 127):
-                    gvars.nav.state.cancel()
-        # else:
-        #                nav.state.cancelUp()
+        elif message[0] == right[0] and note == right[1] and velocity > 0 and right[2] in src:  # Right arrow button
+            gvars.nav.state.right()
+
+        elif message[0] == cancel[0] and note == cancel[1] and velocity > 0 and cancel[2] in src:  # Cancel button
+            gvars.nav.state.cancel()
+
+
 
         if messagechannel == gvars.MIDI_CHANNEL:
 
@@ -182,7 +181,7 @@ def MidiCallback(src, message, time_stamp):
                 # scale the selected sample based on velocity, the volume will be kept, this will normally make the sound brighter
                 SelectVelocity = (
                                      velocity * (
-                                     127 - gvars.VelocitySelectionOffset) / 127) + gvars.VelocitySelectionOffset
+                                         127 - gvars.VelocitySelectionOffset) / 127) + gvars.VelocitySelectionOffset
 
                 for n in gvars.sustainplayingnotes:
                     if n.note == midinote:
@@ -211,33 +210,33 @@ def MidiCallback(src, message, time_stamp):
                     loadsamples.LoadSamples()
 
 
-                # VOICE CHANGE
-                # With MIDI mapping available, this is not necessary anymore
+                    # VOICE CHANGE
+                    # With MIDI mapping available, this is not necessary anymore
 
-            # if (messagetype == 11) and (velocity == 127) and (note in voice_notes):
-            #     if (note == voice_notes[0]):
-            #         gvars.current_voice = 1
-            #     if (note == voice_notes[1]):
-            #         gvars.current_voice = 2
-            #     if (note == voice_notes[2]):
-            #         gvars.current_voice = 3
-            #     if (note == voice_notes[3]):
-            #         gvars.current_voice = 4
-            #     print 'VOICE [' + str(gvars.current_voice) + ']'
+                    # if (messagetype == 11) and (velocity == 127) and (note in voice_notes):
+                    #     if (note == voice_notes[0]):
+                    #         gvars.current_voice = 1
+                    #     if (note == voice_notes[1]):
+                    #         gvars.current_voice = 2
+                    #     if (note == voice_notes[2]):
+                    #         gvars.current_voice = 3
+                    #     if (note == voice_notes[3]):
+                    #         gvars.current_voice = 4
+                    #     print 'VOICE [' + str(gvars.current_voice) + ']'
 
-                # FREEVERB
-                # With MIDI mapping available, this is not necessary anymore
-            # if (messagetype == 11):
-            #     if (note == 21):
-            #         freeverb.setroomsize(velocity)
-            #     if (note == 22):
-            #         freeverb.setdamp(velocity)
-            #     if (note == 23):
-            #         freeverb.setwet(velocity)
-            #     if (note == 19):
-            #         freeverb.setdry(velocity)
-            #     if (note == 20):
-            #         freeverb.setwidth(velocity)
+                    # FREEVERB
+                    # With MIDI mapping available, this is not necessary anymore
+                    # if (messagetype == 11):
+                    #     if (note == 21):
+                    #         freeverb.setroomsize(velocity)
+                    #     if (note == 22):
+                    #         freeverb.setdamp(velocity)
+                    #     if (note == 23):
+                    #         freeverb.setwet(velocity)
+                    #     if (note == 19):
+                    #         freeverb.setdry(velocity)
+                    #     if (note == 20):
+                    #         freeverb.setwidth(velocity)
 
 
                     # SUSTAIN PEDAL

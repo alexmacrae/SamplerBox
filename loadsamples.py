@@ -30,7 +30,7 @@ def LoadSamples():
 
 
 
-NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
+#NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
 gvars.preset = 0
 SampleLoading = False
 
@@ -39,7 +39,7 @@ def ActuallyLoad():
     global SampleLoading, LoadingThread
 
     setlistList = open(gvars.SETLIST_FILE_PATH).read().splitlines()
-    print setlistList
+    #print setlistList
 
     gvars.playingsounds = []
     gvars.samples = {}
@@ -126,7 +126,7 @@ def ActuallyLoad():
                         PercentLoaded = (FileCntCur * (100 / numberOfPatterns)) / FileCnt # more accurate loading progress
                         #s = str(gvars.preset) + ' ' + gvars.basename + "                  "
                         #lcd.display(s[:16], 1)
-                        lcd.display(unichr(1) * int(PercentLoaded*0.16 + 1), 2)
+                        lcd.display(unichr(1) * int(PercentLoaded * (lcd.LCD_COLS/100.0) + 1), 4)
                         FileCntCur += 1
                         if LoadingInterrupt:
                             SampleLoading = False
@@ -147,7 +147,7 @@ def ActuallyLoad():
                             transpose = int(info.get('transpose', defaultparams['transpose']))
                             notename = info.get('notename', defaultparams['notename'])
                             if notename:
-                                midinote = NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
+                                midinote = gvars.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
                             gvars.samples[midinote, velocity, voice] = sound.Sound(os.path.join(dirname, fname), midinote, velocity)
 
 
@@ -165,7 +165,7 @@ def ActuallyLoad():
                 gvars.samples[midinote, 127, 1] = sound.Sound(file, midinote, 127)
 
             PercentLoaded = (FileCntCur * 100 ) / FileCnt  # more accurate loading progress
-            lcd.display(unichr(1) * int(PercentLoaded * 0.16 + 1), 2)
+            lcd.display(unichr(1) * int(PercentLoaded * (lcd.LCD_COLS/100) + 1), 4)
             FileCntCur += 1
 
     initial_keys = set(gvars.samples.keys())
@@ -195,5 +195,5 @@ def ActuallyLoad():
         lcd.display(' Error loading ', 1)
         lcd.display(str(gvars.preset+1) + unichr(2)+ gvars.basename, 2)
     else:
-        lcd.display('', 1, customTimeout=0) # as soon as the sample set is loaded, go straight to play screen
+        lcd.display('', 5, customTimeout=0) # as soon as the sample set is loaded, go straight to play screen
     SampleLoading = False
