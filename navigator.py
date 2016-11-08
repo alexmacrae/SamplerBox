@@ -17,6 +17,7 @@ import loadsamples as ls
 import globalvars as gvars
 import lcd
 import menudict
+import configparser_samplerbox as cs
 
 
 def write_setlist(list_to_write):
@@ -120,7 +121,6 @@ findAndAddNewFolders()
 
 
 class Navigator:
-
     menu = menudict.menu
 
     state = None
@@ -132,18 +132,15 @@ class Navigator:
     def __init__(self, initState):
         Navigator.state = initState
         self.loadState(Navigator.state)
-        
 
     def loadState(self, theClass):
         Navigator.state = theClass()
-
 
     def getMenuPathStr(self):
 
         menuMsg = self.getMenu().get(self.menuPointer).get('name')
 
         return menuMsg
-
 
     def getMenu(self, mc=None):
         if not mc:
@@ -182,8 +179,8 @@ class PresetNav(Navigator):
             p += 1
         s2 = str(p + 1) + unichr(2) + str(self.setlistList[p])
 
-        lcd.display(s1, 1, True)
-        lcd.display(s2, 2, True)
+        lcd.display(s1, 1, is_priority=True)
+        lcd.display(s2, 2, is_priority=True)
 
     def right(self):
         gvars.preset += 1
@@ -208,7 +205,6 @@ class PresetNav(Navigator):
     def enter(self):
         self.loadState(MenuNav)
 
-
     def cancel(self):  # can remove empty class methods
         lcd.TimeOut = lcd.TimeOutReset
         lcd.resetModes()
@@ -220,6 +216,7 @@ class PresetNav(Navigator):
 functionToMap = None
 functionNiceName = None
 
+
 class MenuNav(Navigator):
     def __init__(self):
 
@@ -227,10 +224,9 @@ class MenuNav(Navigator):
 
         lcd.resetModes()
 
-        lcd.menuMode = True
+        lcd.inMenuMode = True
         lcd.display(self.getMenuPathStr(), 1)
         lcd.display('-------------------------', 2)
-
 
     def left(self):
 
@@ -267,7 +263,7 @@ class MenuNav(Navigator):
                     self.menuCoords.append(0)
                     Navigator.state = eval(menu.get('fn'))(functionToMap, functionNiceName)
                 elif isinstance(menu.get('fn'), list):
-                    Navigator.state = eval(menu.get('fn')[0])(eval(menu.get('fn')[1])) # for SelectSong
+                    Navigator.state = eval(menu.get('fn')[0])(eval(menu.get('fn')[1]))  # for SelectSong
                 else:
                     Navigator.state = eval(menu.get('fn'))()
 
@@ -354,7 +350,7 @@ class MoveSong(Navigator):
         Navigator.state = self.prevState(MoveSong)
 
     def cancel(self):
-        Navigator.state =  self.prevState(MoveSong)
+        Navigator.state = self.prevState(MoveSong)
 
 
 # ______________________________________________________________________________
@@ -409,6 +405,7 @@ class DeleteSong(Navigator):
     def cancel(self):
         self.loadState(self.prevState)
 
+
 # ______________________________________________________________________________
 
 
@@ -430,9 +427,9 @@ class MidiLearn(Navigator):
     def sendControlToMap(self, learnedMidiMessage, learnedMidiDevice):
         self.learnedMidiMessage = learnedMidiMessage
         self.learnedMidiDevice = learnedMidiDevice
-        lcd.display(str(learnedMidiMessage[0]) +':'+ str(learnedMidiMessage[1]) + ' ' + learnedMidiDevice, 2)
-        self.enter() #
-        #print learnedMidiMessage, learnedMidiDevice
+        lcd.display(str(learnedMidiMessage[0]) + ':' + str(learnedMidiMessage[1]) + ' ' + learnedMidiDevice, 2)
+        self.enter()  #
+        # print learnedMidiMessage, learnedMidiDevice
 
     def enter(self):
 
@@ -469,7 +466,7 @@ class MidiLearn(Navigator):
 
     def cancel(self):
         # print devices
-        lcd.display('----------------',2)
+        lcd.display('----------------', 2)
         gvars.learningMode = False
         if len(self.menuCoords) > 1:
             self.menuCoords.pop()
@@ -496,7 +493,7 @@ class DeleteMidiMap(Navigator):
             deviceName = devices[0]
             deviceMaps = devices[1]
             for midiKey, midiKeyDict in deviceMaps.iteritems():
-                #print mm2
+                # print mm2
                 for midiKeyItem in midiKeyDict.iteritems():
                     fnName = midiKeyItem[1]
                     if fnName == functionToUnmap:
@@ -504,7 +501,6 @@ class DeleteMidiMap(Navigator):
 
                         matchedMappings[i] = [deviceName, midiKey, functionToUnmap]
                         i += 1
-
 
         self.matchedMappings = matchedMappings
         self.i = 0
@@ -515,10 +511,9 @@ class DeleteMidiMap(Navigator):
         mm = self.matchedMappings
         functionNiceName = self.functionNiceName
         i = self.i
-        #lcd.display(mm[i][2], 1)
-        lcd.display(str(i+1)+' '+functionNiceName, 1)
+        # lcd.display(mm[i][2], 1)
+        lcd.display(str(i + 1) + ' ' + functionNiceName, 1)
         lcd.display(str(mm[i][0])[:8] + str(mm[i][1][:8]), 2)
-
 
     def left(self):
         if self.i > 0:
@@ -531,7 +526,7 @@ class DeleteMidiMap(Navigator):
             self.deleteDisplay()
 
     def enter(self):
-        a={}
+        a = {}
 
         mm = self.midimaps
         deviceName = self.matchedMappings[self.i][0]
@@ -542,7 +537,6 @@ class DeleteMidiMap(Navigator):
             for device in mm.iteritems():
                 if deviceName in device:
                     device[1].pop(midiKey)
-
 
             import midimaps
             midimaps.MidiMapping().saveMaps(mm)
@@ -565,13 +559,12 @@ class DeleteMidiMap(Navigator):
             self.loadState(MenuNav)  # this will become the gvars.presets state
 
 
-
-
 # ______________________________________________________________________________
 
 
 class MaxPolyphonyConfig(Navigator):
     def __init__(self):
+        self.MAX_POLYPHONY = gvars.MAX_POLYPHONY
         self.display()
 
     def display(self):
@@ -579,20 +572,21 @@ class MaxPolyphonyConfig(Navigator):
         lcd.display(str(self.MAX_POLYPHONY) + ' (1-128)', 2)
 
     def left(self):
-        self.MAX_POLYPHONY = max(self.MAX_POLYPHONY - 8, 1)
+        self.MAX_POLYPHONY = max(self.MAX_POLYPHONY - 1, 1)
         self.display()
 
     def right(self):
-        self.MAX_POLYPHONY = min(self.MAX_POLYPHONY + 8, 128)
+        self.MAX_POLYPHONY = min(self.MAX_POLYPHONY + 1, 128)
         self.display()
 
     def enter(self):
-        self.writeConfig()
+        cs.update_config('SAMPLERBOX CONFIG', 'MAX_POLYPHONY', str(self.MAX_POLYPHONY))
+        gvars.MAX_POLYPHONY = self.MAX_POLYPHONY
         print '-- requires a restart --'  # or a reinstantiation of the sounddevice
         self.loadState(MenuNav)
 
     def cancel(self):
-        self.enter()
+        self.loadState(MenuNav)
 
 
 # ______________________________________________________________________________
@@ -600,7 +594,12 @@ class MaxPolyphonyConfig(Navigator):
 class MidiChannelConfig(Navigator):
     def __init__(self):
         print '-= MIDI Channel !IMPORTANT: All MIDI ports are open with rtmidi2 =-'
-        print 'Current MIDI Channel = ' + str(self.MIDI_CHANNEL)
+        self.MIDI_CHANNEL = gvars.MIDI_CHANNEL
+        self.display()
+
+    def display(self):
+        lcd.display('MIDI Channel', 1)
+        lcd.display(str(self.MIDI_CHANNEL) + ' (1-128)', 2)
 
     def left(self):
         self.MIDI_CHANNEL = max(self.MIDI_CHANNEL - 1, 1)
@@ -611,18 +610,20 @@ class MidiChannelConfig(Navigator):
         print self.MIDI_CHANNEL
 
     def enter(self):
-        self.writeConfig()
+        cs.update_config('SAMPLERBOX CONFIG', 'MIDI_CHANNEL', str(self.MIDI_CHANNEL))
+        gvars.MIDI_CHANNEL = self.MIDI_CHANNEL
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the audio device
         self.loadState(MenuNav)
 
     def cancel(self):
-        self.enter()
+        self.loadState(MenuNav)
 
 
 # ______________________________________________________________________________
 
 class ChannelsConfig(Navigator):
     def __init__(self):
+        self.CHANNELS = gvars.CHANNELS
         self.options = [1, 2, 4, 6, 8]
         self.i = 1
         for x in self.options:
@@ -641,29 +642,32 @@ class ChannelsConfig(Navigator):
         self.display()
 
     def right(self):
-        if self.i < len(self.options):
+        if self.i < len(self.options) - 1:
             self.i += 1
         self.CHANNELS = min(self.options[self.i], self.options[-1])
         self.display()
 
     def enter(self):
-        self.writeConfig()
+        cs.update_config('SAMPLERBOX CONFIG', 'CHANNELS', str(self.CHANNELS))
+        gvars.CHANNELS = self.CHANNELS
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the sounddevice
         self.loadState(MenuNav)
 
     def cancel(self):
-        self.enter()
+        self.loadState(MenuNav)
 
 
 # ______________________________________________________________________________
 
 class BufferSizeConfig(Navigator):
     def __init__(self):
+        self.BUFFERSIZE = gvars.BUFFERSIZE
         self.options = [16, 32, 64, 128, 256, 512, 1024, 2048]
         self.i = 3
         for x in self.options:
             if x == self.BUFFERSIZE:
                 self.i = self.options.index(x)
+        self.display()
 
     def display(self):
         lcd.display('Buffer size', 1)
@@ -676,29 +680,32 @@ class BufferSizeConfig(Navigator):
         self.display()
 
     def right(self):
-        if self.i < len(self.options):
+        if self.i < len(self.options) - 1:
             self.i += 1
         self.BUFFERSIZE = min(self.options[self.i], self.options[-1])
         self.display()
 
     def enter(self):
-        self.writeConfig()
+        cs.update_config('SAMPLERBOX CONFIG', 'BUFFERSIZE', str(self.BUFFERSIZE))
+        gvars.BUFFERSIZE = self.BUFFERSIZE
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the sounddevice
         self.loadState(MenuNav)
 
     def cancel(self):
-        self.enter()
+        self.loadState(MenuNav)
 
 
 # ______________________________________________________________________________
 
 class SampleRateConfig(Navigator):
     def __init__(self):
+        self.SAMPLERATE = gvars.SAMPLERATE
         self.options = [44100, 48000, 96000]
         self.i = 0
         for x in self.options:
             if x == self.SAMPLERATE:
                 self.i = self.options.index(x)
+        self.display()
 
     def display(self):
         lcd.display('Sample rate', 1)
@@ -711,101 +718,51 @@ class SampleRateConfig(Navigator):
         self.display()
 
     def right(self):
-        if self.i < len(self.options):
+        if self.i < len(self.options) - 1:
             self.i += 1
         self.SAMPLERATE = min(self.options[self.i], self.options[-1])
         self.display()
 
     def enter(self):
-        self.writeConfig()
+        cs.update_config('SAMPLERBOX CONFIG', 'SAMPLERATE', str(self.SAMPLERATE))
+        gvars.SAMPLERATE = self.SAMPLERATE
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the sounddevice
+        self.loadState(MenuNav)
+
+    def cancel(self):
+        self.loadState(MenuNav)
+
+
+# ______________________________________________________________________________
+
+import midicallback
+
+class MasterVolumeConfig(Navigator):
+
+    def __init__(self):
+        self.display()
+
+    def display(self):
+        lcd.display('Master volume', 1)
+        lcd.display(str(gvars.GLOBAL_VOLUME), 2)
+
+    def left(self):
+        gvars.GLOBAL_VOLUME = max(gvars.GLOBAL_VOLUME - 4, 0)
+        midicallback.MasterVolume().setvolume(gvars.GLOBAL_VOLUME * 1.27)
+        self.display()
+
+    def right(self):
+        gvars.GLOBAL_VOLUME = min(gvars.GLOBAL_VOLUME + 4, 100)
+        midicallback.MasterVolume().setvolume(gvars.GLOBAL_VOLUME * 1.27)
+        self.display()
+
+    def enter(self):
+        cs.update_config('SAMPLERBOX CONFIG', 'GLOBAL_VOLUME', str(gvars.GLOBAL_VOLUME))
         self.loadState(MenuNav)
 
     def cancel(self):
         self.enter()
 
-
-# ______________________________________________________________________________
-
-class MasterVolumeConfig(Navigator):
-    def __init__(self):
-        buttonDown = False
-        self.display()
-
-    def display(self):
-        lcd.display('Master volume', 1)
-        lcd.display(self.GLOBAL_VOLUME, 2)
-
-    def left(self):
-        self.GLOBAL_VOLUME = max(self.GLOBAL_VOLUME - 4, 0)
-        self.display()
-
-        # Would be cool to work out a "do while (condition)" without the infinite
-        # loop blocking the "midi button up" message
-
-    #        self.buttonDown = True
-    #        time.sleep(0.5)
-    #        while self.buttonDown:
-    #            globalvolume = max(globalvolume - 4, 0)
-    #            time.sleep(0.2)
-    #            print globalvolume, self.buttonDown
-
-
-    def right(self):
-        self.buttonDown = True
-        self.GLOBAL_VOLUME = min(self.GLOBAL_VOLUME + 4, 100)
-        self.display()
-
-    def enter(self):
-        self.writeConfig()
-        self.loadState(MenuNav)
-
-    def cancel(self):
-        self.writeConfig()
-        self.loadState(MenuNav)
-
-
 # _____________________________________________________________________________
 
 
-
-
-
-# new_song_selector = SelectSong()
-# new_song_selector.next()
-
-# def foldernames_and_setlist_match():
-#    songsInSetlist = open(SETLIST_FILE_PATH).read().splitlines()
-#    
-#    merged_list = songsInSetlist + SONG_FOLDERS_LIST
-#    
-#    print(merged_list)
-#    
-#    for song_name in songsInSetlist:
-#        
-#        for song_folder_name in SONG_FOLDERS_LIST:
-#            if(song_name == song_folder_name):
-#                print(song_name + ': found')
-#                break
-#
-#    
-#    
-#    if(songsInSetlist == SONG_FOLDERS_LIST):
-#        return True
-#    else:
-#        return False
-#
-#
-#
-#
-# if (os.path.isfile(SETLIST_FILE_PATH)):
-#    print ('exists')
-#    print (foldernames_and_setlist_match())
-# else:
-#    print ('nup')
-#    setlist = open(SETLIST_FILE_PATH, "w")
-#    for song_folder in SONG_FOLDERS_LIST:
-#        setlist.write(song_folder + '\n')
-#    
-#    setlist.close()
-#
