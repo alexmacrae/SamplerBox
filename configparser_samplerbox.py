@@ -82,8 +82,7 @@ def update_config(section, option, value):
     # http://stackoverflow.com/questions/21476554/update-ini-file-without-removing-comments
     # http://www.voidspace.org.uk/python/configobj.html
     # Have had a play below (config2) - will revisit in the future.
-    config.set('README', '; Any comments written here will be overwritten by SamplerBox when using the menu system.\r\
-; Additions and changes must be made to configparser_samplerbox.py')
+    config.set('README', '; WARNING: Any comments written here will be overwritten by SamplerBox when using the menu system. Additions and changes to comments must be made to configparser_samplerbox.py')
 
     config.set('MISC',
                '; Prints midi messages in the format: messagetype, note <DeviceName>. eg 176, 60, <LaunchKey 61>')
