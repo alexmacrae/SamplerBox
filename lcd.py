@@ -83,8 +83,8 @@ def resetModes():
 
 def makeVoiceButtons():
     button_str = ''
-    for v in xrange(gvars.totalVoices):
-        if (v == gvars.current_voice - 1):
+    for v in gvars.voices:
+        if (v == gvars.currvoice - 1):
             button_str += unichr(3)
         else:
             button_str += unichr(4)
@@ -148,7 +148,7 @@ def lcd_main():
                     resetModes()
                     inPresetMode = True
             else:
-                lcd_string(STRING_1[:LCD_COLS - 4] + (unichr(4) * gvars.totalVoices), 1)
+                lcd_string(STRING_1[:LCD_COLS - 4] + (unichr(4) * len(gvars.voices)), 1)
                 lcd_string(STRING_2, 2)
                 lcd_string(STRING_3, 3)
                 lcd_string(STRING_4, 4)

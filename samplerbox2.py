@@ -279,9 +279,7 @@ ls.LoadSamples()
 # MAIN LOOP
 #########################################
 
-stopit = False
-
-midi_in = rtmidi2.MidiInMulti()#.open_ports("*")
+midi_in = rtmidi2.MidiInMulti()
 
 curr_ports = []
 prev_ports = []
@@ -290,11 +288,6 @@ first_loop = True
 lcd.display('Running', 1)
 try:
     while True:
-        #System info
-        #print 'CPU: '+ str (psutil.cpu_percent(None)) + '%', 'MEM: ' + str(float(psutil.virtual_memory().percent)) + '%'
-
-        if stopit:
-            break
         curr_ports = rtmidi2.get_in_ports()
         #print curr_ports
         if (len(prev_ports) != len(curr_ports)):
@@ -314,10 +307,10 @@ try:
 except KeyboardInterrupt:
   print "\nstopped by ctrl-c\n"
 except:
-  print "Other Error"
+  print "\nstopped by Other Error"
 finally:
     lcd.display('  -=STOPPED=-   ', 1)
-    lcd.display(unichr(2)*16, 2)
+    lcd.display(unichr(2)*lcd.LCD_COLS, 2)
     sleep(0.5)
     if gvars.IS_DEBIAN:
         import RPi.GPIO as GPIO

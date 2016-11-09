@@ -186,7 +186,7 @@ class PresetNav(Navigator):
         gvars.preset += 1
         lcd.resetModes()
         lcd.inPresetMode = True
-        gvars.current_voice = 1
+        gvars.currvoice = 1
         if (gvars.preset >= self.numFolders):
             gvars.preset = 0
         self.display()
@@ -196,7 +196,7 @@ class PresetNav(Navigator):
         gvars.preset -= 1
         lcd.resetModes()
         lcd.inPresetMode = True
-        gvars.current_voice = 1
+        gvars.currvoice = 1
         if (gvars.preset < 0):
             gvars.preset = self.numFolders - 1
         self.display()
