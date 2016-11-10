@@ -4,6 +4,7 @@
 """
 import configparser
 import os
+import globalvars as gv
 
 CONFIG_FILE_PATH = "/media/config.ini"
 if not os.path.exists(CONFIG_FILE_PATH):
@@ -69,7 +70,7 @@ def get_config_item_by_name(option_name):
                         value_in_config = False
 
     if value_in_config != None:
-        print option_name, ' = ', value_in_config
+        if gv.CONFIG_PRINT: print option_name, ' = ', value_in_config
         return value_in_config
 
     else:
@@ -82,7 +83,8 @@ def update_config(section, option, value):
     # http://stackoverflow.com/questions/21476554/update-ini-file-without-removing-comments
     # http://www.voidspace.org.uk/python/configobj.html
     # Have had a play below (config2) - will revisit in the future.
-    config.set('README', '; WARNING: Any comments written here will be overwritten by SamplerBox when using the menu system. Additions and changes to comments must be made to configparser_samplerbox.py')
+    config.set('README',
+               '; WARNING: Any comments written here will be overwritten by SamplerBox when using the menu system. Additions and changes to comments must be made to configparser_samplerbox.py')
 
     config.set('MISC',
                '; Prints midi messages in the format: messagetype, note <DeviceName>. eg 176, 60, <LaunchKey 61>')
@@ -92,15 +94,13 @@ def update_config(section, option, value):
 ; GPIO: The number of the GPIO pin the button is connected to. eg button_left = GPIO7\r\
 ; Notes: Not ideal, but useable if you have no alternative. <devicename> is optional. eg button_left = C1, F#2 etc.')
 
+    config.set('GPIO BUTTONS PIN SETUP',
+               '; For buttons connected to GPIO pins, USE_BUTTONS must be True')
+
     config.set(section, option.upper(), value)
 
     with open(CONFIG_FILE_PATH, 'w') as fp:
         config.write(fp)
-
-
-
-
-
 
 # from configobj import ConfigObj
 # config2 = ConfigObj("config.ini")

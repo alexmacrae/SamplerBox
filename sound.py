@@ -6,20 +6,20 @@ import samplerbox_audio
 import numpy
 import wave
 import pyaudio
+import sounddevice
+import lcd
 from chunk import Chunk
 import struct
-import globalvars as gvars
+import globalvars as gv
 import freeverb
 from filters import FilterType, Filter, FilterChain
-from collections import OrderedDict
 
 #########################################
-# SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE
-# TO READ CUE MARKERS & LOOP MARKERS
+##  SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE
+##  TO READ CUE MARKERS & LOOP MARKERS if applicable in mode
 #########################################
 
 class waveread(wave.Wave_read):
-
     def initfp(self, file):
         self._convert = None
         self._soundpos = 0
@@ -52,11 +52,12 @@ class waveread(wave.Wave_read):
             elif chunkname == 'cue ':
                 numcue = struct.unpack('<i', chunk.read(4))[0]
                 for i in range(numcue):
-                    id, position, datachunkid, chunkstart, blockstart, sampleoffset = struct.unpack('<iiiiii', chunk.read(24))
+                    id, position, datachunkid, chunkstart, blockstart, sampleoffset = struct.unpack('<iiiiii',
+                                                                                                    chunk.read(24))
                     self._cue.append(sampleoffset)
             elif chunkname == 'smpl':
                 manuf, prod, sampleperiod, midiunitynote, midipitchfraction, smptefmt, smpteoffs, numsampleloops, samplerdata = struct.unpack(
-                                                                                                                                              '<iiiiiiiii', chunk.read(36))
+                    '<iiiiiiiii', chunk.read(36))
                 for i in range(numsampleloops):
                     cuepointid, type, start, end, fraction, playcount = struct.unpack('<iiiiii', chunk.read(24))
                     self._loops.append([start, end])
@@ -68,7 +69,8 @@ class waveread(wave.Wave_read):
         return self._cue
 
     def getloops(self):
-        return self._loops
+        if gv.sample_mode == gv.PLAYLIVE or gv.sample_mode == gv.PLAYLOOP or gv.sample_mode == gv.PLAYLO2X:
+            return self._loops
 
 
 
@@ -87,7 +89,7 @@ class PlayingSound:
 
     def stop(self):
         try:
-            gvars.playingsounds.remove(self)
+            gv.playingsounds.remove(self)
         except:
             pass
 
@@ -112,7 +114,7 @@ class Sound:
     def play(self, note, vel):
         snd = PlayingSound(self, note, vel)
         #print 'fname: ' + self.fname + ' note/vel: ' + str(note) + '/' + str(vel) + ' midinote: ' + str(self.midinote) + ' vel: ' + str(self.velocity)
-        gvars.playingsounds.append(snd)
+        gv.playingsounds.append(snd)
         return snd
 
 
@@ -130,63 +132,58 @@ class Sound:
 # AUDIO CALLBACK
 #########################################
 
-BackingRunning = False
-
 def AudioCallback(outdata, frame_count, time_info, status):
-
-    global SampleLoading
-    global BackingRunning
-    global BackWav, BackIndex, ClickWav, ClickIndex
-    global backvolume, clickvolume
     rmlist = []
-    gvars.playingsounds = gvars.playingsounds[-gvars.MAX_POLYPHONY:]
+    gv.playingsounds = gv.playingsounds[-gv.MAX_POLYPHONY:]
 
-    b = samplerbox_audio.mixaudiobuffers(gvars.playingsounds, rmlist, frame_count, gvars.FADEOUT, gvars.FADEOUTLENGTH, gvars.SPEED)
+    b = samplerbox_audio.mixaudiobuffers(gv.playingsounds, rmlist, frame_count,
+                                         gv.FADEOUT, gv.FADEOUTLENGTH, gv.SPEED,
+                                         gv.PITCHBEND, gv.PITCHSTEPS)
 
-    if gvars.USE_FREEVERB:
+    if gv.USE_FREEVERB:
         b_temp = b
         freeverb.freeverbprocess(b_temp.ctypes.data_as(freeverb.c_float_p), b.ctypes.data_as(freeverb.c_float_p), frame_count)
 
     for e in rmlist:
         try:
-            gvars.playingsounds.remove(e)
+            gv.playingsounds.remove(e)
         except:
             pass
 
-    b *= gvars.globalvolume
-    #outdata[:] = b.reshape(outdata.shape)
+    b *= gv.volumeCC
+    outdata[:] = b.reshape(outdata.shape)
 
 
-    # if gvars.USE_TONECONTOL:
+    # if gv.USE_TONECONTOL:
     #      b = numpy.array(chain.filter(bb))
     #      b=bb
 
 
-    if gvars.CHANNELS == 4:  # 4 channel playback
+    if gv.CHANNELS == 4:  # 4 channel playback
 
         # if backingtrack running: add in the audio
-        if BackingRunning:
-            BackData = BackWav[BackIndex:BackIndex + 2 * frame_count]
-            ClickData = ClickWav[ClickIndex:ClickIndex + 2 * frame_count]
-            BackIndex += 2 * frame_count
-            ClickIndex += 2 * frame_count
-            if len(b) != len(BackData) or len(b) != len(ClickData):
-                BackingRunning = False
-                BackData = None
-                BackIndex = 0
-                ClickData = None
-                ClickIndex = 0
+        if gv.BackingRunning:
+            BackData = gv.BackWav[gv.BackIndex:gv.BackIndex + 2 * frame_count]
+            gv.ClickData = gv.ClickWav[gv.ClickIndex:gv.ClickIndex + 2 * frame_count]
+            gv.BackIndex += 2 * frame_count
+            gv.ClickIndex += 2 * frame_count
+            if len(b) != len(BackData) or len(b) != len(gv.ClickData):
+                gv.BackingRunning = False
+                gv.BackData = None
+                gv.BackIndex = 0
+                gv.ClickData = None
+                gv.ClickIndex = 0
 
-        if BackingRunning:
-            newdata = (backvolume * BackData + b * gvars.globalvolume)
-            Click = ClickData * clickvolume
+        if gv.BackingRunning:
+            newdata = (gv.backvolume * gv.BackData + b * gv.global_volume)
+            gv.Click = gv.ClickData * gv.clickvolume
         else:
-            Click = numpy.zeros(frame_count * 2, dtype=numpy.float32)
-            newdata = b * gvars.globalvolume
+            gv.Click = numpy.zeros(frame_count * 2, dtype=numpy.float32)
+            newdata = b * gv.global_volume
 
         # putting streams in 4 channel audio by magic in numpy reshape
         a1 = newdata.reshape(frame_count, 2)
-        a2 = Click.reshape(frame_count, 2)
+        a2 = gv.Click.reshape(frame_count, 2)
         ch4 = numpy.hstack((a1, a2)).reshape(1, frame_count * 4)
 
         # mute while loading Sample or BackingTrack, otherwise there could be dirty hick-ups
@@ -197,23 +194,102 @@ def AudioCallback(outdata, frame_count, time_info, status):
     else:  # 2 Channel playback
 
         # if backingtrack running: add in the audio
-        if BackingRunning:
-            BackData = BackWav[BackIndex:BackIndex + 2 * frame_count]
-            BackIndex += 2 * frame_count
+        if gv.BackingRunning:
+            BackData = gv.BackWav[gv.BackIndex:gv.BackIndex + 2 * frame_count]
+            gv.BackIndex += 2 * frame_count
             if len(b) != len(BackData):
-                BackingRunning = False
+                gv.BackingRunning = False
                 BackData = None
                 BackIndex = 0
 
-        if BackingRunning:
-            newdata = (backvolume * BackData + b * gvars.globalvolume)
+        if gv.BackingRunning:
+            newdata = (gv.backvolume * gv.BackData + b * gv.global_volume)
         else:
-            newdata = b * gvars.globalvolume
+            newdata = b * gv.global_volume
 
         return (newdata.astype(numpy.int16).tostring(), pyaudio.paContinue)
 
+#########################################
+# OPEN AUDIO DEVICE
+#########################################
 
+# Using pyaudio only to list device names. sounddevice doesn't seem to have that option
+p = pyaudio.PyAudio()
+print "Here is a list of audio devices:"
+foundByDeviceName = False
+dev_name = ''
+for i in range(p.get_device_count()):
+    dev = p.get_device_info_by_index(i)
+    s = ""
+    if not foundByDeviceName:
+        if i == gv.AUDIO_DEVICE_ID:
+            s += " <--- SELECTED BY ID"
+            dev_name = dev['name']
+        if (gv.AUDIO_DEVICE_NAME in dev['name']):
+            gv.AUDIO_DEVICE_ID = i
+            s += " <--- SELECTED BY MATCHED NAME (takes precedence)"
+            dev_name = dev['name']
+            foundByDeviceName = True
+        if dev['maxOutputChannels'] > 0:
+            print str(i) + ": " + dev['name'] + s
+            # if (s != ""):
+            #     break
+            # else:
+            #     continue
 
+# try:
+#     stream = p.open(format=pyaudio.paInt16, channels=gv.CHANNELS, rate=gv.SAMPLERATE,
+#                     frames_per_buffer=gv.BUFFERSIZE, output=True,
+#                     output_device_index=gv.AUDIO_DEVICE_ID, stream_callback=AudioCallback)
+# except:
+#     print "Sample audio:  Invalid Audio Device ID"
+#     exit(1)
+
+    # initFilter()
+    # updateFilter(0, 1000.0, 12.0, 1.0)
+
+try:
+    sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, blocksize=gv.BUFFERSIZE,
+                                  samplerate=gv.SAMPLERATE, channels=gv.CHANNELS,
+                                  dtype='int16', callback=AudioCallback)
+    sd.start()
+    print 'Opened audio device #%i' % gv.AUDIO_DEVICE_ID
+except:
+    lcd.display("Invalid audiodev")
+    print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
+    print 'Available devices:'
+    print(sounddevice.query_devices())
+    exit(1)
+
+if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
+    import alsaaudio
+    for i in range(0, 4):
+        try:
+            amix = alsaaudio.Mixer(cardindex=gv.MIXER_CARD_ID+i,control=gv.MIXER_CONTROL)
+            gv.MIXER_CARD_ID+=i    # save the found value
+            i=0                 # indicate OK
+            print 'Opened Alsamixer: card id "%i", control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
+            break
+        except:
+            pass
+    if i > 0:
+        lcd.display("Invalid mixerdev")
+        print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
+        print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
+        print(sounddevice.query_devices())
+        exit(1)
+    def getvolume():
+        vol = amix.getvolume()
+        gv.volume = int(vol[0])
+    def setvolume(volume):
+        amix.setvolume(volume)
+    setvolume(gv.volume)
+    getvolume()
+else:
+    def getvolume():
+        pass
+    def setvolume(volume):
+        pass
 #
 # # EQ
 #

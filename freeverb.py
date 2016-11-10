@@ -1,9 +1,9 @@
 ##################################################################################
 # link for freeverb C++ lib
 ##################################################################################
-import globalvars as gvars
+import globalvars as gv
 
-if gvars.IS_DEBIAN and gvars.USE_FREEVERB:
+if gv.USE_FREEVERB:
     import ctypes
     from ctypes import *
     import lcd
