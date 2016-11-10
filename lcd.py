@@ -1,23 +1,13 @@
 ###########################
 # HD44780 16x2 LCD MESSAGES
 ###########################
-import globalvars as gvars
+import globalvars as gv
 import threading
 import psutil
 import time
 import lcdcustomchars as lcdcc
 
-USE_LCD = gvars.USE_HD44780_16x2_LCD
-IS_DEB = gvars.IS_DEBIAN
-LCD_DEBUG = gvars.LCD_DEBUG
-
-# Define GPIO to LCD mapping
-LCD_RS = 7
-LCD_E = 8
-LCD_D4 = 27
-LCD_D5 = 17
-LCD_D6 = 18
-LCD_D7 = 4
+USE_LCD = gv.USE_HD44780_16x2_LCD
 
 # Define some device constants
 LCD_COLS = 20  # Maximum characters per line
@@ -40,7 +30,7 @@ inSysMode = False
 inMenuMode = False
 tempDisplay = False
 
-if IS_DEB:
+if gv.IS_DEBIAN:
     WhileSleep = 0.05
 else:
     WhileSleep = 0.2
@@ -58,11 +48,11 @@ STRING_2_PRIORITY = ''
 STRING_3_PRIORITY = ''
 STRING_4_PRIORITY = ''
 
-if USE_LCD and IS_DEB:
+if USE_LCD and gv.IS_DEBIAN:
     import RPi.GPIO as GPIO
     from RPLCD import CharLCD, cleared, cursor
 
-    lcd = CharLCD(pin_rs=LCD_RS, pin_rw=None, pin_e=LCD_E, pins_data=[LCD_D4, LCD_D5, LCD_D6, LCD_D7],
+    lcd = CharLCD(pin_rs=gv.LCD_RS, pin_rw=None, pin_e=gv.LCD_E, pins_data=[gv.LCD_D4, gv.LCD_D5, gv.LCD_D6, gv.LCD_D7],
                   numbering_mode=GPIO.BCM, cols=LCD_COLS, rows=LCD_ROWS)
 
     # Write custom codes to the LCD
@@ -83,8 +73,8 @@ def resetModes():
 
 def makeVoiceButtons():
     button_str = ''
-    for v in gvars.voices:
-        if (v == gvars.currvoice - 1):
+    for v in gv.voices:
+        if (v == gv.currvoice - 1):
             button_str += unichr(3)
         else:
             button_str += unichr(4)
@@ -98,7 +88,7 @@ def getTimeOut():
 def lcd_main():
     # Main program block
     global TimeOut, displayCalled, inPresetMode, tempDisplay
-    if USE_LCD and IS_DEB:
+    if USE_LCD and gv.IS_DEBIAN:
         global lcd
         lcd.clear()
 
@@ -148,7 +138,7 @@ def lcd_main():
                     resetModes()
                     inPresetMode = True
             else:
-                lcd_string(STRING_1[:LCD_COLS - 4] + (unichr(4) * len(gvars.voices)), 1)
+                lcd_string(STRING_1[:LCD_COLS - 4] + (unichr(4) * len(gv.voices)), 1)
                 lcd_string(STRING_2, 2)
                 lcd_string(STRING_3, 3)
                 lcd_string(STRING_4, 4)
@@ -159,11 +149,11 @@ def lcd_main():
 def lcd_string(message, line):
     # Send string to display
     # global STRING_1, STRING_2, STRING_3, STRING_4
-    if USE_LCD and IS_DEB:
+    if USE_LCD and gv.IS_DEBIAN:
         global lcd
     message = message.ljust(LCD_COLS, " ")
 
-    if USE_LCD and IS_DEB:
+    if USE_LCD and gv.IS_DEBIAN:
         lcd._set_cursor_pos((line - 1, 0))
         lcd.write_string(message[:LCD_COLS])
 
@@ -206,7 +196,7 @@ def display(message, line=1, is_priority=False, customTimeout=None):
     else:
         TimeOut = TimeOutReset
 
-    if LCD_DEBUG:
+    if gv.LCD_PRINT:
         print '{line ' + str(line) + '} -->  ' + message[:LCD_COLS]
 
     displayCalled = True
