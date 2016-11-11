@@ -11,13 +11,15 @@
 # Import
 #
 #########################################
-import configparser
 import os
-import loadsamples as ls
-import globalvars as gv
-import lcd
-import menudict
+
+import configparser
+
 import configparser_samplerbox as cs
+import globalvars as gv
+import hd44780_20x4
+import loadsamples as ls
+import menudict
 
 
 def write_setlist(list_to_write):
@@ -166,8 +168,8 @@ class PresetNav(Navigator):
         self.setlistList = open(gv.SETLIST_FILE_PATH).read().splitlines()
         self.numFolders = len(os.walk(gv.SAMPLES_DIR).next()[1])
         print '-= Welcome to preset land =-'
-        lcd.resetModes()
-        lcd.inPresetMode = True
+        hd44780_20x4.resetModes()
+        hd44780_20x4.inPresetMode = True
         self.display()
 
     def display(self):
@@ -179,13 +181,13 @@ class PresetNav(Navigator):
             p += 1
         s2 = str(p + 1) + unichr(2) + str(self.setlistList[p])
 
-        lcd.display(s1, 1, is_priority=True)
-        lcd.display(s2, 2, is_priority=True)
+        hd44780_20x4.display(s1, 1, is_priority=True)
+        hd44780_20x4.display(s2, 2, is_priority=True)
 
     def right(self):
         gv.preset += 1
-        lcd.resetModes()
-        lcd.inPresetMode = True
+        hd44780_20x4.resetModes()
+        hd44780_20x4.inPresetMode = True
         gv.currvoice = 1
         if (gv.preset >= self.numFolders):
             gv.preset = 0
@@ -194,8 +196,8 @@ class PresetNav(Navigator):
 
     def left(self):
         gv.preset -= 1
-        lcd.resetModes()
-        lcd.inPresetMode = True
+        hd44780_20x4.resetModes()
+        hd44780_20x4.inPresetMode = True
         gv.currvoice = 1
         if (gv.preset < 0):
             gv.preset = self.numFolders - 1
@@ -206,9 +208,9 @@ class PresetNav(Navigator):
         self.loadState(MenuNav)
 
     def cancel(self):  # can remove empty class methods
-        lcd.TimeOut = lcd.TimeOutReset
-        lcd.resetModes()
-        lcd.inSysMode = True
+        hd44780_20x4.TimeOut = hd44780_20x4.TimeOutReset
+        hd44780_20x4.resetModes()
+        hd44780_20x4.inSysMode = True
         # eg CPU/RAM, battery life, time, wifi/bluetooth status
 
 
@@ -222,36 +224,36 @@ class MenuNav(Navigator):
 
         self.menuPointer = self.menuCoords[-1]
 
-        lcd.resetModes()
+        hd44780_20x4.resetModes()
 
-        lcd.inMenuMode = True
-        lcd.display(self.getMenuPathStr(), 1)
-        lcd.display('-------------------------', 2)
+        hd44780_20x4.inMenuMode = True
+        hd44780_20x4.display(self.getMenuPathStr(), 1)
+        hd44780_20x4.display('-------------------------', 2)
 
     def left(self):
 
         if self.menuPointer > 0:
             self.menuPointer -= 1
             self.menuCoords[-1] = self.menuPointer
-            lcd.display(self.getMenu().get(self.menuPointer).get('name'))
+            hd44780_20x4.display(self.getMenu().get(self.menuPointer).get('name'))
         else:
-            lcd.display(self.getMenu().get(self.menuPointer).get('name') + '(start)')
+            hd44780_20x4.display(self.getMenu().get(self.menuPointer).get('name') + '(start)')
 
     def right(self):
 
         if self.menuPointer < len(self.getMenu()) - 1:
             self.menuPointer += 1
             self.menuCoords[-1] = self.menuPointer
-            lcd.display(self.getMenu().get(self.menuPointer).get('name'))
+            hd44780_20x4.display(self.getMenu().get(self.menuPointer).get('name'))
         else:
-            lcd.display(self.getMenu().get(self.menuPointer).get('name') + '(end)')
+            hd44780_20x4.display(self.getMenu().get(self.menuPointer).get('name') + '(end)')
 
     def enter(self):
         global functionToMap, functionNiceName
         menu = self.getMenu().get(self.menuPointer)
         try:
             if menu.has_key('submenu'):
-                lcd.display('Entering submenu for [' + menu.get('name') + ']')
+                hd44780_20x4.display('Entering submenu for [' + menu.get('name') + ']')
                 if menu.has_key('functionToMap'):
                     functionToMap = menu.get('functionToMap')
                     functionNiceName = menu.get('name')
@@ -288,8 +290,8 @@ class SelectSong(Navigator):
         self.display()
 
     def display(self):
-        lcd.display('Select song', 1)
-        lcd.display(str(gv.preset + 1) + " " + str(self.setlistList[gv.preset]), 2)
+        hd44780_20x4.display('Select song', 1)
+        hd44780_20x4.display(str(gv.preset + 1) + " " + str(self.setlistList[gv.preset]), 2)
 
     # next song
     def right(self):
@@ -320,8 +322,8 @@ class MoveSong(Navigator):
         self.display()
 
     def display(self):
-        lcd.display('Moving song', 1)
-        lcd.display(str(gv.preset + 1) + " " + str(self.setlistList[gv.preset]), 2)
+        hd44780_20x4.display('Moving song', 1)
+        hd44780_20x4.display(str(gv.preset + 1) + " " + str(self.setlistList[gv.preset]), 2)
 
     # Move song up the setlist
     def left(self):
@@ -358,7 +360,7 @@ class MoveSong(Navigator):
 class SetlistRemoveMissing(Navigator):
     def __init__(self):
 
-        lcd.display('Remove missing songs? [Y/N]', 2)
+        hd44780_20x4.display('Remove missing songs? [Y/N]', 2)
 
     def enter(self):
 
@@ -389,8 +391,8 @@ class DeleteSong(Navigator):
     def __init__(self):
         self.prevState = eval(self.menuPosition[self.menuCoords[-1]]['fn'][0])
         self.setlistList = open(gv.SETLIST_FILE_PATH).read().splitlines()
-        lcd.display('Are you sure? [Y/N]', 1)
-        lcd.display('WARNING: will crash if we delete all songs', 2)
+        hd44780_20x4.display('Are you sure? [Y/N]', 1)
+        hd44780_20x4.display('WARNING: will crash if we delete all songs', 2)
 
     def enter(self):
         print self.setlistList
@@ -421,13 +423,13 @@ class MidiLearn(Navigator):
         self.functionNiceName = functionNiceName
         self.learnedMidiMessage = None
         self.learnedMidiDevice = None
-        lcd.display('Learning', 1)
-        lcd.display('Select a control', 2)
+        hd44780_20x4.display('Learning', 1)
+        hd44780_20x4.display('Select a control', 2)
 
     def sendControlToMap(self, learnedMidiMessage, learnedMidiDevice):
         self.learnedMidiMessage = learnedMidiMessage
         self.learnedMidiDevice = learnedMidiDevice
-        lcd.display(str(learnedMidiMessage[0]) + ':' + str(learnedMidiMessage[1]) + ' ' + learnedMidiDevice, 2)
+        hd44780_20x4.display(str(learnedMidiMessage[0]) + ':' + str(learnedMidiMessage[1]) + ' ' + learnedMidiDevice, 2)
         self.enter()  #
         # print learnedMidiMessage, learnedMidiDevice
 
@@ -466,7 +468,7 @@ class MidiLearn(Navigator):
 
     def cancel(self):
         # print devices
-        lcd.display('----------------', 2)
+        hd44780_20x4.display('----------------', 2)
         gv.learningMode = False
         if len(self.menuCoords) > 1:
             self.menuCoords.pop()
@@ -512,8 +514,8 @@ class DeleteMidiMap(Navigator):
         functionNiceName = self.functionNiceName
         i = self.i
         # lcd.display(mm[i][2], 1)
-        lcd.display(str(i + 1) + ' ' + functionNiceName, 1)
-        lcd.display(str(mm[i][0])[:8] + str(mm[i][1][:8]), 2)
+        hd44780_20x4.display(str(i + 1) + ' ' + functionNiceName, 1)
+        hd44780_20x4.display(str(mm[i][0])[:8] + str(mm[i][1][:8]), 2)
 
     def left(self):
         if self.i > 0:
@@ -550,7 +552,7 @@ class DeleteMidiMap(Navigator):
 
     def cancel(self):
         # print devices
-        lcd.display('----------------', 2)
+        hd44780_20x4.display('----------------', 2)
         gv.learningMode = False
         if len(self.menuCoords) > 1:
             self.menuCoords.pop()
@@ -568,8 +570,8 @@ class MaxPolyphonyConfig(Navigator):
         self.display()
 
     def display(self):
-        lcd.display('Max polyphony', 1)
-        lcd.display(str(self.MAX_POLYPHONY) + ' (1-128)', 2)
+        hd44780_20x4.display('Max polyphony', 1)
+        hd44780_20x4.display(str(self.MAX_POLYPHONY) + ' (1-128)', 2)
 
     def left(self):
         self.MAX_POLYPHONY = max(self.MAX_POLYPHONY - 1, 1)
@@ -598,8 +600,8 @@ class MidiChannelConfig(Navigator):
         self.display()
 
     def display(self):
-        lcd.display('MIDI Channel', 1)
-        lcd.display(str(self.MIDI_CHANNEL) + ' (1-128)', 2)
+        hd44780_20x4.display('MIDI Channel', 1)
+        hd44780_20x4.display(str(self.MIDI_CHANNEL) + ' (1-128)', 2)
 
     def left(self):
         self.MIDI_CHANNEL = max(self.MIDI_CHANNEL - 1, 1)
@@ -632,8 +634,8 @@ class ChannelsConfig(Navigator):
         self.display()
 
     def display(self):
-        lcd.display('Audio Channels', 1)
-        lcd.display('[' + str(self.CHANNELS) + ']' + ' (1,2,4,6,8)', 2)
+        hd44780_20x4.display('Audio Channels', 1)
+        hd44780_20x4.display('[' + str(self.CHANNELS) + ']' + ' (1,2,4,6,8)', 2)
 
     def left(self):
         if self.i > 0:
@@ -670,8 +672,8 @@ class BufferSizeConfig(Navigator):
         self.display()
 
     def display(self):
-        lcd.display('Buffer size', 1)
-        lcd.display(str(self.BUFFERSIZE), 2)
+        hd44780_20x4.display('Buffer size', 1)
+        hd44780_20x4.display(str(self.BUFFERSIZE), 2)
 
     def left(self):
         if self.i > 0:
@@ -708,8 +710,8 @@ class SampleRateConfig(Navigator):
         self.display()
 
     def display(self):
-        lcd.display('Sample rate', 1)
-        lcd.display(str(self.SAMPLERATE), 2)
+        hd44780_20x4.display('Sample rate', 1)
+        hd44780_20x4.display(str(self.SAMPLERATE), 2)
 
     def left(self):
         if self.i > 0:
@@ -743,8 +745,8 @@ class MasterVolumeConfig(Navigator):
         self.display()
 
     def display(self):
-        lcd.display('Master volume', 1)
-        lcd.display(str(gv.global_volume), 2)
+        hd44780_20x4.display('Master volume', 1)
+        hd44780_20x4.display(str(gv.global_volume), 2)
 
     def left(self):
         gv.global_volume = max(gv.global_volume - 4, 0)

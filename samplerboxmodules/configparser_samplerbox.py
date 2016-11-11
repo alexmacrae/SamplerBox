@@ -35,10 +35,10 @@ DEFAULTS = {
     'PRINT_MIDI_MESSAGES': False,
 
     # MIDI BUTTON NAVIGATION
-    'BUTTON_LEFT': 'GPIO1',
-    'BUTTON_RIGHT': 'GPIO2',
-    'BUTTON_ENTER': 'GPIO3',
-    'BUTTON_CANCEL': 'GPIO4',
+    'BUTTON_LEFT_MIDI': '',
+    'BUTTON_RIGHT_MIDI': '',
+    'BUTTON_ENTER_MIDI': '',
+    'BUTTON_CANCEL_MIDI': '',
 
     # HD44780 GPIO PIN 4BIT SETUP (same for 16x2 and 20x4 modules)
     'LCD_RS': 7,
@@ -54,7 +54,7 @@ config = configparser.ConfigParser(allow_no_value=True)
 config.optionxform = str  # allows case sensitivity
 
 
-def get_config_item_by_name(option_name):
+def get_option_by_name(option_name):
     option_name = option_name.upper()
 
     value_in_config = None

@@ -3,16 +3,18 @@
 # MIXER CLASSES
 #########################################
 import samplerbox_audio
-import numpy
+import struct
 import wave
+from chunk import Chunk
+
+import numpy
 import pyaudio
 import sounddevice
-import lcd
-from chunk import Chunk
-import struct
-import globalvars as gv
+
 import freeverb
-from filters import FilterType, Filter, FilterChain
+import globalvars as gv
+import hd44780_20x4
+
 
 #########################################
 ##  SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE
@@ -150,7 +152,7 @@ def AudioCallback(outdata, frame_count, time_info, status):
         except:
             pass
 
-    b *= gv.volumeCC
+    b *= (gv.global_volume * gv.volumeCC)
     outdata[:] = b.reshape(outdata.shape)
 
 
@@ -255,7 +257,7 @@ try:
     sd.start()
     print 'Opened audio device #%i' % gv.AUDIO_DEVICE_ID
 except:
-    lcd.display("Invalid audiodev")
+    hd44780_20x4.display("Invalid audiodev")
     print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
     print 'Available devices:'
     print(sounddevice.query_devices())
@@ -273,7 +275,7 @@ if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
         except:
             pass
     if i > 0:
-        lcd.display("Invalid mixerdev")
+        hd44780_20x4.display("Invalid mixerdev")
         print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
         print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
         print(sounddevice.query_devices())

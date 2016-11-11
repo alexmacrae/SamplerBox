@@ -2,7 +2,7 @@ import platform
 import os
 import numpy
 import re
-import configparser_samplerbox as cs
+import configparser_samplerbox as cp
 
 IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian'  # Determine if running on RPi (True / False)
 CONFIG_PRINT = True
@@ -13,38 +13,37 @@ CONFIG_PRINT = True
 
 if CONFIG_PRINT: print '==== START CONFIG IMPORT ===='
 
-MAX_POLYPHONY = int(cs.get_config_item_by_name('MAX_POLYPHONY'))
-MIDI_CHANNEL = int(cs.get_config_item_by_name('MIDI_CHANNEL'))
-CHANNELS = int(cs.get_config_item_by_name('CHANNELS'))
-BUFFERSIZE = int(cs.get_config_item_by_name('BUFFERSIZE'))
-SAMPLERATE = int(cs.get_config_item_by_name('SAMPLERATE'))
-global_volume = int(cs.get_config_item_by_name('GLOBAL_VOLUME'))
-SAMPLES_DIR = str(cs.get_config_item_by_name('SAMPLES_DIR'))
+
+SYSTEM_MODE = int(cp.get_option_by_name('SYSTEM_MODE'))
+MAX_POLYPHONY = int(cp.get_option_by_name('MAX_POLYPHONY'))
+MIDI_CHANNEL = int(cp.get_option_by_name('MIDI_CHANNEL'))
+CHANNELS = int(cp.get_option_by_name('CHANNELS'))
+BUFFERSIZE = int(cp.get_option_by_name('BUFFERSIZE'))
+SAMPLERATE = int(cp.get_option_by_name('SAMPLERATE'))
+global_volume = int(cp.get_option_by_name('GLOBAL_VOLUME'))
+global_volume = (10.0 ** (-12.0 / 20.0)) * (float(global_volume)  / 100.0)
+SAMPLES_DIR = str(cp.get_option_by_name('SAMPLES_DIR'))
 if not os.path.isdir(SAMPLES_DIR):
     print 'WARNING: The directory', SAMPLES_DIR, 'was not found. Using default: ./media'
     SAMPLES_DIR = './media'
-USE_BUTTONS = cs.get_config_item_by_name('USE_BUTTONS')
-USE_HD44780_16x2_LCD = cs.get_config_item_by_name('USE_HD44780_16x2_LCD')
-USE_FREEVERB = cs.get_config_item_by_name('USE_FREEVERB')
-USE_TONECONTROL = cs.get_config_item_by_name('USE_TONECONTROL')
-USE_SERIALPORT_MIDI = cs.get_config_item_by_name(
-    'USE_SERIALPORT_MIDI')  # Set to True to enable MIDI IN via SerialPort (e.g. RaspberryPi's GPIO UART pins)
-USE_I2C_7SEGMENTDISPLAY = cs.get_config_item_by_name(
-    'USE_I2C_7SEGMENTDISPLAY')  # Set to True to use a 7-segment display via I2C
-LCD_PRINT = cs.get_config_item_by_name('LCD_PRINT')
-PRINT_MIDI_MESSAGES = cs.get_config_item_by_name('PRINT_MIDI_MESSAGES')
-
-AUDIO_DEVICE_ID = int(cs.get_config_item_by_name('AUDIO_DEVICE_ID'))  # An external USB sound device on RPi is usually 2
-AUDIO_DEVICE_NAME = "USB Audio DAC"  # If we know the name (or part of the name), match by name instead
-
-PRESET_BASE = int(cs.get_config_item_by_name('PRESET_BASE'))  # Does the programchange / sample set start at 0 (MIDI style) or 1 (human style)
-
-LCD_RS = int(cs.get_config_item_by_name('LCD_RS'))
-LCD_E = int(cs.get_config_item_by_name('LCD_E'))
-LCD_D4 = int(cs.get_config_item_by_name('LCD_D4'))
-LCD_D5 = int(cs.get_config_item_by_name('LCD_D5'))
-LCD_D6 = int(cs.get_config_item_by_name('LCD_D6'))
-LCD_D7 = int(cs.get_config_item_by_name('LCD_D7'))
+USE_BUTTONS = cp.get_option_by_name('USE_BUTTONS')
+USE_HD44780_16x2_LCD = cp.get_option_by_name('USE_HD44780_16x2_LCD')
+USE_HD44780_20x4_LCD = cp.get_option_by_name('USE_HD44780_20x4_LCD')
+USE_FREEVERB = cp.get_option_by_name('USE_FREEVERB')
+USE_TONECONTROL = cp.get_option_by_name('USE_TONECONTROL')
+USE_SERIALPORT_MIDI = cp.get_option_by_name('USE_SERIALPORT_MIDI')
+USE_I2C_7SEGMENTDISPLAY = cp.get_option_by_name('USE_I2C_7SEGMENTDISPLAY')
+LCD_PRINT = cp.get_option_by_name('LCD_PRINT')
+PRINT_MIDI_MESSAGES = cp.get_option_by_name('PRINT_MIDI_MESSAGES')
+AUDIO_DEVICE_ID = int(cp.get_option_by_name('AUDIO_DEVICE_ID'))
+AUDIO_DEVICE_NAME = str(cp.get_option_by_name('AUDIO_DEVICE_NAME'))
+PRESET_BASE = int(cp.get_option_by_name('PRESET_BASE'))
+LCD_RS = int(cp.get_option_by_name('LCD_RS'))
+LCD_E = int(cp.get_option_by_name('LCD_E'))
+LCD_D4 = int(cp.get_option_by_name('LCD_D4'))
+LCD_D5 = int(cp.get_option_by_name('LCD_D5'))
+LCD_D6 = int(cp.get_option_by_name('LCD_D6'))
+LCD_D7 = int(cp.get_option_by_name('LCD_D7'))
 
 ########  LITERALS, don't change ########
 # by Hans
@@ -61,11 +60,11 @@ VELACCURATE = "Accurate"  # velocity as played, allows for multiple (normalized!
 # by Hans
 
 # (config.ini) change this number to start checking with other card index, default=0
-MIXER_CARD_ID = int(cs.get_config_item_by_name('MIXER_CARD_ID'))
+MIXER_CARD_ID = int(cp.get_option_by_name('MIXER_CARD_ID'))
 # (config.ini) change this name according soundcard, default="PCM"
-MIXER_CONTROL = str(cs.get_config_item_by_name('MIXER_CONTROL'))
+MIXER_CONTROL = str(cp.get_option_by_name('MIXER_CONTROL'))
 # (config.ini) Set to True to use to use the alsa mixer (via pyalsaaudio)
-USE_ALSA_MIXER = cs.get_config_item_by_name('USE_ALSA_MIXER')
+USE_ALSA_MIXER = cp.get_option_by_name('USE_ALSA_MIXER')
 
 ########## Chords definitions  # You always need index=0 (is single note, "normal play")
 # by Hans
@@ -106,15 +105,22 @@ def button_assign(midi_str):
     # returns: 176, 60, <devicename> or C#2, <devicename> or GPIO, 4
     return button_assign_list
 
-
-BUTTON_LEFT = button_assign(str(cs.get_config_item_by_name('BUTTON_LEFT')))
-BUTTON_RIGHT = button_assign(str(cs.get_config_item_by_name('BUTTON_RIGHT')))
-BUTTON_ENTER = button_assign(str(cs.get_config_item_by_name('BUTTON_ENTER')))
-BUTTON_CANCEL = button_assign(str(cs.get_config_item_by_name('BUTTON_CANCEL')))
-BUTTON_LEFT_GPIO = cs.get_config_item_by_name('BUTTON_LEFT_GPIO')
-BUTTON_RIGHT_GPIO = cs.get_config_item_by_name('BUTTON_RIGHT_GPIO')
-BUTTON_ENTER_GPIO = cs.get_config_item_by_name('BUTTON_ENTER_GPIO')
-BUTTON_CANCEL_GPIO = cs.get_config_item_by_name('BUTTON_CANCEL_GPIO')
+# For system mode 1 (by Alex)
+BUTTON_LEFT_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_LEFT_MIDI')))
+BUTTON_RIGHT_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_RIGHT_MIDI')))
+BUTTON_ENTER_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_ENTER_MIDI')))
+BUTTON_CANCEL_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_CANCEL_MIDI')))
+BUTTON_LEFT_GPIO = cp.get_option_by_name('BUTTON_LEFT_GPIO')
+BUTTON_RIGHT_GPIO = cp.get_option_by_name('BUTTON_RIGHT_GPIO')
+BUTTON_ENTER_GPIO = cp.get_option_by_name('BUTTON_ENTER_GPIO')
+BUTTON_CANCEL_GPIO = cp.get_option_by_name('BUTTON_CANCEL_GPIO')
+# For system mode 2 (by Hans)
+BUTTON_UP_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_UP_MIDI')))
+BUTTON_DOWN_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_DOWN_MIDI')))
+BUTTON_FUNC_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_FUNC_MIDI')))
+BUTTON_UP_GPIO = cp.get_option_by_name('BUTTON_UP_GPIO')
+BUTTON_DOWN_GPIO = cp.get_option_by_name('BUTTON_DOWN_GPIO')
+BUTTON_FUNC_GPIO = cp.get_option_by_name('BUTTON_FUNC_GPIO')
 
 if CONFIG_PRINT: print '==== END CONFIG IMPORT ====\n'
 
@@ -162,10 +168,10 @@ VelocitySelectionOffset = 0
 
 sample_mode = PLAYLIVE  # we need a default: original samplerbox
 velocity_mode = VELSAMPLE  # we need a default: original samplerbox
-# global_volume used in favour of volume
+# global_volume used in favour
 # volume = 87  # the startup (alsa=output) volume (0-100), change with function buttons
 volumeCC = 1.0  # assumed value of the volumeknob controller before first use, max=1.0 (the knob can only decrease).
-#PRESET_BASE = 0  # Does the programchange / sample set start at 0 (MIDI style) or 1 (human style)
+# PRESET_BASE = 0  # Does the programchange / sample set start at 0 (MIDI style) or 1 (human style)
 preset = 0 + PRESET_BASE  # the default patch to load
 PITCHRANGE = 12  # default range of the pitchwheel in semitones (max=12 is een octave)
 PITCHBITS = 7  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
@@ -207,3 +213,10 @@ clickvolumeDB = 0
 
 midimaps = None
 learningMode = False
+
+###################
+# GLOBAL DISPLAY VARS
+###################
+
+GPIO_button_func = None
+GPIO_function_val = None
