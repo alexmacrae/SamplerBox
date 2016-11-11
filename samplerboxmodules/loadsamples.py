@@ -3,14 +3,15 @@
 #
 #########################################
 
-import threading
 import os
 import re
-import sound
-import lcd
+import threading
+
 import numpy
-import midicallback
+
 import globalvars as gv
+import hd44780_20x4
+import sound
 
 LoadingThread = None
 LoadingInterrupt = False
@@ -57,14 +58,14 @@ def ActuallyLoad():
     if gv.basename:
         if gv.basename == prevbase:  # don't waste time reloading a patch
             # print 'Kept preset %s' % basename
-            lcd.display("Kept %s" % gv.basename)
+            hd44780_20x4.display("Kept %s" % gv.basename)
             return
         dirname = os.path.join(gv.SAMPLES_DIR, gv.basename)
     if not gv.basename:
-        lcd.display('Preset empty: %s' % gv.preset)
+        hd44780_20x4.display('Preset empty: %s' % gv.preset)
         return
 
-    lcd.display(str(gv.preset + 1) + unichr(2) + gv.basename, 1)
+    hd44780_20x4.display(str(gv.preset + 1) + unichr(2) + gv.basename, 1)
 
     definitionfname = os.path.join(dirname, "definition.txt")
     file_count = len(os.listdir(dirname))
@@ -140,7 +141,7 @@ def ActuallyLoad():
                         percent_loaded = (file_current * (
                             100 / numberOfPatterns)) / file_count  # more accurate loading progress
                         # Visual percentage loading with blocks. Load on last row of LCD
-                        lcd.display(unichr(1) * int(percent_loaded * (lcd.LCD_COLS / 100.0) + 1), lcd.LCD_ROWS)
+                        hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100.0) + 1), hd44780_20x4.LCD_ROWS)
                         file_current += 1
                         if LoadingInterrupt:
                             return
@@ -164,7 +165,7 @@ def ActuallyLoad():
                             if notename:
                                 midinote = gv.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
                             gv.samples[midinote, velocity, voice] = sound.Sound(os.path.join(dirname, fname),
-                                                                                   midinote, velocity)
+                                                                                midinote, velocity)
                             # print "sample: %s, note: %d, voice: %d" %(fname, midinote, voice)
                 except:
                     print "Error in definition file, skipping line %s." % (i + 1)
@@ -181,7 +182,7 @@ def ActuallyLoad():
                 gv.samples[midinote, 127, 1] = sound.Sound(file, midinote, 127)
 
             percent_loaded = (file_current * 100) / file_count  # more accurate loading progress
-            lcd.display(unichr(1) * int(percent_loaded * (lcd.LCD_COLS / 100) + 1), 4)
+            hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100) + 1), 4)
             file_current += 1
 
     initial_keys = set(gv.samples.keys())
@@ -190,7 +191,7 @@ def ActuallyLoad():
         gv.voices = list(set(gv.voices))  # Remove duplicates by converting to a set
 
         for voice in gv.voices:
-            voice += 1
+
             for midinote in xrange(128):
                 last_velocity = None
                 for velocity in xrange(128):
@@ -202,9 +203,7 @@ def ActuallyLoad():
                     else:
                         if last_velocity:
                             gv.samples[midinote, velocity, voice] = last_velocity
-            ###################
-            # Error: Filling missing notes not buggy
-            ###################
+
             initial_keys = set(gv.samples.keys())  # we got more keys, but not enough yet
             last_low = -130  # force lowest unfilled notes to be filled with the next_high
             next_high = None  # next_high not found yet
@@ -222,11 +221,9 @@ def ActuallyLoad():
                         m = last_low
                     else:
                         m = next_high
-                        ######################
                         # print "Note %d will be generated from %d" % (midinote, m)
-                        # for velocity in xrange(128):
-                        #     gv.samples[midinote, velocity, voice] = gv.samples[m, velocity, voice]
-                        ######################
+                        for velocity in xrange(128):
+                            gv.samples[midinote, velocity, voice] = gv.samples[m, velocity, voice]
 
         if not (release * 10000) == gv.FADEOUTLENGTH:
             gv.FADEOUTLENGTH = release * 10000
@@ -239,7 +236,7 @@ def ActuallyLoad():
             # lcd.display("")
 
     elif len(initial_keys) == 0:
-        lcd.display(' Error loading ', 1)
-        lcd.display(str(gv.preset + 1) + unichr(2) + gv.basename, 2)
+        hd44780_20x4.display(' Error loading ', 1)
+        hd44780_20x4.display(str(gv.preset + 1) + unichr(2) + gv.basename, 2)
     else:
-        lcd.display('', 5, customTimeout=0)  # as soon as the sample set is loaded, go straight to play screen
+        hd44780_20x4.display('', 5, customTimeout=0)  # as soon as the sample set is loaded, go straight to play screen

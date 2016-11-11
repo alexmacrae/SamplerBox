@@ -24,14 +24,16 @@ import rtmidi2               # Use rtmidi2 instead. Make sure when installing rt
 from collections import OrderedDict
 from time import sleep
 
-import globalvars as gv
-import sound
-import loadsamples as ls
-import navigator
-import lcd
-import buttons
-import midicallback
-import midimaps
+import samplerboxmodules.globalvars as gv
+import samplerboxmodules.sound as sound
+import samplerboxmodules.loadsamples as ls
+import samplerboxmodules.navigator as navigator
+import samplerboxmodules.hd44780_20x4 as lcd
+import samplerboxmodules.buttons as buttons
+import samplerboxmodules.midicallback as midicallback
+import samplerboxmodules.midimaps as midimaps
+
+
 
 ###########################
 # Load MIDI mappings

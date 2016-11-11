@@ -1,7 +1,7 @@
-import globalvars as gv
-import loadsamples
-import lcd
 import freeverb
+import globalvars as gv
+import hd44780_20x4
+import loadsamples
 import navigator
 
 Navigator = navigator.Navigator
@@ -27,6 +27,7 @@ class Reverb:
     def width(self, vel):
         freeverb.setwidth(vel)
 
+
 def noteon(messagetype, note, vel):
     # print messagetype, note, vel
     pass
@@ -36,16 +37,18 @@ def noteoff(messagetype, note, vel):
     # print messagetype, note, vel
     pass
 
+
 def AllNotesOff():
     gv.playingsounds = []
     gv.playingnotes = {}
     gv.sustainplayingnotes = []
 
+
 class MasterVolume:
     def setvolume(self, vel):
-        i = int(float(vel / 127.0) * (lcd.LCD_COLS - 1)) + 1
-        lcd.display('Volume', 3)
-        lcd.display((unichr(1) * i), 4)
+        i = int(float(vel / 127.0) * (hd44780_20x4.LCD_COLS - 1)) + 1
+        hd44780_20x4.display('Volume', 3)
+        hd44780_20x4.display((unichr(1) * i), 4)
         gv.global_volume = (10.0 ** (-12.0 / 20.0)) * (float(vel) / 127.0)
 
 
@@ -115,9 +118,20 @@ def MidiCallback(src, message, time_stamp):
     # MIDI Learning
     # Send messages when learningMode is set
     ######################
+
+
+
     if gv.learningMode and messagetype != 8:  # don't send note-offs
-        Navigator.state.sendControlToMap(message, src)
-        return
+
+        message_to_match = [message[0], note, str(src)]
+        all_sys_buttons = [gv.BUTTON_LEFT_MIDI, gv.BUTTON_RIGHT_MIDI, gv.BUTTON_ENTER_MIDI,
+                           gv.BUTTON_CANCEL_MIDI, gv.BUTTON_UP_MIDI, gv.BUTTON_DOWN_MIDI, gv.BUTTON_FUNC_MIDI]
+
+        if message_to_match in all_sys_buttons:
+            print 'This MIDI control has been assigned in the config.ini. Will not be mapped.'
+        else:
+            Navigator.state.sendControlToMap(message, src)
+            return # don't continue from here
 
     ######################
     # Check if MIDI Mapped
@@ -147,10 +161,10 @@ def MidiCallback(src, message, time_stamp):
     # Determined by config
     ######################
 
-    enter = gv.BUTTON_ENTER
-    left = gv.BUTTON_LEFT
-    right = gv.BUTTON_RIGHT
-    cancel = gv.BUTTON_CANCEL
+    enter = gv.BUTTON_ENTER_MIDI
+    left = gv.BUTTON_LEFT_MIDI
+    right = gv.BUTTON_RIGHT_MIDI
+    cancel = gv.BUTTON_CANCEL_MIDI
 
     if message[0] == enter[0] and note == enter[1] and velocity > 0 and enter[2] in src:  # Enter arrow button
         gv.nav.state.enter()
@@ -167,7 +181,8 @@ def MidiCallback(src, message, time_stamp):
     ######################
     # Do default MIDI functions
     ######################
-    if (messagechannel == gv.MIDI_CHANNEL) and (gv.midi_mute == False):
+
+    if (messagechannel == gv.MIDI_CHANNEL or gv.MIDI_CHANNEL <= 0) and (gv.midi_mute == False):
 
         if messagetype == 9:  # is a note-off hidden in this note-on ?
             if velocity == 0:  # midi protocol, next elif's are SB's special modes
@@ -183,6 +198,8 @@ def MidiCallback(src, message, time_stamp):
 
         if messagetype == 9:  # Note on
             midinote += gv.globaltranspose
+
+
             # scale the selected sample based on velocity, the volume will be kept,
             # this will normally make the sound brighter (by Erik)
             SelectVelocity = (velocity
@@ -207,6 +224,7 @@ def MidiCallback(src, message, time_stamp):
             # try:
             #     gv.playingnotes.setdefault(midinote, []).append(
             #         gv.samples[midinote, SelectVelocity, gv.currvoice].play(midinote, velocity))
+
             try:
                 if gv.velocity_mode == gv.VELSAMPLE:
                     velmixer = 127 * gv.gain
@@ -215,8 +233,8 @@ def MidiCallback(src, message, time_stamp):
                 for n in range(len(gv.chordnote[gv.currchord])):
                     playnote = midinote + gv.chordnote[gv.currchord][n]
                     # print "start note " + str(playnote)
-                    gv.playingnotes.setdefault(playnote, []) \
-                        .append(gv.samples[playnote, velocity, gv.currvoice].play(playnote, velmixer))
+                    gv.playingnotes.setdefault(playnote, []).append(
+                        gv.samples[playnote, SelectVelocity, gv.currvoice].play(playnote, velmixer))
             except:
                 print 'NoteOn entered exception routine'
                 pass

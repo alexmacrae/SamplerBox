@@ -6,11 +6,11 @@ import globalvars as gv
 if gv.USE_FREEVERB:
     import ctypes
     from ctypes import *
-    import lcd
+    import hd44780_20x4
     freeverb = cdll.LoadLibrary('./freeverb/revmodel.so')
 
     def unichr_multiplier(val):
-        return int((val / 127.0 * 100)/100 * (lcd.LCD_COLS-1)) + 1
+        return int((val / 127.0 * 100) / 100 * (hd44780_20x4.LCD_COLS - 1)) + 1
 
     fvsetroomsize = freeverb.setroomsize
     fvsetroomsize.argtypes = [c_float]
@@ -18,8 +18,8 @@ if gv.USE_FREEVERB:
     fvgetroomsize.restype = c_float
     def setroomsize(val):
         fvsetroomsize(val/127.0)
-        lcd.display('Roomsize', 3)
-        lcd.display(unichr(1) * unichr_multiplier(val) , 4)
+        hd44780_20x4.display('Roomsize', 3)
+        hd44780_20x4.display(unichr(1) * unichr_multiplier(val), 4)
 
     fvsetdamp = freeverb.setdamp
     fvsetdamp.argtypes = [c_float]
@@ -27,8 +27,8 @@ if gv.USE_FREEVERB:
     fvgetdamp.restype = c_float
     def setdamp(val):
         fvsetdamp(val/127.0)
-        lcd.display('Damping', 3)
-        lcd.display(unichr(1) * unichr_multiplier(val), 4)
+        hd44780_20x4.display('Damping', 3)
+        hd44780_20x4.display(unichr(1) * unichr_multiplier(val), 4)
 
     fvsetwet = freeverb.setwet
     fvsetwet.argtypes = [c_float]
@@ -36,8 +36,8 @@ if gv.USE_FREEVERB:
     fvgetwet.restype = c_float
     def setwet(val):
         fvsetwet(val/127.0)
-        lcd.display('Wet', 3)
-        lcd.display(unichr(1) * unichr_multiplier(val), 4)
+        hd44780_20x4.display('Wet', 3)
+        hd44780_20x4.display(unichr(1) * unichr_multiplier(val), 4)
 
     fvsetdry = freeverb.setdry
     fvsetdry.argtypes = [c_float]
@@ -45,8 +45,8 @@ if gv.USE_FREEVERB:
     fvgetdry.restype = c_float
     def setdry(val):
         fvsetdry(val/127.0)
-        lcd.display('Dry', 3)
-        lcd.display(unichr(1) * unichr_multiplier(val), 4)
+        hd44780_20x4.display('Dry', 3)
+        hd44780_20x4.display(unichr(1) * unichr_multiplier(val), 4)
 
     fvsetwidth = freeverb.setwidth
     fvsetwidth.argtypes = [c_float]
@@ -54,8 +54,8 @@ if gv.USE_FREEVERB:
     fvgetwidth.restype = c_float
     def setwidth(val):
         fvsetwidth(val/127.0)
-        lcd.display('Width', 3)
-        lcd.display(unichr(1) * unichr_multiplier(val), 4)
+        hd44780_20x4.display('Width', 3)
+        hd44780_20x4.display(unichr(1) * unichr_multiplier(val), 4)
 
 
     fvsetmode = freeverb.setmode
