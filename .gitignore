@@ -1,4 +1,5 @@
 nb-configuration.xml
 .idea/
 *.pyc
+isoimage/samplerbox_iso_maker.sh
 bfg.jar

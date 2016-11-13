@@ -19,13 +19,13 @@ if gv.USE_BUTTONS and gv.IS_DEBIAN:
                 if (now - lastbuttontime):
                     lastbuttontime = now
                     if not GPIO.input(gv.BUTTON_LEFT_GPIO):
-                        gv.nav.state.left()
+                        gv.nav1.state.left()
                     elif not GPIO.input(gv.BUTTON_RIGHT_GPIO):
-                        gv.nav.state.right()
+                        gv.nav1.state.right()
                     elif not GPIO.input(gv.BUTTON_ENTER_GPIO):
-                        gv.nav.state.enter()
+                        gv.nav1.state.enter()
                     elif not GPIO.input(gv.BUTTON_CANCEL_GPIO):
-                        gv.nav.state.cancel()
+                        gv.nav1.state.cancel()
 
                 time.sleep(0.020)
 

@@ -6,7 +6,7 @@
 #########################################
 
 import globalvars as gv
-
+import time
 
 class HD44780:
     # def __init__(self, pin_rs=7, pin_e=8, pins_db=[25,24,22,23,27,17,18,4]):
@@ -95,33 +95,36 @@ if gv.USE_HD44780_16x2_LCD and gv.IS_DEBIAN:
 
         import RPi.GPIO as GPIO
         import time
-        import buttons as b
 
-        lcd = HD44780(gv.LCD_RS, gv.LCD_E, gv.LCD_D4, gv.LCD_D5, gv.LCD_D6, gv.LCD_D7)
+        lcd = HD44780(gv.GPIO_LCD_RS, gv.GPIO_LCD_E, gv.GPIO_LCD_D4, gv.GPIO_LCD_D5, gv.GPIO_LCD_D6, gv.GPIO_LCD_D7)
 
+if gv.USE_HD44780_16x2_LCD:
 
-        def display(s2):
-            # lcd.clear()
+    def display(s2):
+        # lcd.clear()
 
-            if gv.USE_ALSA_MIXER:
-                s1 = "%s %s %d%% %+d" % (gv.chordname[gv.currchord], gv.sample_mode, gv.global_volume, gv.globaltranspose)
-            else:
-                s1 = "%s %s %+d" % (gv.chordname[gv.currchord], gv.sample_mode, gv.globaltranspose)
-            if s2 == "":
-                if gv.currvoice > 1: s2 = str(gv.currvoice) + ":"
-                s2 += gv.basename + " " * 15
-                if b.buttfunc > 0:
-                    s2 = s2[:14] + "*" + b.button_disp[b.buttfunc]
-            # print "display: %s \\ %s" % (s1, s2)
-            # lcd.message(s1 + " "*8 + "\n" + s2 + " "*15)
+        if gv.USE_ALSA_MIXER:
+            s1 = "%s %s %d%% %+d" % (gv.chordname[gv.currchord], gv.sample_mode, gv.global_volume, gv.globaltranspose)
+        else:
+            s1 = "%s %s %+d" % (gv.chordname[gv.currchord], gv.sample_mode, gv.globaltranspose)
+        if s2 == "":
+            if gv.currvoice > 1: s2 = str(gv.currvoice) + ":"
+            s2 += gv.basename + " " * 15
+            if gv.nav2.buttfunc > 0:
+                s2 = s2[:14] + "*" + gv.nav2.button_disp[gv.nav2.buttfunc]
+
+        if gv.PRINT_LCD_MESSAGES:
+            print "display: %s \\ %s" % (s1, s2)
+        # lcd.message(s1 + " "*8 + "\n" + s2 + " "*15)
+        if gv.IS_DEBIAN:
             lcd.message(s1 + "\n" + s2)
 
 
 
-        # lcd.clear()
-        time.sleep(0.5)
-        display('Start Samplerbox')
-        time.sleep(0.5)
+    # lcd.clear()
+    time.sleep(0.5)
+    display('Start SamplerBox')
+    time.sleep(0.5)
 
 
 

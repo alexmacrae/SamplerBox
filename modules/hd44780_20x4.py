@@ -60,7 +60,7 @@ if gv.SYSTEM_MODE == 1 and USE_LCD:
         import RPi.GPIO as GPIO
         from RPLCD import CharLCD
 
-        lcd = CharLCD(pin_rs=gv.LCD_RS, pin_rw=None, pin_e=gv.LCD_E, pins_data=[gv.LCD_D4, gv.LCD_D5, gv.LCD_D6, gv.LCD_D7],
+        lcd = CharLCD(pin_rs=gv.GPIO_LCD_RS, pin_rw=None, pin_e=gv.GPIO_LCD_E, pins_data=[gv.GPIO_LCD_D4, gv.GPIO_LCD_D5, gv.GPIO_LCD_D6, gv.GPIO_LCD_D7],
                       numbering_mode=GPIO.BCM, cols=LCD_COLS, rows=LCD_ROWS)
 
         # Write custom codes to the LCD
@@ -204,7 +204,7 @@ if gv.SYSTEM_MODE == 1 and USE_LCD:
         else:
             TimeOut = TimeOutReset
 
-        if gv.LCD_PRINT:
+        if gv.PRINT_LCD_MESSAGES:
             print '{line ' + str(line) + '} -->  ' + message[:LCD_COLS]
 
         displayCalled = True
