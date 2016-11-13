@@ -1,16 +1,12 @@
 #########################################
 # LOAD SAMPLES
-#
 #########################################
-
 import os
 import re
 import threading
-
 import numpy
-
 import globalvars as gv
-import hd44780_20x4
+import displayer
 import sound
 
 LoadingThread = None
@@ -58,14 +54,17 @@ def ActuallyLoad():
     if gv.basename:
         if gv.basename == prevbase:  # don't waste time reloading a patch
             # print 'Kept preset %s' % basename
-            hd44780_20x4.display("Kept %s" % gv.basename)
+            # hd44780_20x4.display("Kept %s" % gv.basename)
+            displayer.change('preset')
             return
         dirname = os.path.join(gv.SAMPLES_DIR, gv.basename)
     if not gv.basename:
-        hd44780_20x4.display('Preset empty: %s' % gv.preset)
+        # hd44780_20x4.display('Preset empty: %s' % gv.preset)
+        displayer.change('preset')
         return
 
-    hd44780_20x4.display(str(gv.preset + 1) + unichr(2) + gv.basename, 1)
+    # hd44780_20x4.display(str(gv.preset + 1) + unichr(2) + gv.basename, 1)
+    displayer.change('preset')
 
     definitionfname = os.path.join(dirname, "definition.txt")
     file_count = len(os.listdir(dirname))
@@ -139,9 +138,11 @@ def ActuallyLoad():
                             # print 'Loading % s interrupted...' % dirname
                             return
                         percent_loaded = (file_current * (
-                            100 / numberOfPatterns)) / file_count  # more accurate loading progress
+                        100 / numberOfPatterns)) / file_count  # more accurate loading progress
                         # Visual percentage loading with blocks. Load on last row of LCD
-                        hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100.0) + 1), hd44780_20x4.LCD_ROWS)
+                        # hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100.0) + 1), hd44780_20x4.LCD_ROWS)
+                        gv.percent_loaded = percent_loaded
+                        displayer.change('loading')
                         file_current += 1
                         if LoadingInterrupt:
                             return
@@ -182,7 +183,9 @@ def ActuallyLoad():
                 gv.samples[midinote, 127, 1] = sound.Sound(file, midinote, 127)
 
             percent_loaded = (file_current * 100) / file_count  # more accurate loading progress
-            hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100) + 1), 4)
+            # hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100) + 1), 4)
+            gv.percent_loaded = percent_loaded
+            displayer.change('loading')
             file_current += 1
 
     initial_keys = set(gv.samples.keys())
@@ -236,7 +239,11 @@ def ActuallyLoad():
             # lcd.display("")
 
     elif len(initial_keys) == 0:
-        hd44780_20x4.display(' Error loading ', 1)
-        hd44780_20x4.display(str(gv.preset + 1) + unichr(2) + gv.basename, 2)
+        # hd44780_20x4.display(' Error loading ', 1)
+        # hd44780_20x4.display(str(gv.preset + 1) + unichr(2) + gv.basename, 2)
+        displayer.change('preset')
     else:
-        hd44780_20x4.display('', 5, customTimeout=0)  # as soon as the sample set is loaded, go straight to play screen
+        # hd44780_20x4.display('', 5, customTimeout=0)  # as soon as the sample set is loaded, go straight to play screen
+        displayer.change('')
+
+    displayer.change('')

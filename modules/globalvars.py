@@ -13,7 +13,6 @@ CONFIG_PRINT = True
 
 if CONFIG_PRINT: print '==== START CONFIG IMPORT ===='
 
-
 SYSTEM_MODE = int(cp.get_option_by_name('SYSTEM_MODE'))
 MAX_POLYPHONY = int(cp.get_option_by_name('MAX_POLYPHONY'))
 MIDI_CHANNEL = int(cp.get_option_by_name('MIDI_CHANNEL'))
@@ -21,7 +20,8 @@ CHANNELS = int(cp.get_option_by_name('CHANNELS'))
 BUFFERSIZE = int(cp.get_option_by_name('BUFFERSIZE'))
 SAMPLERATE = int(cp.get_option_by_name('SAMPLERATE'))
 global_volume = int(cp.get_option_by_name('GLOBAL_VOLUME'))
-global_volume = (10.0 ** (-12.0 / 20.0)) * (float(global_volume)  / 100.0)
+global_volume = 0 if global_volume < 0 else 100 if global_volume > 100 else global_volume
+global_volume = (10.0 ** (-12.0 / 20.0)) * (float(global_volume) / 100.0)
 SAMPLES_DIR = str(cp.get_option_by_name('SAMPLES_DIR'))
 if not os.path.isdir(SAMPLES_DIR):
     print 'WARNING: The directory', SAMPLES_DIR, 'was not found. Using default: ./media'
@@ -33,17 +33,18 @@ USE_FREEVERB = cp.get_option_by_name('USE_FREEVERB')
 USE_TONECONTROL = cp.get_option_by_name('USE_TONECONTROL')
 USE_SERIALPORT_MIDI = cp.get_option_by_name('USE_SERIALPORT_MIDI')
 USE_I2C_7SEGMENTDISPLAY = cp.get_option_by_name('USE_I2C_7SEGMENTDISPLAY')
-LCD_PRINT = cp.get_option_by_name('LCD_PRINT')
+PRINT_LCD_MESSAGES = cp.get_option_by_name('PRINT_LCD_MESSAGES')
 PRINT_MIDI_MESSAGES = cp.get_option_by_name('PRINT_MIDI_MESSAGES')
 AUDIO_DEVICE_ID = int(cp.get_option_by_name('AUDIO_DEVICE_ID'))
 AUDIO_DEVICE_NAME = str(cp.get_option_by_name('AUDIO_DEVICE_NAME'))
 PRESET_BASE = int(cp.get_option_by_name('PRESET_BASE'))
-LCD_RS = int(cp.get_option_by_name('LCD_RS'))
-LCD_E = int(cp.get_option_by_name('LCD_E'))
-LCD_D4 = int(cp.get_option_by_name('LCD_D4'))
-LCD_D5 = int(cp.get_option_by_name('LCD_D5'))
-LCD_D6 = int(cp.get_option_by_name('LCD_D6'))
-LCD_D7 = int(cp.get_option_by_name('LCD_D7'))
+GPIO_LCD_RS = int(cp.get_option_by_name('GPIO_LCD_RS'))
+GPIO_LCD_E = int(cp.get_option_by_name('GPIO_LCD_E'))
+GPIO_LCD_D4 = int(cp.get_option_by_name('GPIO_LCD_D4'))
+GPIO_LCD_D5 = int(cp.get_option_by_name('GPIO_LCD_D5'))
+GPIO_LCD_D6 = int(cp.get_option_by_name('GPIO_LCD_D6'))
+GPIO_LCD_D7 = int(cp.get_option_by_name('GPIO_LCD_D7'))
+GPIO_7SEG = int(cp.get_option_by_name('GPIO_7SEG'))
 
 ########  LITERALS, don't change ########
 # by Hans
@@ -105,6 +106,7 @@ def button_assign(midi_str):
     # returns: 176, 60, <devicename> or C#2, <devicename> or GPIO, 4
     return button_assign_list
 
+
 # For system mode 1 (by Alex)
 BUTTON_LEFT_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_LEFT_MIDI')))
 BUTTON_RIGHT_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_RIGHT_MIDI')))
@@ -133,6 +135,8 @@ VERSION2 = "V2.0.1 15-06-2016"
 
 SONG_FOLDERS_LIST = os.listdir(SAMPLES_DIR)
 SETLIST_FILE_PATH = 'setlist/setlist.txt'
+SETLIST_LIST = open(SETLIST_FILE_PATH).read().splitlines()
+NUM_FOLDERS = len(os.walk(SAMPLES_DIR).next()[1])
 
 # Disable Freeverb when not on Pi
 if not IS_DEBIAN:
@@ -156,8 +160,9 @@ playingsounds = []
 globaltranspose = 0
 basename = "<Empty>"
 
-# navigator object always referenced here. eg gv.nav.state.enter()
-nav = None
+# navigator object always referenced here. eg gv.nav1.state.enter()
+nav1 = None
+nav2 = None
 
 # add to selection of samples, not to Velocity Volume
 VelocitySelectionOffset = 0
@@ -220,3 +225,4 @@ learningMode = False
 
 GPIO_button_func = None
 GPIO_function_val = None
+percent_loaded = 0

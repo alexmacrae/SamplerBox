@@ -20,11 +20,13 @@ This modification is very much a work in progress and is likely to be buggy - pl
 
 3. Log into RPi (pi:raspberry) and install the required dependencies (Python-related packages and audio libraries):
 ```
-sudo apt-get update ; sudo apt-get -y install python-dev python-numpy cython python-smbus portaudio19-dev python-pip python-configparser python-psutil python-scipy git
+sudo apt-get update ; sudo apt-get -y install python-dev python-numpy cython python-smbus portaudio19-dev python-pip python-configparser python-psutil python-scipy git libffi-dev
 git clone http://people.csail.mit.edu/hubert/git/pyaudio.git ; cd pyaudio ; sudo python setup.py install ; cd ..
 git clone https://github.com/gesellkammer/rtmidi2 ; cd rtmidi2 ; sudo python setup.py install ; cd ..
 git clone https://github.com/dbrgn/RPLCD ; cd RPLCD ; sudo python setup.py install ; cd ..
 git clone https://gitorious.org/pyosc/devel.git ; cd devel ; sudo python setup.py install ; cd ..
+pip install cffi --user
+pip install sounddevice
 ```
 
 

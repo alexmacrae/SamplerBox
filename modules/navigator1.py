@@ -20,6 +20,7 @@ import globalvars as gv
 import hd44780_20x4
 import loadsamples as ls
 import menudict
+import displayer
 
 
 def write_setlist(list_to_write):
@@ -165,33 +166,19 @@ class Navigator:
 class PresetNav(Navigator):
     def __init__(self):
 
-        self.setlistList = open(gv.SETLIST_FILE_PATH).read().splitlines()
-        self.numFolders = len(os.walk(gv.SAMPLES_DIR).next()[1])
-        print '-= Welcome to preset land =-'
-        hd44780_20x4.resetModes()
-        hd44780_20x4.inPresetMode = True
-        self.display()
+        print '-= Preset world =-'
+        displayer.menu_mode = displayer.DISP_PRESET_MODE
+        # displayer.change('preset') # already called in ActuallyLoad()
 
-    def display(self):
-        p = gv.preset
-        s1 = str(p + 1) + unichr(2) + str(self.setlistList[p])
-        if p == self.numFolders - 1:
-            p = 0
-        else:
-            p += 1
-        s2 = str(p + 1) + unichr(2) + str(self.setlistList[p])
-
-        hd44780_20x4.display(s1, 1, is_priority=True)
-        hd44780_20x4.display(s2, 2, is_priority=True)
 
     def right(self):
         gv.preset += 1
         hd44780_20x4.resetModes()
         hd44780_20x4.inPresetMode = True
         gv.currvoice = 1
-        if (gv.preset >= self.numFolders):
+        if (gv.preset >= gv.NUM_FOLDERS):
             gv.preset = 0
-        self.display()
+        displayer.change('preset')
         ls.LoadSamples()
 
     def left(self):
@@ -200,17 +187,19 @@ class PresetNav(Navigator):
         hd44780_20x4.inPresetMode = True
         gv.currvoice = 1
         if (gv.preset < 0):
-            gv.preset = self.numFolders - 1
-        self.display()
+            gv.preset = gv.NUM_FOLDERS - 1
+        displayer.change('preset')
         ls.LoadSamples()
 
     def enter(self):
         self.loadState(MenuNav)
 
     def cancel(self):  # can remove empty class methods
-        hd44780_20x4.TimeOut = hd44780_20x4.TimeOutReset
-        hd44780_20x4.resetModes()
-        hd44780_20x4.inSysMode = True
+        displayer.menu_mode = displayer.DISP_UTILS_MODE
+        displayer.change()
+        # hd44780_20x4.TimeOut = hd44780_20x4.TimeOutReset
+        # hd44780_20x4.resetModes()
+        # hd44780_20x4.inSysMode = True
         # eg CPU/RAM, battery life, time, wifi/bluetooth status
 
 
@@ -329,9 +318,9 @@ class MoveSong(Navigator):
     def left(self):
         if (gv.preset > 0):
             self.setlistList[int(gv.preset)], self.setlistList[int(gv.preset) - 1] = self.setlistList[
-                                                                                               int(gv.preset) - 1], \
-                                                                                           self.setlistList[
-                                                                                               int(gv.preset)]
+                                                                                         int(gv.preset) - 1], \
+                                                                                     self.setlistList[
+                                                                                         int(gv.preset)]
             gv.preset -= 1
             # write_setlist(self.setlistList)
         self.display()
@@ -340,9 +329,9 @@ class MoveSong(Navigator):
     def right(self):
         if (gv.preset < len(self.setlistList) - 1):
             self.setlistList[int(gv.preset)], self.setlistList[int(gv.preset) + 1] = self.setlistList[
-                                                                                               int(gv.preset) + 1], \
-                                                                                           self.setlistList[
-                                                                                               int(gv.preset)]
+                                                                                         int(gv.preset) + 1], \
+                                                                                     self.setlistList[
+                                                                                         int(gv.preset)]
             gv.preset += 1
             # write_setlist(self.setlistList)
         self.display()
@@ -451,7 +440,7 @@ class MidiLearn(Navigator):
                 mm.get(src)[messageKey] = {}  # create new empty dict key for messageKey
                 print 'Creating new dict for the messageKey'
             else:
-                print '!! Already mapped to:', mm.get(src).get(messageKey).get('name')
+                print 'WARNING:', messageKey, 'is already mapped to:', mm.get(src).get(messageKey).get('name')
                 print 'Do you want to overwrite? Well too bad - doing it anyway ;)'
 
             mm.get(src)[messageKey] = {'name': self.functionNiceName, 'fn': self.functionToMap}
@@ -739,8 +728,8 @@ class SampleRateConfig(Navigator):
 
 import midicallback
 
-class MasterVolumeConfig(Navigator):
 
+class MasterVolumeConfig(Navigator):
     def __init__(self):
         self.display()
 
@@ -766,5 +755,3 @@ class MasterVolumeConfig(Navigator):
         self.enter()
 
 # _____________________________________________________________________________
-
-

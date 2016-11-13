@@ -1,31 +1,10 @@
-import freeverb
 import globalvars as gv
 import hd44780_20x4
 import loadsamples
-import navigator
+import navigator1
+import audiocontrols as ac
 
-Navigator = navigator.Navigator
-
-
-############################
-# ACTUAL DO STUFF FUNCTIONS
-############################
-
-class Reverb:
-    def roomsize(self, vel):
-        freeverb.setroomsize(vel)
-
-    def damping(self, vel):
-        freeverb.setdamp(vel)
-
-    def wet(self, vel):
-        freeverb.setwet(vel)
-
-    def dry(self, vel):
-        freeverb.setdry(vel)
-
-    def width(self, vel):
-        freeverb.setwidth(vel)
+Navigator = navigator1.Navigator
 
 
 def noteon(messagetype, note, vel):
@@ -44,44 +23,14 @@ def AllNotesOff():
     gv.sustainplayingnotes = []
 
 
-class MasterVolume:
-    def setvolume(self, vel):
-        i = int(float(vel / 127.0) * (hd44780_20x4.LCD_COLS - 1)) + 1
-        hd44780_20x4.display('Volume', 3)
-        hd44780_20x4.display((unichr(1) * i), 4)
-        gv.global_volume = (10.0 ** (-12.0 / 20.0)) * (float(vel) / 127.0)
-
-
-class Voices:
-    def voice1(self, vel):
-        if vel != 0:
-            gv.currvoice = 1
-            print 'Voice 1 activated'
-
-    def voice2(self, vel):
-        if vel != 0:
-            gv.currvoice = 2
-            print 'Voice 2 activated'
-
-    def voice3(self, vel):
-        if vel != 0:
-            gv.currvoice = 3
-            print 'Voice 3 activated'
-
-    def voice4(self, vel):
-        if vel != 0:
-            gv.currvoice = 4
-            print 'Voice 4 activated'
-
-
 class PresetNav:
     def left(self, vel):
         if vel != 0:
-            navigator.PresetNav().left()
+            navigator1.PresetNav().left()
 
     def right(self, vel):
         if vel != 0:
-            navigator.PresetNav().right()
+            navigator1.PresetNav().right()
 
 
 #########################################
@@ -166,17 +115,32 @@ def MidiCallback(src, message, time_stamp):
     right = gv.BUTTON_RIGHT_MIDI
     cancel = gv.BUTTON_CANCEL_MIDI
 
-    if message[0] == enter[0] and note == enter[1] and velocity > 0 and enter[2] in src:  # Enter arrow button
-        gv.nav.state.enter()
+    up = gv.BUTTON_UP_MIDI
+    down = gv.BUTTON_DOWN_MIDI
+    func = gv.BUTTON_FUNC_MIDI
 
-    elif message[0] == left[0] and note == left[1] and velocity > 0 and left[2] in src:  # Left arrow button
-        gv.nav.state.left()
+    if gv.SYSTEM_MODE == 1:
+        if message[0] == enter[0] and note == enter[1] and velocity > 0 and enter[2] in src:  # Enter arrow button
+            gv.nav1.state.enter()
 
-    elif message[0] == right[0] and note == right[1] and velocity > 0 and right[2] in src:  # Right arrow button
-        gv.nav.state.right()
+        elif message[0] == left[0] and note == left[1] and velocity > 0 and left[2] in src:  # Left arrow button
+            gv.nav1.state.left()
 
-    elif message[0] == cancel[0] and note == cancel[1] and velocity > 0 and cancel[2] in src:  # Cancel button
-        gv.nav.state.cancel()
+        elif message[0] == right[0] and note == right[1] and velocity > 0 and right[2] in src:  # Right arrow button
+            gv.nav1.state.right()
+
+        elif message[0] == cancel[0] and note == cancel[1] and velocity > 0 and cancel[2] in src:  # Cancel button
+            gv.nav1.state.cancel()
+
+    elif gv.SYSTEM_MODE == 2:
+        if message[0] == up[0] and note == up[1] and velocity > 0 and up[2] in src:  # Enter arrow button
+            gv.nav2.butt_up()
+
+        elif message[0] == down[0] and note == down[1] and velocity > 0 and down[2] in src:  # Left arrow button
+            gv.nav2.butt_down()
+
+        elif message[0] == func[0] and note == func[1] and velocity > 0 and func[2] in src:  # Right arrow button
+            gv.nav2.butt_func()
 
     ######################
     # Do default MIDI functions
@@ -216,14 +180,6 @@ def MidiCallback(src, message, time_stamp):
                     for m in gv.playingnotes[playnote]:
                         # print "stop note " + str(playnote)
                         m.fadeout(50)
-
-            #### Replaced this with Hans' below
-            # for n in gv.sustainplayingnotes:
-            #     if n.note == midinote:
-            #         n.fadeout(500)
-            # try:
-            #     gv.playingnotes.setdefault(midinote, []).append(
-            #         gv.samples[midinote, SelectVelocity, gv.currvoice].play(midinote, velocity))
 
             try:
                 if gv.velocity_mode == gv.VELSAMPLE:
@@ -284,7 +240,7 @@ def MidiCallback(src, message, time_stamp):
 
             # Default master volume control (CC7 is the universal standard)
             if (CCnum == 7):
-                MasterVolume().setvolume(CCval)
+                ac.MasterVolume().setvolume(CCval)
 
             # Sustain pedal
             # NB: the microKEY conditionals are unique to Alex's modded keyboard. Remove in future.
@@ -311,14 +267,14 @@ def MidiCallback(src, message, time_stamp):
             # general purpose 80 used for voices
             elif CCnum == 80:
                 if CCval in gv.voices:
-                    gv.currvoice = CCval
+                    ac.Voice().change(CCval)
                     # lcd.display("")
 
             # general purpose 81 used for chords
             elif CCnum == 81:
                 if CCval < len(gv.chordnote):
-                    gv.currchord = CCval
-                    # lcd.display("")
+                    ac.Chord().change()
+
 
             # "All sounds off" or "all notes off"
             elif CCnum == 120 or CCnum == 123:
