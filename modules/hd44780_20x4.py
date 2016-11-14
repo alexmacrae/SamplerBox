@@ -2,8 +2,8 @@
 # HD44780 16x2 LCD MESSAGES
 ###########################
 
-
 import globalvars as gv
+import displayer
 
 USE_LCD = gv.USE_HD44780_20x4_LCD
 
@@ -12,9 +12,6 @@ if gv.SYSTEM_MODE == 1 and USE_LCD:
     import threading
     import time
     import psutil
-
-
-
     import lcdcustomchars as lcdcc
 
     # Define some device constants
@@ -41,12 +38,11 @@ if gv.SYSTEM_MODE == 1 and USE_LCD:
     if gv.IS_DEBIAN:
         WhileSleep = 0.05
     else:
-        WhileSleep = 0.2
+        WhileSleep = 0.1
 
-    TimeOutReset = 3  # 3 sec
-    TimeOutReset /= WhileSleep  # Adjust according to while loop sleep time
-    TimeOut = TimeOutReset
-    DisplaySamplerName = True
+    timeout_init = 2  # default timeout reset time
+    timeout_length = timeout_init # initial timeout length (timeout_custom will override)
+
     STRING_1 = ''
     STRING_2 = ''
     STRING_3 = ''
@@ -89,28 +85,27 @@ if gv.SYSTEM_MODE == 1 and USE_LCD:
         return button_str
 
 
-    def getTimeOut():
-        return TimeOut
-
-
     def lcd_main():
         # Main program block
-        global TimeOut, displayCalled, inPresetMode, tempDisplay
+        global timeout_length, timeout_start, displayCalled, inPresetMode, tempDisplay
         if USE_LCD and gv.IS_DEBIAN:
             global lcd
             lcd.clear()
 
-        lcd_string("   WELCOME TO   ", 1)
-        lcd_string(" -=SAMPLERBOX=- ", 2)
-        lcd_string("", 3)
-        lcd_string("", 4)
+        lcd_string(unichr(1)*LCD_COLS, 1)
+        lcd_string("WELCOME TO".center(LCD_COLS, ' '), 2)
+        lcd_string("SAMPLERBOX".center(LCD_COLS, ' '), 3)
+        lcd_string(unichr(1)*LCD_COLS, 4)
+
         time.sleep(1)
+
+        timeout_start = time.time()
 
         while True:
             if displayCalled:
-                if TimeOut > 0:
-                    TimeOut -= 1
-                else:
+                now = time.time()
+
+                if (now - timeout_start) > timeout_length:
                     displayCalled = False
                     tempDisplay = False
 
@@ -120,43 +115,55 @@ if gv.SYSTEM_MODE == 1 and USE_LCD:
                     lcd_string(STRING_3, 3)
                     lcd_string(STRING_4, 4)
 
-                elif inPresetMode:
+                elif displayer.menu_mode == displayer.DISP_PRESET_MODE:
                     lcd_string(STRING_1_PRIORITY[:LCD_COLS - 4] + makeVoiceButtons(), 1)
                     lcd_string(STRING_2_PRIORITY, 2)
                     lcd_string(STRING_3_PRIORITY, 3)
                     lcd_string(STRING_4_PRIORITY, 4)
-                elif inMenuMode:
+                elif displayer.menu_mode == displayer.DISP_MENU_MODE:
                     lcd_string(STRING_1_PRIORITY, 1)
                     lcd_string(STRING_2_PRIORITY, 2)
                     lcd_string(STRING_3_PRIORITY, 3)
                     lcd_string(STRING_4_PRIORITY, 4)
 
-                elif inSysMode:
-                    TimeOut = TimeOutReset
-                    for i in xrange(int(TimeOut)):
-                        cpu = int(psutil.cpu_percent(None) / (LCD_COLS - 4)) + 1
-                        ram = int(float(psutil.virtual_memory().percent) / (LCD_COLS - 4)) + 1
-                        lcd_string('CPU' + (unichr(1) * cpu), 3)
-                        lcd_string('RAM' + (unichr(1) * ram), 4)
-                        TimeOut -= 1
-                        time.sleep(WhileSleep)
-                        if not inSysMode:
-                            break
-                    if TimeOut == 0:
-                        resetModes()
-                        inPresetMode = True
-                else:
-                    lcd_string(STRING_1[:LCD_COLS - 4] + (unichr(4) * len(gv.voices)), 1)
-                    lcd_string(STRING_2, 2)
-                    lcd_string(STRING_3, 3)
-                    lcd_string(STRING_4, 4)
+                # elif displayer.menu_mode == displayer.DISP_UTILS_MODE:
+                #     displayer.menu_mode = displayer.DISP_PRESET_MODE
+                #     cpu = int(psutil.cpu_percent(None) / (LCD_COLS - 4)) + 1
+                #     ram = int(float(psutil.virtual_memory().percent) / (LCD_COLS - 4)) + 1
+                #     cpu_str = 'CPU' + (unichr(1) * cpu)
+                #     ram_str = 'RAM' + (unichr(1) * ram)
+                #
+                #     lcd_string(cpu_str, 3, is_priority=False)
+                #     lcd_string(ram_str, 4, is_priority=False)
+
+
+                #     timeout_length = timeout_init
+                #     for i in xrange(int(timeout_length)):
+                #         cpu = int(psutil.cpu_percent(None) / (LCD_COLS - 4)) + 1
+                #         ram = int(float(psutil.virtual_memory().percent) / (LCD_COLS - 4)) + 1
+                #         lcd_string('CPU' + (unichr(1) * cpu), 3)
+                #         lcd_string('RAM' + (unichr(1) * ram), 4)
+                #         timeout_length -= 1
+                #         time.sleep(WhileSleep)
+                #         if not inSysMode:
+                #             break
+                #     if timeout_length == 0:
+                #         resetModes()
+                #         inPresetMode = True
+                # else:
+                #     lcd_string(STRING_1[:LCD_COLS - 4] + (unichr(4) * len(gv.voices)), 1)
+                #     lcd_string(STRING_2, 2)
+                #     lcd_string(STRING_3, 3)
+                #     lcd_string(STRING_4, 4)
 
             time.sleep(WhileSleep)
 
 
     def lcd_string(message, line):
-        # Send string to display
-        # global STRING_1, STRING_2, STRING_3, STRING_4
+
+        if gv.PRINT_LCD_MESSAGES:
+            print '{line ' + str(line) + '} -->  ' + message[:LCD_COLS]
+
         if USE_LCD and gv.IS_DEBIAN:
             global lcd
         message = message.ljust(LCD_COLS, " ")
@@ -167,9 +174,11 @@ if gv.SYSTEM_MODE == 1 and USE_LCD:
 
 
 
-    def display(message, line=1, is_priority=False, customTimeout=None):
-        global STRING_1, STRING_2, STRING_3, STRING_4, STRING_1_PRIORITY, STRING_2_PRIORITY, STRING_3_PRIORITY, STRING_4_PRIORITY
-        global displayCalled, TimeOut, tempDisplay
+    def display(message, line=1, is_priority=False, timeout_custom=None):
+        global STRING_1, STRING_2, STRING_3, STRING_4
+        global STRING_1_PRIORITY, STRING_2_PRIORITY, STRING_3_PRIORITY, STRING_4_PRIORITY
+        global displayCalled, timeout_length, timeout_start, tempDisplay
+
 
         message += '                '
 
@@ -199,16 +208,17 @@ if gv.SYSTEM_MODE == 1 and USE_LCD:
             else:
                 tempDisplay = True
 
-        if customTimeout != None:
-            TimeOut = customTimeout / WhileSleep
+        if timeout_custom != None:
+            timeout_length = timeout_custom
         else:
-            TimeOut = TimeOutReset
+            timeout_length = timeout_init
 
-        if gv.PRINT_LCD_MESSAGES:
-            print '{line ' + str(line) + '} -->  ' + message[:LCD_COLS]
+        timeout_start = time.time()
+
+
+
 
         displayCalled = True
-
 
 
     LCDThread = threading.Thread(target=lcd_main)

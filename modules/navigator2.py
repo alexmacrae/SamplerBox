@@ -13,7 +13,7 @@ def Button_display():
     function_value = ["", " %d%%" % (gv.global_volume),
                       " %d" % (gv.MIDI_CHANNEL), " %+d" % (gv.globaltranspose),
                       "", " %s" % (gv.chordname[gv.currchord])]
-    displayer.change(str_override=button_functions[buttfunc] + function_value[buttfunc])
+    displayer.disp_change(str_override=button_functions[buttfunc] + function_value[buttfunc])
 
 
 def butt_up():
@@ -58,7 +58,7 @@ def butt_down():
         Button_display()
     elif buttfunc == 2:
         gv.MIDI_CHANNEL -= 1
-        if gv.MIDI_CHANNEL < 1: gv.MIDI_CHANNEL = 16
+        if gv.MIDI_CHANNEL < 0: gv.MIDI_CHANNEL = 16
         Button_display()
     elif buttfunc == 3:
         gv.globaltranspose -= 1

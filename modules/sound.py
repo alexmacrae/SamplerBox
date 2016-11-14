@@ -6,15 +6,13 @@ import samplerbox_audio
 import struct
 import wave
 from chunk import Chunk
-
 import numpy
 import pyaudio
 import sounddevice
-
-import freeverb
+#import freeverb
+import audiocontrols as ac
 import globalvars as gv
-import hd44780_20x4
-
+import displayer
 
 #########################################
 ##  SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE
@@ -142,9 +140,9 @@ def AudioCallback(outdata, frame_count, time_info, status):
                                          gv.FADEOUT, gv.FADEOUTLENGTH, gv.SPEED,
                                          gv.PITCHBEND, gv.PITCHSTEPS)
 
-    if gv.USE_FREEVERB:
-        b_temp = b
-        freeverb.freeverbprocess(b_temp.ctypes.data_as(freeverb.c_float_p), b.ctypes.data_as(freeverb.c_float_p), frame_count)
+    # if gv.USE_FREEVERB:
+    #     b_temp = b
+    #     ac.Freeverb().freeverbprocess(b_temp.ctypes.data_as(ac.Freeverb().c_float_p), b.ctypes.data_as(ac.Freeverb().c_float_p), frame_count)
 
     for e in rmlist:
         try:
@@ -257,7 +255,8 @@ try:
     sd.start()
     print 'Opened audio device #%i' % gv.AUDIO_DEVICE_ID
 except:
-    hd44780_20x4.display("Invalid audiodev")
+
+    displayer.disp_change(error_message="Invalid audiodev")
     print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
     print 'Available devices:'
     print(sounddevice.query_devices())
@@ -275,7 +274,7 @@ if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
         except:
             pass
     if i > 0:
-        hd44780_20x4.display("Invalid mixerdev")
+        displayer.disp_change(error_message="Invalid mixerdev")
         print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
         print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
         print(sounddevice.query_devices())
