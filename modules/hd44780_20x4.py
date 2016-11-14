@@ -36,7 +36,7 @@ if gv.SYSTEM_MODE == 1 and USE_LCD:
     tempDisplay = False
 
     if gv.IS_DEBIAN:
-        WhileSleep = 0.05
+        WhileSleep = 0.02
     else:
         WhileSleep = 0.1
 
@@ -214,8 +214,6 @@ if gv.SYSTEM_MODE == 1 and USE_LCD:
             timeout_length = timeout_init
 
         timeout_start = time.time()
-
-
 
 
         displayCalled = True

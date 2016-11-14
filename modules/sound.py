@@ -215,7 +215,7 @@ def AudioCallback(outdata, frame_count, time_info, status):
 
 # Using pyaudio only to list device names. sounddevice doesn't seem to have that option
 p = pyaudio.PyAudio()
-print "Here is a list of audio devices:"
+print '\n==== LIST OF AUDIO DEVICES ===='
 foundByDeviceName = False
 dev_name = ''
 for i in range(p.get_device_count()):
@@ -245,8 +245,7 @@ for i in range(p.get_device_count()):
 #     print "Sample audio:  Invalid Audio Device ID"
 #     exit(1)
 
-    # initFilter()
-    # updateFilter(0, 1000.0, 12.0, 1.0)
+
 
 try:
     sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, blocksize=gv.BUFFERSIZE,
@@ -256,7 +255,7 @@ try:
     print 'Opened audio device #%i' % gv.AUDIO_DEVICE_ID
 except:
 
-    displayer.disp_change(error_message="Invalid audiodev")
+    displayer.disp_change(str_override="Invalid audiodev")
     print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
     print 'Available devices:'
     print(sounddevice.query_devices())
@@ -274,7 +273,7 @@ if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
         except:
             pass
     if i > 0:
-        displayer.disp_change(error_message="Invalid mixerdev")
+        displayer.disp_change(str_override="Invalid mixerdev")
         print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
         print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
         print(sounddevice.query_devices())
@@ -291,60 +290,6 @@ else:
         pass
     def setvolume(volume):
         pass
-#
-# # EQ
-#
-# filterTypes = OrderedDict({
-#     FilterType.LPButter: 'Low Pass (Flat)',
-#     FilterType.LPBrickwall: 'Low Pass (Brickwall)',
-#     FilterType.HPButter: 'High Pass (Flat)',
-#     FilterType.HPBrickwall: 'High Pass (Brickwall)',
-#     FilterType.LShelving: 'Low Shelf',
-#     FilterType.HShelving: 'High Shelf',
-#     FilterType.Peak: 'Peak'})
-#
-# # fs = 44100
-# fs = 48000
-# eps = 0.0000001
-#
-#
-# class Params:
-#     TYPE = 1
-#     F = 2
-#     G = 3
-#     Q = 4
-#
-#
-# deffs = [80, 1000, 3000, 5000, 15000]
-#
-# chain = None
-#
-#
-# def initFilter():
-#     global deffs, chain, fs
-#
-#     chain = FilterChain()
-#     chain._filters.append(Filter(FilterType.LShelving, LOW_EQ, 0, 1, enabled=True))
-#     # chain._filters.append(Filter(FilterType.HShelving, deffs[4], 0, 1, enabled = True))
-#     # chain._filters.append(Filter(FilterType.Peak, deffs[0], 0, 1, enabled = True))
-#     chain._filters.append(Filter(FilterType.Peak, HIGH_EQ, 0, 1, enabled=True))
-#     # chain._filters.append(Filter(FilterType.LPButter, deffs[3], 0, 1, enabled = True))
-#     # chain._filters.append(Filter(FilterType.HPButter, deffs[3], 0, 1, enabled = True))
-#     chain.reset()
-#
-#
-# def updateFilter(i, fc, g, Q):
-#     global chain
-#     global fs
-#     oldf = chain._filters[i]
-#     type = oldf._type
-#     # print oldf._type, oldf._fc, oldf._g, oldf._Q
-#
-#     # fc_val = fc * 2 / fs
-#     # print fc_val, g, Q
-#
-#     f = Filter(type, fc, g, Q)
-#     chain.updateFilt(i, f)
-#     # chain.changeFilt(i, type, fc, g, Q)
-#     chain.reset()
-#
+
+
+print '\n==== END OF AUDIO DEVICES ===='

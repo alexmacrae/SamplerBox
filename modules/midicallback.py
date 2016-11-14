@@ -1,9 +1,11 @@
 import globalvars as gv
 import loadsamples
-import navigator1
+
 import audiocontrols as ac
 
-Navigator = navigator1.Navigator
+if gv.SYSTEM_MODE == 1:
+    import navigator1
+    Navigator = navigator1.Navigator
 
 
 def noteon(messagetype, note, vel):
@@ -67,42 +69,42 @@ def MidiCallback(src, message, time_stamp):
     # Send messages when learningMode is set
     ######################
 
+    if gv.SYSTEM_MODE == 1:
 
+        if gv.learningMode and messagetype != 8:  # don't send note-offs
 
-    if gv.learningMode and messagetype != 8:  # don't send note-offs
+            message_to_match = [message[0], note, str(src)]
+            all_sys_buttons = [gv.BUTTON_LEFT_MIDI, gv.BUTTON_RIGHT_MIDI, gv.BUTTON_ENTER_MIDI,
+                               gv.BUTTON_CANCEL_MIDI, gv.BUTTON_UP_MIDI, gv.BUTTON_DOWN_MIDI, gv.BUTTON_FUNC_MIDI]
 
-        message_to_match = [message[0], note, str(src)]
-        all_sys_buttons = [gv.BUTTON_LEFT_MIDI, gv.BUTTON_RIGHT_MIDI, gv.BUTTON_ENTER_MIDI,
-                           gv.BUTTON_CANCEL_MIDI, gv.BUTTON_UP_MIDI, gv.BUTTON_DOWN_MIDI, gv.BUTTON_FUNC_MIDI]
+            if message_to_match in all_sys_buttons:
+                print 'This MIDI control has been assigned in the config.ini. Will not be mapped.'
+            else:
+                Navigator.state.sendControlToMap(message, src)
+                return # don't continue from here
 
-        if message_to_match in all_sys_buttons:
-            print 'This MIDI control has been assigned in the config.ini. Will not be mapped.'
-        else:
-            Navigator.state.sendControlToMap(message, src)
-            return # don't continue from here
+        ######################
+        # Check if MIDI Mapped
+        ######################
+        try:
+            messageKey = (message[0], message[1])
 
-    ######################
-    # Check if MIDI Mapped
-    ######################
-    try:
-        messageKey = (message[0], message[1])
+            if midimaps.get(src).has_key(messageKey):
 
-        if midimaps.get(src).has_key(messageKey):
+                # remap note to a function
+                if midimaps.get(src).get(messageKey).has_key('fn'):
 
-            # remap note to a function
-            if midimaps.get(src).get(messageKey).has_key('fn'):
+                    fnSplit = midimaps.get(src).get(messageKey).get('fn').split('.')
 
-                fnSplit = midimaps.get(src).get(messageKey).get('fn').split('.')
+                    getattr(eval(fnSplit[0])(), fnSplit[1])(
+                        velocity)  # runs method from class. ie getattr(MasterVolume(), 'setvolume')
 
-                getattr(eval(fnSplit[0])(), fnSplit[1])(
-                    velocity)  # runs method from class. ie getattr(MasterVolume(), 'setvolume')
+                # remap note to a key
+                elif isinstance(midimaps.get(src).get(messageKey).get('note'), int):
+                    note = midimaps.get(src).get(messageKey).get('note')
 
-            # remap note to a key
-            elif isinstance(midimaps.get(src).get(messageKey).get('note'), int):
-                note = midimaps.get(src).get(messageKey).get('note')
-
-    except:
-        pass
+        except:
+            pass
 
     ######################
     # Button navigation

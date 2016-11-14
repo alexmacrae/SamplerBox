@@ -174,11 +174,11 @@ VelocitySelectionOffset = 0
 ###################
 
 sample_mode = PLAYLIVE  # we need a default: original samplerbox
-velocity_mode = VELSAMPLE  # we need a default: original samplerbox
+velocity_mode = VELACCURATE  # we need a default: original samplerbox
 # global_volume used in favour
 # volume = 87  # the startup (alsa=output) volume (0-100), change with function buttons
 volumeCC = 1.0  # assumed value of the volumeknob controller before first use, max=1.0 (the knob can only decrease).
-# PRESET_BASE = 0  # Does the programchange / sample set start at 0 (MIDI style) or 1 (human style)
+PRESET_BASE = 0  # Does the programchange / sample set start at 0 (MIDI style) or 1 (human style)
 preset = 0 + PRESET_BASE  # the default patch to load
 PITCHRANGE = 12  # default range of the pitchwheel in semitones (max=12 is een octave)
 PITCHBITS = 7  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
