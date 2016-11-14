@@ -2,11 +2,13 @@ import globalvars as gv
 import loadsamples as ls
 import displayer
 import audiocontrols as ac
+from os import listdir
 
 lastbuttontime = 0
 buttfunc = 0
 button_functions = ["", "Volume", "Midichannel", "Transpose", "RenewUSB/MidMute", "Play Chord:"]
 button_disp = ["", "V", "M", "T", "S", "C"]  # take care, these values are used below for testing
+number_of_folders = len(listdir(gv.SAMPLES_DIR))
 
 
 def Button_display():
@@ -21,7 +23,7 @@ def butt_up():
 
     if buttfunc == 0:
         gv.preset += 1
-        if gv.preset > 127: gv.preset = 0
+        if gv.preset > number_of_folders - 1: gv.preset = 0
         ls.LoadSamples()
     elif buttfunc == 1:
         gv.global_volume += 5
@@ -49,7 +51,7 @@ def butt_down():
     global buttfunc
     if buttfunc == 0:
         gv.preset -= 1
-        if gv.preset < 0: gv.preset = 127
+        if gv.preset < 0: gv.preset = number_of_folders - 1
         ls.LoadSamples()
     elif buttfunc == 1:
         gv.global_volume -= 5

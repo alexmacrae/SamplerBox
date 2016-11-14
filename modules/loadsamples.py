@@ -8,7 +8,7 @@ import numpy
 import globalvars as gv
 import displayer
 import sound
-import time
+
 LoadingThread = None
 LoadingInterrupt = False
 
@@ -48,8 +48,12 @@ def ActuallyLoad():
 
     prevbase = gv.basename  # disp_changed from currbase. Hans, doens't this make more sense?
 
-    setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
-    gv.basename = setlist_list[gv.preset]
+    if gv.SYSTEM_MODE == 1:
+        setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
+        gv.basename = setlist_list[gv.preset]
+    elif gv.SYSTEM_MODE == 2:
+        gv.basename = next((f for f in os.listdir(gv.SAMPLES_DIR) if f.startswith("%d " % gv.preset)),
+                           None)  # or next(glob.iglob("blah*"), None)
 
     if gv.basename:
         if gv.basename == prevbase:  # don't waste time reloading a patch
@@ -137,12 +141,12 @@ def ActuallyLoad():
                             # print 'Loading % s interrupted...' % dirname
                             return
                         percent_loaded = (file_current * (
-                        100 / numberOfPatterns)) / file_count  # more accurate loading progress
+                            100 / numberOfPatterns)) / file_count  # more accurate loading progress
                         # Visual percentage loading with blocks. Load on last row of LCD
                         # hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100.0) + 1), hd44780_20x4.LCD_ROWS)
                         gv.percent_loaded = percent_loaded
 
-                        displayer.disp_change('loading')
+                        displayer.disp_change('loading', timeout=0.5)
 
                         file_current += 1
                         if LoadingInterrupt:
@@ -225,9 +229,9 @@ def ActuallyLoad():
                         m = last_low
                     else:
                         m = next_high
-                        # print "Note %d will be generated from %d" % (midinote, m)
-                        for velocity in xrange(128):
-                            gv.samples[midinote, velocity, voice] = gv.samples[m, velocity, voice]
+                    # print "Note %d will be generated from %d" % (midinote, m)
+                    for velocity in xrange(128):
+                        gv.samples[midinote, velocity, voice] = gv.samples[m, velocity, voice]
 
         if not (release * 10000) == gv.FADEOUTLENGTH:
             gv.FADEOUTLENGTH = release * 10000
@@ -247,4 +251,5 @@ def ActuallyLoad():
         # hd44780_20x4.display('', 5, timeout_custom=0)  # as soon as the sample set is loaded, go straight to play screen
         displayer.disp_change('')
 
-    displayer.disp_change('preset')
+    # in future we may not want to go to the preset mode as we might also navigating the menu
+    displayer.disp_change('preset', timeout=0)

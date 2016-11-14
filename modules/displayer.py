@@ -6,7 +6,6 @@ and physical display module(LCD_44780_20x16, 16x2, 7Segment display)
 When displayer.disp_change is called:
 changed_var - str or list.
 str_override - Write over a line with a custom string. eg when SampleBox is stopped display STOPPED.
-error_message - Same as str_override.
 line - the LCD line to be displayed on. Not applicable for 7 segment display.
 '''
 
@@ -40,7 +39,7 @@ elif gv.USE_HD44780_20x4_LCD:
     LCD_ROWS = 4
 
 
-def disp_change(changed_var=[], str_override='', error_message='', line=1):
+def disp_change(changed_var=[], str_override='', line=1, timeout=0):
     # if changed_var was a string, convert to a list.
     if isinstance(changed_var, str): changed_var = [changed_var]
 
@@ -83,7 +82,7 @@ def disp_change(changed_var=[], str_override='', error_message='', line=1):
                         p = gv.preset
                         curr_preset_name = gv.SETLIST_LIST[p]
                         hd44780_20x4.display(str(p + gv.PRESET_BASE) + unichr(2) + curr_preset_name, 1,
-                                             is_priority=True)
+                                             is_priority=True, timeout_custom=timeout)
 
                         if p < gv.NUM_FOLDERS - 1:
                             p += 1
@@ -91,22 +90,22 @@ def disp_change(changed_var=[], str_override='', error_message='', line=1):
                             p = 0
                         next_preset_name = gv.SETLIST_LIST[p]
                         hd44780_20x4.display(str(p + gv.PRESET_BASE + 1) + unichr(2) + next_preset_name, 2,
-                                             is_priority=True)
-                        hd44780_20x4.display('', 3, is_priority=True)
-                        hd44780_20x4.display('', 4, is_priority=True)
+                                             is_priority=True, timeout_custom=timeout)
+                        hd44780_20x4.display('', 3, is_priority=True, timeout_custom=timeout)
+                        hd44780_20x4.display('', 4, is_priority=True, timeout_custom=timeout)
                     # temp overrides / non-priority messages
                     if 'volume' in changed_var:
                         i = int(gv.global_volume_percent / 100.0 * (LCD_COLS - 1)) + 1
-                        hd44780_20x4.display('Volume', 3, is_priority=False)
-                        hd44780_20x4.display((unichr(1) * i), 4, is_priority=False)
+                        hd44780_20x4.display('Volume', 3, is_priority=False, timeout_custom=2)
+                        hd44780_20x4.display((unichr(1) * i), 4, is_priority=False, timeout_custom=2)
                     elif 'loading' in changed_var:
-                        hd44780_20x4.display('Loading...', 3, is_priority=False)
+                        hd44780_20x4.display('Loading...', 3, is_priority=False, timeout_custom=timeout)
                         hd44780_20x4.display(unichr(1) * int(gv.percent_loaded * (LCD_COLS / 100.0) + 1),
-                                             4, is_priority=False)
+                                             4, is_priority=False, timeout_custom=timeout)
                     elif 'effect' in changed_var:
-                        hd44780_20x4.display(changed_var[1], 3, is_priority=False)
+                        hd44780_20x4.display(changed_var[1], 3, is_priority=False, timeout_custom=2)
                         hd44780_20x4.display(unichr(1) * int(gv.percent_effect * (LCD_COLS / 100.0) + 1),
-                                             4, is_priority=False)
+                                             4, is_priority=False, timeout_custom=2)
 
                 if menu_mode == DISP_UTILS_MODE:
                     if 'util' in changed_var:
@@ -115,15 +114,14 @@ def disp_change(changed_var=[], str_override='', error_message='', line=1):
                         ram = int(float(psutil.virtual_memory().percent) / (LCD_COLS - 4)) + 1
                         cpu_str = 'CPU' + (unichr(1) * cpu)
                         ram_str = 'RAM' + (unichr(1) * ram)
-                        hd44780_20x4.display(cpu_str, line=3, is_priority=False)
-                        hd44780_20x4.display(ram_str, line=4, is_priority=False)
+                        hd44780_20x4.display(cpu_str, line=3, is_priority=False, timeout_custom=timeout)
+                        hd44780_20x4.display(ram_str, line=4, is_priority=False, timeout_custom=timeout)
 
-
+                if menu_mode == DISP_MENU_MODE:
+                    hd44780_20x4.display(changed_var[0], line=line, is_priority=True, timeout_custom=timeout)
 
                 if str_override:
-                    hd44780_20x4.display(str_override.center(LCD_COLS, ' '), line, is_priority=False)
-                if error_message:
-                    hd44780_20x4.display(str_override.center(LCD_COLS, ' '), line, is_priority=False)
+                    hd44780_20x4.display(str_override.center(LCD_COLS, ' '), line=line, is_priority=False, timeout_custom=timeout)
 
 
         #######################
