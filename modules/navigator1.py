@@ -21,7 +21,8 @@ import hd44780_20x4
 import loadsamples as ls
 import menudict
 import displayer
-
+import threading
+import time
 
 def write_setlist(list_to_write):
     print('-= WRITING NEW SETLIST =-')
@@ -168,7 +169,7 @@ class PresetNav(Navigator):
 
         print '-= Preset world =-'
         displayer.menu_mode = displayer.DISP_PRESET_MODE
-        # displayer.change('preset') # already called in ActuallyLoad()
+        # displayer.disp_change('preset') # already called in ActuallyLoad()
 
 
     def right(self):
@@ -178,7 +179,7 @@ class PresetNav(Navigator):
         gv.currvoice = 1
         if (gv.preset >= gv.NUM_FOLDERS):
             gv.preset = 0
-        displayer.change('preset')
+        displayer.disp_change('preset')
         ls.LoadSamples()
 
     def left(self):
@@ -188,19 +189,70 @@ class PresetNav(Navigator):
         gv.currvoice = 1
         if (gv.preset < 0):
             gv.preset = gv.NUM_FOLDERS - 1
-        displayer.change('preset')
+        displayer.disp_change('preset')
         ls.LoadSamples()
 
     def enter(self):
         self.loadState(MenuNav)
 
     def cancel(self):  # can remove empty class methods
-        displayer.menu_mode = displayer.DISP_UTILS_MODE
-        displayer.change()
+        self.loadState(UtilsView)
+
         # hd44780_20x4.TimeOut = hd44780_20x4.TimeOutReset
         # hd44780_20x4.resetModes()
         # hd44780_20x4.inSysMode = True
         # eg CPU/RAM, battery life, time, wifi/bluetooth status
+
+
+# ______________________________________________________________________________
+
+
+
+
+
+class UtilsView(Navigator):
+
+
+    def __init__(self):
+
+        print '-= Utils view =-'
+        displayer.menu_mode = displayer.DISP_UTILS_MODE
+        displayer.disp_change(changed_var='util')
+        self.timeout_start = time.time()
+        self.UtilsThread = threading.Thread(target=self.display_utils)
+        self.UtilsThread.daemon = True
+        self.UtilsThread.start()
+
+    def display_utils(self):
+        looping = True
+        while looping:
+            now = time.time()
+            if (now - self.timeout_start) < 3:
+                displayer.disp_change(changed_var='util')
+                time.sleep(0.5)
+            else:
+                self.loadState(PresetNav)
+                looping = False
+
+
+    def right(self):
+        pass
+
+    def left(self):
+        pass
+
+    def enter(self):
+        self.loadState(MenuNav)
+
+    def cancel(self):  # can remove empty class methods
+        self.timeout_start = time.time()
+
+        # hd44780_20x4.TimeOut = hd44780_20x4.TimeOutReset
+        # hd44780_20x4.resetModes()
+        # hd44780_20x4.inSysMode = True
+        # eg CPU/RAM, battery life, time, wifi/bluetooth status
+
+
 
 
 # ______________________________________________________________________________

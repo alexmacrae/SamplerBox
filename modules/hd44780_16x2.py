@@ -1,130 +1,127 @@
 #########################################
 ##  LCD DISPLAY
-##   - HD44780 class, based on 16x2 LCD interface code by Rahul Kar, see:
-##     http://www.rpiblog.com/2012/11/interfacing-16x2-lcd-with-raspberry-pi.html
-##   - Actual display routine
 #########################################
 
 import globalvars as gv
 import time
+import threading
 
-class HD44780:
-    # def __init__(self, pin_rs=7, pin_e=8, pins_db=[25,24,22,23,27,17,18,4]):
-    def __init__(self, pin_rs=7, pin_e=8, pins_db=[27, 17, 18, 4]):
+if gv.IS_DEBIAN:
+    WhileSleep = 0.1
+else:
+    WhileSleep = 0.2
 
-        # remove first 4 elements for 4-bit operation
-        # and mind the physical wiring !
-        self.pin_rs = pin_rs
-        self.pin_e = pin_e
-        self.pins_db = pins_db
+TimeOutReset = 3  # 3 sec
+TimeOutReset /= WhileSleep  # Adjust according to while loop sleep time
+TimeOut = TimeOutReset
 
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.pin_e, GPIO.OUT)
-        GPIO.setup(self.pin_rs, GPIO.OUT)
-        for pin in self.pins_db:
-            GPIO.setup(pin, GPIO.OUT)
-
-        self.clear()
-
-    def clear(self):
-        """ Blank / Reset LCD """
-
-        self.cmd(0x33)  # Initialization by instruction
-        gv.msleep(5)
-        self.cmd(0x33)
-        gv.usleep(100)
-        self.cmd(0x32)  # set to 4-bit mode
-        self.cmd(0x28)  # Function set: 4-bit mode, 2 lines
-        # self.cmd(0x38) # Function set: 8-bit mode, 2 lines
-        self.cmd(0x0C)  # Display control: Display on, cursor off, cursor blink off
-        self.cmd(0x06)  # Entry mode set: Cursor moves to the right
-        self.cmd(0x01)  # Clear Display: Clears the display & set cursor position to line 1 column 0
-
-    def cmd(self, bits, char_mode=False):
-        """ Send command to LCD """
-
-        time.sleep(0.001)
-        bits = bin(bits)[2:].zfill(8)
-
-        GPIO.output(self.pin_rs, char_mode)
-
-        for pin in self.pins_db:
-            GPIO.output(pin, False)
-
-        # for i in range(8):       # use range 4 for 4-bit operation
-        for i in range(4):  # use range 4 for 4-bit operation
-            if bits[i] == "1":
-                GPIO.output(self.pins_db[::-1][i], True)
-
-        GPIO.output(self.pin_e, True)
-        gv.usleep(1)  # command needs to be > 450 nsecs to settle
-        GPIO.output(self.pin_e, False)
-        gv.usleep(100)  # command needs to be > 37 usecs to settle
-
-        """ 4-bit operation start """
-        for pin in self.pins_db:
-            GPIO.output(pin, False)
-
-        for i in range(4, 8):
-            if bits[i] == "1":
-                GPIO.output(self.pins_db[::-1][i - 4], True)
-
-        GPIO.output(self.pin_e, True)
-        gv.usleep(1)  # command needs to be > 450 nsecs to settle
-        GPIO.output(self.pin_e, False)
-        gv.usleep(100)  # command needs to be > 37 usecs to settle
-        """ 4-bit operation end """
-
-    def message(self, text):
-        """ Send string to LCD. Newline wraps to second line"""
-
-        self.cmd(0x01)  # Clear Display: Clears the display & set cursor position to line 1 column 0
-        x = 0
-        for char in text:
-            if char == '\n':
-                self.cmd(0xC0)  # next line
-                x = 0
-            else:
-                x += 1
-                if x < 17: self.cmd(ord(char), True)
-
+LCD_COLS = 16
+LCD_ROWS = 2
 
 if gv.USE_HD44780_16x2_LCD and gv.IS_DEBIAN:
 
-    if gv.SYSTEM_MODE == 2:
+    import lcdcustomchars as lcdcc
+    import RPi.GPIO as GPIO
+    from RPLCD import CharLCD
+    import time
 
-        import RPi.GPIO as GPIO
-        import time
+    lcd = CharLCD(pin_rs=gv.GPIO_LCD_RS, pin_rw=None, pin_e=gv.GPIO_LCD_E,
+                  pins_data=[gv.GPIO_LCD_D4, gv.GPIO_LCD_D5, gv.GPIO_LCD_D6, gv.GPIO_LCD_D7],
+                  numbering_mode=GPIO.BCM, cols=LCD_COLS, rows=LCD_ROWS)
 
-        lcd = HD44780(gv.GPIO_LCD_RS, gv.GPIO_LCD_E, gv.GPIO_LCD_D4, gv.GPIO_LCD_D5, gv.GPIO_LCD_D6, gv.GPIO_LCD_D7)
+    lcd.create_char(1, lcdcc.block)
+    lcd.create_char(2, lcdcc.arrow_right_01)
+    lcd.create_char(3, lcdcc.voice_button_on)
+    lcd.create_char(4, lcdcc.voice_button_off)
 
-if gv.USE_HD44780_16x2_LCD:
+
+if gv.USE_HD44780_16x2_LCD  and gv.SYSTEM_MODE == 2:
+
+    STRING_1 = ''
+    STRING_2 = ''
+
+    def lcd_main():
+        # Main program block
+        global TimeOut, displayCalled, inPresetMode, tempDisplay
+        if gv.IS_DEBIAN:
+            global lcd
+            lcd.clear()
+
+        lcd_string("WELCOME TO", 1)
+        lcd_string("-=SAMPLERBOX=-", 2)
+        time.sleep(1)
+
+        while True:
+            if displayCalled:
+                if TimeOut > 0:
+                    TimeOut -= 1
+                else:
+                    displayCalled = False
+                    tempDisplay = False
+
+                lcd_string(STRING_1, 1)
+                lcd_string(STRING_2, 2)
+
+            time.sleep(WhileSleep)
+
+
+
+    def lcd_string(message, line):
+
+        message = message.center(LCD_COLS, " ")
+        lcd._set_cursor_pos((line - 1, 0))
+        lcd.write_string(message)
+
 
     def display(s2):
-        # lcd.clear()
+        global STRING_1, STRING_2, TimeOut, displayCalled
 
         if gv.USE_ALSA_MIXER:
             s1 = "%s %s %d%% %+d" % (gv.chordname[gv.currchord], gv.sample_mode, gv.global_volume, gv.globaltranspose)
         else:
             s1 = "%s %s %+d" % (gv.chordname[gv.currchord], gv.sample_mode, gv.globaltranspose)
+            pass
         if s2 == "":
             if gv.currvoice > 1: s2 = str(gv.currvoice) + ":"
-            s2 += gv.basename + " " * 15
+            s2 += gv.basename + " " * LCD_COLS
+
             if gv.nav2.buttfunc > 0:
-                s2 = s2[:14] + "*" + gv.nav2.button_disp[gv.nav2.buttfunc]
+                s2 = s2[:LCD_COLS-2] + "*" + gv.nav2.button_disp[gv.nav2.buttfunc]
+        else:
+            s2 = s2 + ' ' * LCD_COLS
 
         if gv.PRINT_LCD_MESSAGES:
-            print "display: %s \\ %s" % (s1, s2)
+            print "display: %s \\ %s" % (s1[:LCD_COLS], s2[:LCD_COLS])
         # lcd.message(s1 + " "*8 + "\n" + s2 + " "*15)
-        if gv.IS_DEBIAN:
-            lcd.message(s1 + "\n" + s2)
+        # if gv.IS_DEBIAN:
+        #     lcd.message(s1 + "\n" + s2)
+        STRING_1 = str(s1[:LCD_COLS])  # line 1
+        STRING_2 = str(s2[:LCD_COLS])  # line 2
+
+        TimeOut = TimeOutReset
+        displayCalled = True
+
+
+    LCDThread = threading.Thread(target=lcd_main)
+    LCDThread.daemon = True
+    LCDThread.start()
 
 
 
-    # lcd.clear()
+
+
+    #time.sleep(0.5)
+    display('Start SamplerBox')
+    #time.sleep(0.5)
+    display('1Start SamplerBox')
+    #time.sleep(0.5)
+    display('2Start SamplerBox')
+    #time.sleep(0.5)
+    display('3Start SamplerBox')
+    #time.sleep(0.5)
+
+
+    #lcd.clear()
     time.sleep(0.5)
     display('Start SamplerBox')
     time.sleep(0.5)
-
-
-

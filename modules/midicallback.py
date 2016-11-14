@@ -1,5 +1,4 @@
 import globalvars as gv
-import hd44780_20x4
 import loadsamples
 import navigator1
 import audiocontrols as ac

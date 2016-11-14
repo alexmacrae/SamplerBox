@@ -8,6 +8,7 @@
 #  samplerbox2.py:  Main file
 #
 
+
 #########################################
 # IMPORT
 # MODULES
@@ -27,11 +28,9 @@ from time import sleep
 from modules import globalvars as gv
 from modules import sound
 from modules import loadsamples as ls
-from modules import hd44780_20x4 as lcd
 from modules import buttons
 from modules import midicallback
 from modules import displayer
-
 
 
 ###########################
@@ -47,6 +46,9 @@ if gv.SYSTEM_MODE == 1:
 elif gv.SYSTEM_MODE == 2:
     from modules import navigator2
     gv.nav2 = navigator2
+
+
+
 
 #########################################
 ##  MIDI IN via SERIAL PORT
@@ -97,7 +99,7 @@ curr_ports = []
 prev_ports = []
 first_loop = True
 
-displayer.change('Running')
+displayer.disp_change(str_override='Running')
 
 
 try:
@@ -125,9 +127,8 @@ except KeyboardInterrupt:
 except:
   print "\nstopped by Other Error"
 finally:
-    displayer.change(str_override='  -=STOPPED=-   ')
-    lcd.display(unichr(2)*lcd.LCD_COLS, 2)
-    sleep(0.5)
+    displayer.disp_change(str_override='Good bye!')
+    sleep(0.2)
     if gv.IS_DEBIAN:
         import RPi.GPIO as GPIO
         GPIO.cleanup()

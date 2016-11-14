@@ -3,6 +3,7 @@ import os
 import numpy
 import re
 import configparser_samplerbox as cp
+import time
 
 IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian'  # Determine if running on RPi (True / False)
 CONFIG_PRINT = True
@@ -20,6 +21,7 @@ CHANNELS = int(cp.get_option_by_name('CHANNELS'))
 BUFFERSIZE = int(cp.get_option_by_name('BUFFERSIZE'))
 SAMPLERATE = int(cp.get_option_by_name('SAMPLERATE'))
 global_volume = int(cp.get_option_by_name('GLOBAL_VOLUME'))
+global_volume_percent = int((float(global_volume) / 100.0) * 100)
 global_volume = 0 if global_volume < 0 else 100 if global_volume > 100 else global_volume
 global_volume = (10.0 ** (-12.0 / 20.0)) * (float(global_volume) / 100.0)
 SAMPLES_DIR = str(cp.get_option_by_name('SAMPLES_DIR'))
@@ -190,6 +192,9 @@ PITCHSTEPS = 2 ** PITCHBITS
 pitchneutral = PITCHSTEPS / 2
 pitchdiv = 2 ** (14 - PITCHBITS)
 
+usleep = lambda x: time.sleep(x / 1000000.0)
+msleep = lambda x: time.sleep(x / 1000.0)
+
 ###################
 # FADE / RELEASE / SPEED
 ###################
@@ -226,3 +231,4 @@ learningMode = False
 GPIO_button_func = None
 GPIO_function_val = None
 percent_loaded = 0
+percent_effect = 0

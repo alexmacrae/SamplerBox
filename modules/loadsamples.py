@@ -8,7 +8,7 @@ import numpy
 import globalvars as gv
 import displayer
 import sound
-
+import time
 LoadingThread = None
 LoadingInterrupt = False
 
@@ -46,7 +46,7 @@ def ActuallyLoad():
     gv.samples = {}
     release = 3  # results in FADEOUTLENGTH=30000, the samplerbox default
 
-    prevbase = gv.basename  # changed from currbase. Hans, doens't this make more sense?
+    prevbase = gv.basename  # disp_changed from currbase. Hans, doens't this make more sense?
 
     setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
     gv.basename = setlist_list[gv.preset]
@@ -55,16 +55,15 @@ def ActuallyLoad():
         if gv.basename == prevbase:  # don't waste time reloading a patch
             # print 'Kept preset %s' % basename
             # hd44780_20x4.display("Kept %s" % gv.basename)
-            displayer.change('preset')
+            displayer.disp_change('preset')
             return
         dirname = os.path.join(gv.SAMPLES_DIR, gv.basename)
     if not gv.basename:
         # hd44780_20x4.display('Preset empty: %s' % gv.preset)
-        displayer.change('preset')
+        displayer.disp_change('preset')
         return
 
-    # hd44780_20x4.display(str(gv.preset + 1) + unichr(2) + gv.basename, 1)
-    displayer.change('preset')
+    displayer.disp_change('preset')
 
     definitionfname = os.path.join(dirname, "definition.txt")
     file_count = len(os.listdir(dirname))
@@ -142,7 +141,9 @@ def ActuallyLoad():
                         # Visual percentage loading with blocks. Load on last row of LCD
                         # hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100.0) + 1), hd44780_20x4.LCD_ROWS)
                         gv.percent_loaded = percent_loaded
-                        displayer.change('loading')
+
+                        displayer.disp_change('loading')
+
                         file_current += 1
                         if LoadingInterrupt:
                             return
@@ -185,7 +186,7 @@ def ActuallyLoad():
             percent_loaded = (file_current * 100) / file_count  # more accurate loading progress
             # hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100) + 1), 4)
             gv.percent_loaded = percent_loaded
-            displayer.change('loading')
+            displayer.disp_change('loading')
             file_current += 1
 
     initial_keys = set(gv.samples.keys())
@@ -230,7 +231,7 @@ def ActuallyLoad():
 
         if not (release * 10000) == gv.FADEOUTLENGTH:
             gv.FADEOUTLENGTH = release * 10000
-            # print 'Fadeoutlength changed to ' + str(gv.FADEOUTLENGTH)
+            # print 'Fadeoutlength disp_changed to ' + str(gv.FADEOUTLENGTH)
             gv.FADEOUT = numpy.linspace(1., 0., gv.FADEOUTLENGTH)  # by default, float64
             gv.FADEOUT = numpy.power(gv.FADEOUT, 6)
             gv.FADEOUT = numpy.append(gv.FADEOUT, numpy.zeros(gv.FADEOUTLENGTH, numpy.float32)).astype(
@@ -241,9 +242,9 @@ def ActuallyLoad():
     elif len(initial_keys) == 0:
         # hd44780_20x4.display(' Error loading ', 1)
         # hd44780_20x4.display(str(gv.preset + 1) + unichr(2) + gv.basename, 2)
-        displayer.change('preset')
+        displayer.disp_change('preset')
     else:
-        # hd44780_20x4.display('', 5, customTimeout=0)  # as soon as the sample set is loaded, go straight to play screen
-        displayer.change('')
+        # hd44780_20x4.display('', 5, timeout_custom=0)  # as soon as the sample set is loaded, go straight to play screen
+        displayer.disp_change('')
 
-    displayer.change('')
+    displayer.disp_change('preset')
