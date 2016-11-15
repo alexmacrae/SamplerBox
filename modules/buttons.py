@@ -8,26 +8,50 @@ if gv.USE_BUTTONS and gv.IS_DEBIAN:
     if gv.SYSTEM_MODE == 1:
 
         def Buttons_1():
-            lastbuttontime = 0
+            time.sleep(8)
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(gv.BUTTON_LEFT_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(gv.BUTTON_RIGHT_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(gv.BUTTON_ENTER_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(gv.BUTTON_CANCEL_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            last_button_time = 0
+
+            button_pressed = False
+            prev_button = 0
+
+            BUTTON_MOM = 'momentary'
+            BUTTON_TOG = 'toggle'
+            button_mode = BUTTON_TOG
+
             while True:
                 now = time.time()
-                if (now - lastbuttontime):
-                    lastbuttontime = now
-                    if not GPIO.input(gv.BUTTON_LEFT_GPIO):
-                        gv.nav1.state.left()
-                    elif not GPIO.input(gv.BUTTON_RIGHT_GPIO):
-                        gv.nav1.state.right()
-                    elif not GPIO.input(gv.BUTTON_ENTER_GPIO):
-                        gv.nav1.state.enter()
-                    elif not GPIO.input(gv.BUTTON_CANCEL_GPIO):
-                        gv.nav1.state.cancel()
+                if (now - last_button_time) > 1:
 
-                time.sleep(0.020)
+
+                    if not GPIO.input(gv.BUTTON_LEFT_GPIO):
+                        prev_button = GPIO.input(gv.BUTTON_LEFT_GPIO)
+                        print time.ctime(), prev_button
+                        gv.displayer.disp_change(str_override=str(time.ctime()), line=2, timeout=0)
+                        last_button_time = now
+
+                    # if not GPIO.input(gv.BUTTON_LEFT_GPIO) and not prev_button:
+                    #     gv.nav1.state.left()
+                    #     print 'left'
+                    #     prev_button = GPIO.input(gv.BUTTON_LEFT_GPIO)
+                    #     #button_pressed = True
+                    # elif not GPIO.input(gv.BUTTON_RIGHT_GPIO):
+                    #     print 'right'
+                    #     gv.nav1.state.right()
+                    # elif not GPIO.input(gv.BUTTON_ENTER_GPIO):
+                    #     print 'enter'
+                    #     gv.nav1.state.enter()
+                    # elif not GPIO.input(gv.BUTTON_CANCEL_GPIO):
+                    #     print 'cancel'
+                    #     gv.nav1.state.cancel()
+                    # else:
+                    #     button_pressed = False
+
+                time.sleep(1)
 
 
         ButtonsThread_1 = threading.Thread(target=Buttons_1)
@@ -42,7 +66,7 @@ if gv.USE_BUTTONS and gv.IS_DEBIAN:
 
         import loadsamples as ls
 
-        lastbuttontime = 0
+        last_button_time = 0
         butt_up = gv.BUTTON_UP_GPIO  # values of butt_up/down/sel depend on physical wiring
         butt_down = gv.BUTTON_DOWN_GPIO   # values of butt_up/down/sel depend on physical wiring
         butt_func = gv.BUTTON_FUNC_GPIO   # values of butt_up/down/sel depend on physical wiring
@@ -52,9 +76,9 @@ if gv.USE_BUTTONS and gv.IS_DEBIAN:
 
 
         def Button_display():
-            global volume, MIDI_CHANNEL, globaltranspose, buttfunc, button_functions, chordname, currchord
+            global volume, MIDI_CHANNEL, globaltranspose, buttfunc, button_functions, CHORD_NAMES, current_chord
             function_value = ["", " %d%%" % (volume), " %d" % (MIDI_CHANNEL), " %+d" % (globaltranspose), "",
-                              " %s" % (chordname[currchord])]
+                              " %s" % (CHORD_NAMES[current_chord])]
 
             gv.GPIO_button_func = button_functions[buttfunc]
             gv.GPIO_function_val = function_value[buttfunc]
@@ -63,20 +87,20 @@ if gv.USE_BUTTONS and gv.IS_DEBIAN:
 
 
         def Buttons_2():
-            global preset, basename, lastbuttontime, volume, MIDI_CHANNEL, globaltranspose, midi_mute, chordname, currchord
+            global preset, basename, last_button_time, volume, MIDI_CHANNEL, globaltranspose, midi_mute, CHORD_NAMES, current_chord
             global buttfunc, button_functions, butt_up, butt_down, butt_sel, button_disp
 
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(butt_up, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(butt_down, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(butt_func, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            lastbuttontime = time.time()
+            last_button_time = time.time()
 
             while True:
                 now = time.time()
-                if (now - lastbuttontime) > 0.2:
+                if (now - last_button_time) > 0.2:
                     if not GPIO.input(butt_down):
-                        lastbuttontime = now
+                        last_button_time = now
                         # print("Button down")
                         if buttfunc == 0:
                             preset -= 1
@@ -104,12 +128,12 @@ if gv.USE_BUTTONS and gv.IS_DEBIAN:
                                 midi_mute = False
                                 Button_display()
                         elif buttfunc == 5:
-                            currchord -= 1
-                            if currchord < 0: currchord = len(chordname) - 1
+                            current_chord -= 1
+                            if current_chord < 0: current_chord = len(CHORD_NAMES) - 1
                             Button_display()
 
                     elif not GPIO.input(butt_up):
-                        lastbuttontime = now
+                        last_button_time = now
                         # print("Button up")
                         midi_mute = False
                         if buttfunc == 0:
@@ -135,12 +159,12 @@ if gv.USE_BUTTONS and gv.IS_DEBIAN:
                             ls.LoadSamples()
                             # Button_display()
                         elif buttfunc == 5:
-                            currchord += 1
-                            if currchord >= len(chordname): currchord = 0
+                            current_chord += 1
+                            if current_chord >= len(CHORD_NAMES): current_chord = 0
                             Button_display()
 
                     elif not GPIO.input(butt_func):
-                        lastbuttontime = now
+                        last_button_time = now
                         # print("Function Button")
                         buttfuncmax = len(button_functions)
                         buttfunc += 1

@@ -34,18 +34,22 @@ from modules import displayer
 
 
 ###########################
+# Start Displayer
 # Load MIDI mappings
 # Start the Navigator
 ###########################
 
+gv.displayer = displayer.Displayer()
+
 if gv.SYSTEM_MODE == 1:
     from modules import midimaps
-    from modules import navigator1
+    from modules import navigator_sys_1
     gv.midimaps = midimaps.MidiMapping().maps
-    gv.nav1 = navigator1.Navigator(navigator1.PresetNav)
+    gv.nav1 = navigator_sys_1.Navigator(navigator_sys_1.PresetNav)
 elif gv.SYSTEM_MODE == 2:
-    from modules import navigator2
-    gv.nav2 = navigator2
+    from modules import navigator_sys_2
+    gv.nav2 = navigator_sys_2
+
 
 
 
@@ -99,7 +103,7 @@ curr_ports = []
 prev_ports = []
 first_loop = True
 
-displayer.disp_change(str_override='Running')
+gv.displayer.disp_change(str_override='Running')
 
 
 try:
@@ -127,7 +131,7 @@ except KeyboardInterrupt:
 except:
   print "\nstopped by Other Error"
 finally:
-    displayer.disp_change(str_override='Good bye!')
+    gv.displayer.disp_change(str_override='Good bye!')
     sleep(0.2)
     if gv.IS_DEBIAN:
         import RPi.GPIO as GPIO

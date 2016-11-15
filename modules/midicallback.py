@@ -1,11 +1,13 @@
 import globalvars as gv
 import loadsamples
+import time
 
 import audiocontrols as ac
 
 if gv.SYSTEM_MODE == 1:
-    import navigator1
-    Navigator = navigator1.Navigator
+    import navigator_sys_1
+
+    Navigator = navigator_sys_1.Navigator
 
 
 def noteon(messagetype, note, vel):
@@ -27,11 +29,11 @@ def AllNotesOff():
 class PresetNav:
     def left(self, vel):
         if vel != 0:
-            navigator1.PresetNav().left()
+            navigator_sys_1.PresetNav().left()
 
     def right(self, vel):
         if vel != 0:
-            navigator1.PresetNav().right()
+            navigator_sys_1.PresetNav().right()
 
 
 #########################################
@@ -51,6 +53,7 @@ def MidiCallback(src, message, time_stamp):
     midinote = note
     velocity = message[2] if len(message) > 2 else None
     noteoff = False
+    last_note_timestamp = 0
     if gv.sample_mode == gv.PLAYLIVE:
         noteoff = True
 
@@ -81,7 +84,7 @@ def MidiCallback(src, message, time_stamp):
                 print 'This MIDI control has been assigned in the config.ini. Will not be mapped.'
             else:
                 Navigator.state.sendControlToMap(message, src)
-                return # don't continue from here
+                return  # don't continue from here
 
         ######################
         # Check if MIDI Mapped
@@ -164,53 +167,106 @@ def MidiCallback(src, message, time_stamp):
         if messagetype == 9:  # Note on
             midinote += gv.globaltranspose
 
-
             # scale the selected sample based on velocity, the volume will be kept,
             # this will normally make the sound brighter (by Erik)
             SelectVelocity = (velocity
                               * (127 - gv.VelocitySelectionOffset) / 127) \
                              + gv.VelocitySelectionOffset
 
-            for n in range(len(gv.chordnote[gv.currchord])):
-                playnote = midinote + gv.chordnote[gv.currchord][n]
+            timestamp_now = time.time()
+
+            for n in range(len(gv.CHORD_NOTES[gv.current_chord])):
+                playnote = midinote + gv.CHORD_NOTES[gv.current_chord][n]
                 for m in gv.sustainplayingnotes:  # cleanup predecessors (check if necessary
-                    if m.note == playnote:
+                    if m.note == playnote and (timestamp_now > getattr(m, 'timestamp')):
                         m.fadeout(50)
                         # print 'stop sustain ' + str(playnote)
                 if playnote in gv.playingnotes:  # cleanup predecessors
                     for m in gv.playingnotes[playnote]:
-                        # print "stop note " + str(playnote)
-                        m.fadeout(50)
+                        if (timestamp_now > getattr(m, 'timestamp')):
+                            # print "stop note " + str(playnote)
+                            m.fadeout(50)
 
             try:
                 if gv.velocity_mode == gv.VELSAMPLE:
                     velmixer = 127 * gv.gain
                 else:
                     velmixer = velocity * gv.gain
-                for n in range(len(gv.chordnote[gv.currchord])):
-                    playnote = midinote + gv.chordnote[gv.currchord][n]
+
+                # Hans original
+
+                # for n in range(len(gv.CHORD_NOTES[gv.current_chord])):
+                #     playnote = midinote + gv.CHORD_NOTES[gv.current_chord][n]
+                #     # print "start note " + str(playnote)
+                #     timestamp = time.time()
+                #     gv.playingnotes.setdefault(playnote, []).append(
+                #         gv.samples[playnote, SelectVelocity, gv.currvoice].play(playnote, velmixer, timestamp))
+
+
+                # ALEX - play chords based on the note of a scale of a key
+
+                note_index = midinote % 12 - gv.current_key
+                chord_index = gv.MAJOR_KEY_CHORDS[note_index]
+                for n in range(len(gv.CHORD_NOTES[chord_index])):
+                    playnote = midinote + gv.CHORD_NOTES[chord_index][n]
                     # print "start note " + str(playnote)
+
                     gv.playingnotes.setdefault(playnote, []).append(
-                        gv.samples[playnote, SelectVelocity, gv.currvoice].play(playnote, velmixer))
+                        gv.samples[playnote, SelectVelocity, gv.currvoice].play(playnote, velmixer, timestamp_now))
+
             except:
                 print 'NoteOn entered exception routine'
                 pass
 
+
+
         elif messagetype == 8:  # Note off
             midinote += gv.globaltranspose
             if noteoff == True:
+
+                # Hans original
+
                 # print 'Note off ' + str(note) + '->' + str(midinote) + ', voice=' + str(currvoice)    #debug
+                # if midinote in gv.playingnotes:
+                #     for n in range(len(gv.CHORD_NOTES[gv.current_chord])):
+                #         playnote = midinote + gv.CHORD_NOTES[gv.current_chord][n]
+                #         for m in gv.playingnotes[playnote]:
+                #
+                #             # print "stop note " + str(playnote)
+                #             if gv.sustain:
+                #                 # print 'Sustain note ' + str(playnote)   # debug
+                #                 gv.sustainplayingnotes.append(m)
+                #             else:
+                #                 m.fadeout(50)
+                #     gv.playingnotes[playnote] = []
+
+
+                # ALEX - noteoff chords based on the note of a scale of a key
+
                 if midinote in gv.playingnotes:
-                    for n in range(len(gv.chordnote[gv.currchord])):
-                        playnote = midinote + gv.chordnote[gv.currchord][n]
-                        for m in gv.playingnotes[playnote]:
-                            # print "stop note " + str(playnote)
-                            if gv.sustain:
-                                # print 'Sustain note ' + str(playnote)   # debug
-                                gv.sustainplayingnotes.append(m)
-                            else:
-                                m.fadeout(50)
-                    gv.playingnotes[playnote] = []
+                    note_index = midinote % 12 - gv.current_key
+                    chord_index = gv.MAJOR_KEY_CHORDS[note_index]
+
+                    for n in range(len(gv.CHORD_NOTES[chord_index])):
+                        playnote = midinote + gv.CHORD_NOTES[chord_index][n]
+                        for m in gv.playingnotes[midinote]:
+                            for p in gv.playingnotes[playnote]:
+                                if getattr(p, 'timestamp') == getattr(m, 'timestamp'):
+                                    print 'Root note: %d Chord note: %d Timestamp: %d' % (
+                                    getattr(m, 'note'), getattr(p, 'note'), getattr(p, 'timestamp'))
+                                    if gv.sustain:
+                                        # print 'Sustain note ' + str(playnote)   # debug
+                                        gv.sustainplayingnotes.append(p)
+                                    else:
+                                        p.fadeout(50)
+                    gv.playingnotes[midinote] = []
+                    print '-------'
+
+
+
+
+
+
 
         elif messagetype == 12:  # Program change
             # print 'Program change ' + str(note)
@@ -273,7 +329,7 @@ def MidiCallback(src, message, time_stamp):
 
             # general purpose 81 used for chords
             elif CCnum == 81:
-                if CCval < len(gv.chordnote):
+                if CCval < len(gv.CHORD_NOTES):
                     ac.Chord().change()
 
 

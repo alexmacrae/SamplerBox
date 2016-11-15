@@ -25,38 +25,38 @@ class MasterVolume:
         # hd44780_20x4.display((unichr(1) * i), 4)
         gv.global_volume_percent = int((float(vel) / 127.0) * 100)
         gv.global_volume = (10.0 ** (-12.0 / 20.0)) * (float(vel) / 127.0)
-        displayer.disp_change('volume')
+        gv.displayer.disp_change('volume')
 
 class Chord:
     def change(self, val):
-        gv.currchord = val
-        displayer.disp_change(changed_var='chord')
+        gv.current_chord = val
+        gv.displayer.disp_change(changed_var='chord')
 
 class Voice:
 
     def change(self, val):
         gv.currvoice = val
-        displayer.disp_change(changed_var='voice')
+        gv.displayer.disp_change(changed_var='voice')
 
     def voice1(self, vel):
         if vel > 0:
             gv.currvoice = 1
-            displayer.disp_change(changed_var='voice')
+            gv.displayer.disp_change(changed_var='voice')
 
     def voice2(self, vel):
         if vel > 0:
             gv.currvoice = 2
-            displayer.disp_change(changed_var='voice')
+            gv.displayer.disp_change(changed_var='voice')
 
     def voice3(self, vel):
         if vel > 0:
             gv.currvoice = 3
-            displayer.disp_change(changed_var='voice')
+            gv.displayer.disp_change(changed_var='voice')
 
     def voice4(self, vel):
         if vel > 0:
             gv.currvoice = 4
-            displayer.disp_change(changed_var='voice')
+            gv.displayer.disp_change(changed_var='voice')
 
     def up(self, vel):
         if vel > 0:
@@ -129,29 +129,29 @@ if gv.USE_FREEVERB:
         def setroomsize(self, val):
             self.fvsetroomsize(val/127.0)
             gv.percent_effect = int(val / 127.0 * 100)
-            displayer.disp_change(changed_var=['effect', 'roomsize'])
+            gv.displayer.disp_change(changed_var=['effect', 'roomsize'])
 
         def setdamp(self, val):
             self.fvsetdamp(val/127.0)
             gv.percent_effect = int(val / 127.0 * 100)
-            displayer.disp_change(changed_var=['effect', 'damping'])
+            gv.displayer.disp_change(changed_var=['effect', 'damping'])
 
 
         def setwet(self, val):
             self.fvsetwet(val/127.0)
             gv.percent_effect = int(val / 127.0 * 100)
-            displayer.disp_change(changed_var=['effect', 'wet'])
+            gv.displayer.disp_change(changed_var=['effect', 'wet'])
 
 
 
         def setdry(self, val):
             self.fvsetdry(val/127.0)
             gv.percent_effect = int(val / 127.0 * 100)
-            displayer.disp_change(changed_var=['effect', 'dry'])
+            gv.displayer.disp_change(changed_var=['effect', 'dry'])
 
         def setwidth(self, val):
             self.fvsetwidth(val/127.0)
             gv.percent_effect = int(val / 127.0 * 100)
-            displayer.disp_change(changed_var=['effect', 'width'])
+            gv.displayer.disp_change(changed_var=['effect', 'width'])
 
 
