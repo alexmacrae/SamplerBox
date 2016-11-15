@@ -18,7 +18,7 @@ def Button_display():
     gv.displayer.disp_change(str_override=button_functions[buttfunc] + function_value[buttfunc])
 
 
-def butt_up():
+def up():
     global buttfunc
 
     if buttfunc == 0:
@@ -47,7 +47,7 @@ def butt_up():
         Button_display()
 
 
-def butt_down():
+def down():
     global buttfunc
     if buttfunc == 0:
         gv.preset -= 1
@@ -79,7 +79,7 @@ def butt_down():
         Button_display()
 
 
-def butt_func():
+def func():
     global buttfunc
     buttfunc += 1
 

@@ -177,9 +177,8 @@ elif USE_HD44780_20x4_LCD:
     LCD_COLS = 20
     LCD_ROWS = 4
 
-# Navigator object always referenced here. eg gv.nav1.state.enter()
-nav1 = None
-nav2 = None
+# Navigator object always referenced here. eg gv.nav.state.enter()
+nav = None
 
 displayer = None
 

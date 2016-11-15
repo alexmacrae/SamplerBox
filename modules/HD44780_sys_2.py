@@ -82,10 +82,10 @@ if (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD) and gv.SYSTEM_MODE == 2:
             pass
         if s2 == "":
             if gv.currvoice > 1: s2 = str(gv.currvoice) + ":"
-            s2 += gv.basename + " " * gv.LCD_COLS
+            s2 += str(gv.basename) + str(" " * gv.LCD_COLS)
 
-            if gv.nav2.buttfunc > 0:
-                s2 = s2[:gv.LCD_COLS-2] + "*" + gv.nav2.button_disp[gv.nav2.buttfunc]
+            if gv.nav.buttfunc > 0:
+                s2 = s2[:gv.LCD_COLS-2] + "*" + gv.nav.button_disp[gv.nav.buttfunc]
         else:
             s2 = s2 + ' ' * gv.LCD_COLS
 
