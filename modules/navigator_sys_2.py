@@ -14,8 +14,8 @@ number_of_folders = len(listdir(gv.SAMPLES_DIR))
 def Button_display():
     function_value = ["", " %d%%" % (gv.global_volume),
                       " %d" % (gv.MIDI_CHANNEL), " %+d" % (gv.globaltranspose),
-                      "", " %s" % (gv.chordname[gv.currchord])]
-    displayer.disp_change(str_override=button_functions[buttfunc] + function_value[buttfunc])
+                      "", " %s" % (gv.CHORD_NAMES[gv.current_chord])]
+    gv.displayer.disp_change(str_override=button_functions[buttfunc] + function_value[buttfunc])
 
 
 def butt_up():
@@ -42,8 +42,8 @@ def butt_up():
         gv.basename = "None"
         ls.LoadSamples()
     elif buttfunc == 5:
-        gv.currchord += 1
-        if gv.currchord >= len(gv.chordname): gv.currchord = 0
+        gv.current_chord += 1
+        if gv.current_chord >= len(gv.CHORD_NAMES): gv.current_chord = 0
         Button_display()
 
 
@@ -74,8 +74,8 @@ def butt_down():
             gv.midi_mute = False
             Button_display()
     elif buttfunc == 5:
-        gv.currchord -= 1
-        if gv.currchord < 0: gv.currchord = len(gv.chordname) - 1
+        gv.current_chord -= 1
+        if gv.current_chord < 0: gv.current_chord = len(gv.CHORD_NAMES) - 1
         Button_display()
 
 

@@ -72,13 +72,20 @@ USE_ALSA_MIXER = cp.get_option_by_name('USE_ALSA_MIXER')
 ########## Chords definitions  # You always need index=0 (is single note, "normal play")
 # by Hans
 
-chordname = ["", "Maj", "Min", "Augm", "Dim", "Sus2", "Sus4", "Dom7", "Maj7", "Min7", "MiMa7", "hDim7", "Dim7", "Aug7",
-             "AuMa7", "D7S4"]
-chordnote = [[0], [0, 4, 7], [0, 3, 7], [0, 4, 8], [0, 3, 6], [0, 2, 7], [0, 5, 7], [0, 4, 7, 10], [0, 4, 7, 11],
-             [0, 3, 7, 10], [0, 3, 7, 11], [0, 3, 6, 10], [0, 3, 6, 9], [0, 4, 8, 10], [0, 4, 8, 11], [0, 5, 7, 10]]
-currchord = 0  # single note, "normal play"
+CHORD_NAMES = ["", "Maj", "Min", "Augm", "Dim", "Sus2", "Sus4", "Dom7", "Maj7", "Min7", "MiMa7", "hDim7", "Dim7",
+               "Aug7",
+               "AuMa7", "D7S4"]
+CHORD_NOTES = [[0], [0, 4, 7], [0, 3, 7], [0, 4, 8], [0, 3, 6], [0, 2, 7], [0, 5, 7], [0, 4, 7, 10], [0, 4, 7, 11],
+               [0, 3, 7, 10], [0, 3, 7, 11], [0, 3, 6, 10], [0, 3, 6, 9], [0, 4, 8, 10], [0, 4, 8, 11], [0, 5, 7, 10]]
 
 NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
+
+# MAJOR_KEY_CHORDS = [1, 2, 2, 1, 1, 2, 4]
+MAJOR_KEY_CHORDS = [1, 4, 2, 4, 2, 1, 4, 1, 4, 2, 4, 4]
+MINOR_KEY_CHORDS = [2, 4, 2, 1, 4, 2, 4, 2, 1, 4, 1, 4]
+
+current_chord = 0  # single note, "normal play"
+current_key = 3
 
 
 def button_assign(midi_str):
@@ -162,9 +169,19 @@ playingsounds = []
 globaltranspose = 0
 basename = "<Empty>"
 
-# navigator object always referenced here. eg gv.nav1.state.enter()
+# LCD screen character dimensions
+if USE_HD44780_16x2_LCD:
+    LCD_COLS = 16
+    LCD_ROWS = 2
+elif USE_HD44780_20x4_LCD:
+    LCD_COLS = 20
+    LCD_ROWS = 4
+
+# Navigator object always referenced here. eg gv.nav1.state.enter()
 nav1 = None
 nav2 = None
+
+displayer = None
 
 # add to selection of samples, not to Velocity Volume
 VelocitySelectionOffset = 0

@@ -76,13 +76,14 @@ class waveread(wave.Wave_read):
 
 class PlayingSound:
 
-    def __init__(self, sound, note, vel):
+    def __init__(self, sound, note, vel, timestamp):
         self.sound = sound
         self.pos = 0
         self.fadeoutpos = 0
         self.isfadeout = False
         self.note = note
         self.vel = vel
+        self.timestamp = timestamp
 
     def fadeout(self, i):
         self.isfadeout = True
@@ -101,6 +102,7 @@ class Sound:
         self.fname = filename
         self.midinote = midinote
         self.velocity = velocity
+
         if wf.getloops():
             self.loop = wf.getloops()[0][0]
             self.nframes = wf.getloops()[0][1] + 2
@@ -111,8 +113,8 @@ class Sound:
         wf.close()
 
 
-    def play(self, note, vel):
-        snd = PlayingSound(self, note, vel)
+    def play(self, note, vel, timestamp):
+        snd = PlayingSound(self, note, vel, timestamp)
         #print 'fname: ' + self.fname + ' note/vel: ' + str(note) + '/' + str(vel) + ' midinote: ' + str(self.midinote) + ' vel: ' + str(self.velocity)
         gv.playingsounds.append(snd)
         return snd
@@ -214,6 +216,7 @@ def AudioCallback(outdata, frame_count, time_info, status):
 #########################################
 
 # Using pyaudio only to list device names. sounddevice doesn't seem to have that option
+
 p = pyaudio.PyAudio()
 print '\n==== LIST OF AUDIO DEVICES ===='
 foundByDeviceName = False
@@ -237,6 +240,7 @@ for i in range(p.get_device_count()):
             # else:
             #     continue
 
+#
 # try:
 #     stream = p.open(format=pyaudio.paInt16, channels=gv.CHANNELS, rate=gv.SAMPLERATE,
 #                     frames_per_buffer=gv.BUFFERSIZE, output=True,
@@ -255,7 +259,7 @@ try:
     print 'Opened audio device #%i' % gv.AUDIO_DEVICE_ID
 except:
 
-    displayer.disp_change(str_override="Invalid audiodev")
+    gv.displayer.disp_change(str_override="Invalid audiodev")
     print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
     print 'Available devices:'
     print(sounddevice.query_devices())
@@ -273,7 +277,7 @@ if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
         except:
             pass
     if i > 0:
-        displayer.disp_change(str_override="Invalid mixerdev")
+        gv.displayer.disp_change(str_override="Invalid mixerdev")
         print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
         print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
         print(sounddevice.query_devices())
