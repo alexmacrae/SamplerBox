@@ -45,10 +45,10 @@ if gv.SYSTEM_MODE == 1:
     from modules import midimaps
     from modules import navigator_sys_1
     gv.midimaps = midimaps.MidiMapping().maps
-    gv.nav1 = navigator_sys_1.Navigator(navigator_sys_1.PresetNav)
+    gv.nav = navigator_sys_1.Navigator(navigator_sys_1.PresetNav)
 elif gv.SYSTEM_MODE == 2:
     from modules import navigator_sys_2
-    gv.nav2 = navigator_sys_2
+    gv.nav = navigator_sys_2
 
 
 
@@ -131,7 +131,10 @@ except KeyboardInterrupt:
 except:
   print "\nstopped by Other Error"
 finally:
-    gv.displayer.disp_change(str_override='Good bye!')
+    gv.displayer.disp_change(str_override='Good bye!', line=1, timeout=1)
+    gv.displayer.disp_change(str_override='Good bye!', line=2, timeout=1)
+    gv.displayer.disp_change(str_override='Good bye!', line=3, timeout=1)
+    gv.displayer.disp_change(str_override='Good bye!', line=4, timeout=1)
     sleep(0.2)
     if gv.IS_DEBIAN:
         import RPi.GPIO as GPIO

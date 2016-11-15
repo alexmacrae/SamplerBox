@@ -67,7 +67,7 @@ if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
     def make_voice_buttons():
         button_str = ''
         for v in gv.voices:
-            if (v == gv.currvoice - 1):
+            if (v == gv.currvoice):
                 button_str += unichr(3)
             else:
                 button_str += unichr(4)

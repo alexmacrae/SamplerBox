@@ -100,6 +100,9 @@ class Displayer:
                             self.LCD_SYS.display(changed_var[1], 3, is_priority=False, timeout_custom=2)
                             self.LCD_SYS.display(unichr(1) * int(gv.percent_effect * (gv.LCD_COLS / 100.0) + 1),
                                                  4, is_priority=False, timeout_custom=2)
+                        elif 'voice' in changed_var:
+                            self.LCD_SYS.display('', timeout_custom=0)
+
 
                     if menu_mode == DISP_UTILS_MODE:
                         if 'util' in changed_var:
@@ -122,9 +125,9 @@ class Displayer:
                         self.LCD_SYS.display(changed_var[0], line=line, is_priority=True, timeout_custom=timeout)
 
                     if str_override:
+                        self.LCD_SYS.display_called = True
                         self.LCD_SYS.display(str_override.center(gv.LCD_COLS, ' '), line=line, is_priority=False,
                                              timeout_custom=timeout)
-
 
             #######################
             # SYSTEM MODE 2 by Hans
