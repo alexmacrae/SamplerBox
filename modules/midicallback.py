@@ -2,8 +2,6 @@ import globalvars as gv
 import loadsamples
 import time
 
-import audiocontrols as ac
-
 if gv.SYSTEM_MODE == 1:
     import navigator_sys_1
 
@@ -97,9 +95,13 @@ def MidiCallback(src, message, time_stamp):
                 # remap note to a function
                 if midimaps.get(src).get(messageKey).has_key('fn'):
 
-                    fnSplit = midimaps.get(src).get(messageKey).get('fn').split('.')
-                    # Runs method from class. ie ac.MasterVolume().setvolume(velocity). No doubt a better way to do this
-                    getattr(eval(fnSplit[0] + '.' + fnSplit[1])(), fnSplit[2])(velocity)
+                    try:
+                        # Runs method from class. ie ac.MasterVolume().setvolume(velocity). No doubt a better way to do this
+                        eval(midimaps.get(src).get(messageKey).get('fn'))(velocity)
+                    except:
+                        # For functions that don't take velocity. eg menu navigation
+                        if velocity > 0:
+                            eval(midimaps.get(src).get(messageKey).get('fn'))()
 
                     # remap note to a key
                 elif isinstance(midimaps.get(src).get(messageKey).get('note'), int):
@@ -297,7 +299,7 @@ def MidiCallback(src, message, time_stamp):
 
             # Default master volume control (CC7 is the universal standard)
             if (CCnum == 7):
-                ac.MasterVolume().setvolume(CCval)
+                gv.ac.MasterVolume().setvolume(CCval)
 
             # Sustain pedal
             # NB: the microKEY conditionals are unique to Alex's modded keyboard. Remove in future.
@@ -324,13 +326,13 @@ def MidiCallback(src, message, time_stamp):
             # general purpose 80 used for voices
             elif CCnum == 80:
                 if CCval in gv.voices:
-                    ac.Voice().change(CCval)
+                    gv.ac.Voice().change(CCval)
                     # lcd.display("")
 
             # general purpose 81 used for chords
             elif CCnum == 81:
                 if CCval < len(gv.CHORD_NOTES):
-                    ac.Chord().change()
+                    gv.ac.Chord().change()
 
 
             # "All sounds off" or "all notes off"

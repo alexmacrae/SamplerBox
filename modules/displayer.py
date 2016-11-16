@@ -10,24 +10,22 @@ line - the LCD line to be displayed on. Not applicable for 7 segment display.
 '''
 
 import globalvars as gv
-import time
 import psutil
-from os.path import exists
-
-DISP_PRESET_MODE = 'preset'
-DISP_UTILS_MODE = 'utils'
-DISP_MENU_MODE = 'menu'
-
-tempDisplay = False
-
-MENU_MODES = [DISP_PRESET_MODE, DISP_UTILS_MODE, DISP_MENU_MODE]
-menu_mode = DISP_PRESET_MODE
-
-prev_global_volume = gv.global_volume
-prev_percent_loaded = gv.percent_loaded
-
 
 class Displayer:
+
+    DISP_PRESET_MODE = 'preset'
+    DISP_UTILS_MODE = 'utils'
+    DISP_MENU_MODE = 'menu'
+
+    tempDisplay = False
+
+    MENU_MODES = [DISP_PRESET_MODE, DISP_UTILS_MODE, DISP_MENU_MODE]
+    menu_mode = DISP_PRESET_MODE
+
+    prev_global_volume = gv.global_volume
+    prev_percent_loaded = gv.percent_loaded
+
     LCD_SYS = None
     if gv.SYSTEM_MODE == 1:
         import HD44780_sys_1
@@ -36,7 +34,7 @@ class Displayer:
         import HD44780_sys_2
         LCD_SYS = HD44780_sys_2
 
-    def disp_change(self, changed_var=[], str_override='', line=1, timeout=0):
+    def disp_change(self, changed_var=[], str_override='', line=1, is_priority=False, timeout=0):
         # if changed_var was a string, convert to a list.
         if isinstance(changed_var, str): changed_var = [changed_var]
 
@@ -71,7 +69,7 @@ class Displayer:
                     pass
                 elif gv.USE_HD44780_20x4_LCD:
 
-                    if menu_mode == DISP_PRESET_MODE:
+                    if self.menu_mode == self.DISP_PRESET_MODE:
 
                         if 'preset' in changed_var:
 
@@ -104,7 +102,7 @@ class Displayer:
                             self.LCD_SYS.display('', timeout_custom=0)
 
 
-                    if menu_mode == DISP_UTILS_MODE:
+                    if self.menu_mode == self.DISP_UTILS_MODE:
                         if 'util' in changed_var:
                             self.LCD_SYS.display_called = True
 
@@ -121,12 +119,12 @@ class Displayer:
                             self.LCD_SYS.display(cpu_str, line=3, is_priority=False, timeout_custom=timeout)
                             self.LCD_SYS.display(ram_str, line=4, is_priority=False, timeout_custom=timeout)
 
-                    if menu_mode == DISP_MENU_MODE:
+                    if self.menu_mode == self.DISP_MENU_MODE:
                         self.LCD_SYS.display(changed_var[0], line=line, is_priority=True, timeout_custom=timeout)
 
                     if str_override:
                         self.LCD_SYS.display_called = True
-                        self.LCD_SYS.display(str_override.center(gv.LCD_COLS, ' '), line=line, is_priority=False,
+                        self.LCD_SYS.display(str_override.center(gv.LCD_COLS, ' '), line=line, is_priority=is_priority,
                                              timeout_custom=timeout)
 
             #######################

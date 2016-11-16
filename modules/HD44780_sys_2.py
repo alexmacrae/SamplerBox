@@ -5,7 +5,6 @@
 import globalvars as gv
 import time
 import threading
-import displayer
 
 if gv.IS_DEBIAN:
     thread_sleep = 0.1

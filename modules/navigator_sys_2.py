@@ -1,7 +1,5 @@
 import globalvars as gv
 import loadsamples as ls
-import displayer
-import audiocontrols as ac
 from os import listdir
 
 lastbuttontime = 0
@@ -28,7 +26,7 @@ def up():
     elif buttfunc == 1:
         gv.global_volume += 5
         if gv.global_volume > 100: gv.global_volume = 100
-        ac.MasterVolume().setvolume(gv.global_volume * 1.27)
+        gv.ac.MasterVolume().setvolume(gv.global_volume * 1.27)
         Button_display()
     elif buttfunc == 2:
         gv.MIDI_CHANNEL += 1
@@ -56,7 +54,7 @@ def down():
     elif buttfunc == 1:
         gv.global_volume -= 5
         if gv.global_volume < 0: gv.global_volume = 0
-        ac.MasterVolume().setvolume(gv.global_volume * 1.27)
+        gv.ac.MasterVolume().setvolume(gv.global_volume * 1.27)
         Button_display()
     elif buttfunc == 2:
         gv.MIDI_CHANNEL -= 1

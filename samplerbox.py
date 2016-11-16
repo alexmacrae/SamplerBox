@@ -26,12 +26,10 @@ from collections import OrderedDict
 from time import sleep
 
 from modules import globalvars as gv
-from modules import sound
-from modules import loadsamples as ls
-from modules import buttons
-from modules import midicallback
 from modules import displayer
-
+from modules import audiocontrols
+from modules import buttons
+from modules import systemfunctions
 
 ###########################
 # Start Displayer
@@ -40,6 +38,11 @@ from modules import displayer
 ###########################
 
 gv.displayer = displayer.Displayer()
+gv.ac = audiocontrols.AudioControls()
+gv.sysfunc = systemfunctions.SystemFunctions()
+from modules import sound
+from modules import loadsamples as ls
+from modules import midicallback
 
 if gv.SYSTEM_MODE == 1:
     from modules import midimaps
@@ -131,12 +134,5 @@ except KeyboardInterrupt:
 except:
   print "\nstopped by Other Error"
 finally:
-    gv.displayer.disp_change(str_override='Good bye!', line=1, timeout=1)
-    gv.displayer.disp_change(str_override='Good bye!', line=2, timeout=1)
-    gv.displayer.disp_change(str_override='Good bye!', line=3, timeout=1)
-    gv.displayer.disp_change(str_override='Good bye!', line=4, timeout=1)
-    sleep(0.2)
-    if gv.IS_DEBIAN:
-        import RPi.GPIO as GPIO
-        GPIO.cleanup()
+    gv.sysfunc.shutdown()
 
