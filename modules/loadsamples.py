@@ -6,7 +6,6 @@ import re
 import threading
 import numpy
 import globalvars as gv
-import displayer
 import sound
 
 LoadingThread = None

@@ -177,10 +177,15 @@ elif USE_HD44780_20x4_LCD:
     LCD_COLS = 20
     LCD_ROWS = 4
 
-# Navigator object always referenced here. eg gv.nav.state.enter()
+####################
+# Navigator, Displayer, and SystemFunction objects referenced here
+# Initialized in main script
+####################
 nav = None
-
 displayer = None
+sysfunc = None
+ac = None
+
 
 # add to selection of samples, not to Velocity Volume
 VelocitySelectionOffset = 0

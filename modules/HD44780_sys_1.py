@@ -3,7 +3,6 @@
 ###########################
 
 import globalvars as gv
-import displayer
 
 if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
 
@@ -102,20 +101,20 @@ if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
                 if (now - timeout_start) > timeout_length:
                     reset_after_timeout()
 
-                if temp_display or displayer.menu_mode == displayer.DISP_UTILS_MODE:
+                if temp_display or gv.displayer.menu_mode == gv.displayer.DISP_UTILS_MODE:
                     lcd_string(STRING_1, 1)
                     lcd_string(STRING_2, 2)
                     if gv.USE_HD44780_20x4_LCD:
                         lcd_string(STRING_3, 3)
                         lcd_string(STRING_4, 4)
 
-                elif displayer.menu_mode == displayer.DISP_PRESET_MODE:
+                elif gv.displayer.menu_mode == gv.displayer.DISP_PRESET_MODE:
                     lcd_string(STRING_1_PRIORITY[:gv.LCD_COLS - 4] + make_voice_buttons(), 1)
                     lcd_string(STRING_2_PRIORITY, 2)
                     if gv.USE_HD44780_20x4_LCD:
                         lcd_string(STRING_3_PRIORITY, 3)
                         lcd_string(STRING_4_PRIORITY, 4)
-                elif displayer.menu_mode == displayer.DISP_MENU_MODE:
+                elif gv.displayer.menu_mode == gv.displayer.DISP_MENU_MODE:
                     lcd_string(STRING_1_PRIORITY, 1)
                     lcd_string(STRING_2_PRIORITY, 2)
                     if gv.USE_HD44780_20x4_LCD:

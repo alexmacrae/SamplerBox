@@ -9,10 +9,7 @@ from chunk import Chunk
 import numpy
 import pyaudio
 import sounddevice
-#import freeverb
-import audiocontrols as ac
 import globalvars as gv
-import displayer
 
 #########################################
 ##  SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE
@@ -142,9 +139,10 @@ def AudioCallback(outdata, frame_count, time_info, status):
                                          gv.FADEOUT, gv.FADEOUTLENGTH, gv.SPEED,
                                          gv.PITCHBEND, gv.PITCHSTEPS)
 
-    # if gv.USE_FREEVERB:
-    #     b_temp = b
-    #     ac.Freeverb().freeverbprocess(b_temp.ctypes.data_as(ac.Freeverb().c_float_p), b.ctypes.data_as(ac.Freeverb().c_float_p), frame_count)
+
+    if gv.USE_FREEVERB:
+        b_verb = b
+        gv.ac.Reverb.freeverbprocess(b_verb.ctypes.data_as(gv.ac.Reverb.c_float_p), b.ctypes.data_as(gv.ac.Reverb.c_float_p), frame_count)
 
     for e in rmlist:
         try:

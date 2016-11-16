@@ -3,7 +3,7 @@
 # update rc.local:
 # >>> sudo nano /etc/rc.local
 # before exit 0:
-# >>> sudo /home/pi/SamplerBox/samplerbox.sh &
-
+# >>> sudo /home/pi/SamplerBox/sb.sh &
 cd /home/pi/SamplerBox
-sudo python samplerbox.py
+python setup.py build_ext --inplace
+python samplerbox.py

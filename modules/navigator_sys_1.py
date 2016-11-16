@@ -12,14 +12,11 @@
 #
 #########################################
 import os
-
 import configparser
-
 import configparser_samplerbox as cs
 import globalvars as gv
 import loadsamples as ls
 import menudict
-import displayer
 import threading
 import time
 
@@ -168,7 +165,7 @@ class PresetNav(Navigator):
     def __init__(self):
 
         print '-= Preset world =-'
-        displayer.menu_mode = displayer.DISP_PRESET_MODE
+        gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE
         gv.displayer.disp_change(changed_var='preset')
         # gv.displayer.disp_change('preset') # already called in ActuallyLoad()
 
@@ -178,7 +175,7 @@ class PresetNav(Navigator):
         gv.currvoice = 1
         if (gv.preset >= gv.NUM_FOLDERS):
             gv.preset = 0
-        displayer.menu_mode = displayer.DISP_PRESET_MODE # need to set if interrupted by utils left/right
+        gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE  # need to set if interrupted by utils left/right
         gv.displayer.disp_change('preset')
         ls.LoadSamples()
 
@@ -188,7 +185,7 @@ class PresetNav(Navigator):
         gv.currvoice = 1
         if (gv.preset < 0):
             gv.preset = gv.NUM_FOLDERS - 1
-        displayer.menu_mode = displayer.DISP_PRESET_MODE # need to set if interrupted by utils left/right
+        gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE  # need to set if interrupted by utils left/right
         gv.displayer.disp_change('preset')
         ls.LoadSamples()
 
@@ -214,7 +211,7 @@ class UtilsView(PresetNav):
     def __init__(self):
 
         print '-= Utils view =-'
-        displayer.menu_mode = displayer.DISP_UTILS_MODE
+        gv.displayer.menu_mode = gv.displayer.DISP_UTILS_MODE
         gv.displayer.disp_change(changed_var='util')
         self.timeout_start = time.time()
         self.UtilsThread = threading.Thread(target=self.display_utils)
@@ -262,7 +259,7 @@ class MenuNav(Navigator):
 
         self.menuPointer = self.menuCoords[-1]
 
-        displayer.menu_mode = displayer.DISP_MENU_MODE
+        gv.displayer.menu_mode = gv.displayer.DISP_MENU_MODE
         gv.displayer.disp_change(changed_var=self.getMenuPathStr(), line=1, timeout=0)
         gv.displayer.disp_change(changed_var='-' * 20, line=2, timeout=0)
 
@@ -461,8 +458,9 @@ class MidiLearn(Navigator):
     def sendControlToMap(self, learnedMidiMessage, learnedMidiDevice):
         self.learnedMidiMessage = learnedMidiMessage
         self.learnedMidiDevice = learnedMidiDevice
-        gv.displayer.disp_change(str(learnedMidiMessage[0]) + ':' + str(learnedMidiMessage[1]) + ' ' + learnedMidiDevice,
-                              line=2, timeout=0)
+        gv.displayer.disp_change(
+            str(learnedMidiMessage[0]) + ':' + str(learnedMidiMessage[1]) + ' ' + learnedMidiDevice,
+            line=2, timeout=0)
         self.enter()  #
         # print learnedMidiMessage, learnedMidiDevice
 
@@ -546,9 +544,8 @@ class DeleteMidiMap(Navigator):
         functionNiceName = self.functionNiceName
         i = self.i
         # lcd.display(mm[i][2], 1)
-        gv.displayer.disp_change(str(i + 1) + ' ' + functionNiceName,line=1, timeout=0)
+        gv.displayer.disp_change(str(i + 1) + ' ' + functionNiceName, line=1, timeout=0)
         gv.displayer.disp_change(str(mm[i][0])[:8] + str(mm[i][1][:8]), line=2, timeout=0)
-
 
     def left(self):
         if self.i > 0:
@@ -585,7 +582,7 @@ class DeleteMidiMap(Navigator):
 
     def cancel(self):
         # print devices
-        gv.displayer.disp_change('='*20, line=2, timeout=0)
+        gv.displayer.disp_change('=' * 20, line=2, timeout=0)
 
         gv.learningMode = False
         if len(self.menuCoords) > 1:
