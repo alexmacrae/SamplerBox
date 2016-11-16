@@ -6,11 +6,12 @@ from os.path import dirname, abspath
 class AudioControls:
 
     def __init__(self):
-        self.Reverb().setroomsize(60)
-        self.Reverb().setdamp(127)
-        self.Reverb().setwet(0)
-        self.Reverb().setdry(127)
-        self.Reverb().setwidth(127)
+        if gv.USE_FREEVERB and gv.IS_DEBIAN:
+            self.Reverb().setroomsize(60)
+            self.Reverb().setdamp(127)
+            self.Reverb().setwet(0)
+            self.Reverb().setdry(127)
+            self.Reverb().setwidth(127)
 
 
     class MasterVolume:
@@ -73,85 +74,85 @@ class AudioControls:
 
     class Reverb:
 
-        var1 = 'aaaaaaaaaaaaaa'
-        sb_dir = dirname(dirname(abspath(__file__)))
+        if gv.USE_FREEVERB and gv.IS_DEBIAN:
+            sb_dir = dirname(dirname(abspath(__file__)))
 
-        freeverb = cdll.LoadLibrary(sb_dir+'/freeverb/revmodel.so')
+            freeverb = cdll.LoadLibrary(sb_dir+'/freeverb/revmodel.so')
 
-        fvsetroomsize = freeverb.setroomsize
-        fvsetroomsize.argtypes = [c_float]
-        fvgetroomsize = freeverb.getroomsize
-        fvgetroomsize.restype = c_float
-        fvsetdamp = freeverb.setdamp
-        fvsetdamp.argtypes = [c_float]
-        fvgetdamp = freeverb.getdamp
-        fvgetdamp.restype = c_float
-        fvsetwet = freeverb.setwet
-        fvsetwet.argtypes = [c_float]
-        fvgetwet = freeverb.getwet
-        fvgetwet.restype = c_float
-        fvsetdry = freeverb.setdry
-        fvsetdry.argtypes = [c_float]
-        fvgetdry = freeverb.getdry
-        fvgetdry.restype = c_float
-        fvsetwidth = freeverb.setwidth
-        fvsetwidth.argtypes = [c_float]
-        fvgetwidth = freeverb.getwidth
-        fvgetwidth.restype = c_float
-        fvsetmode = freeverb.setmode
-        fvsetmode.argtypes = [c_float]
-        fvgetmode = freeverb.getmode
-        fvgetmode.restype = c_float
-        c_float_p = ctypes.POINTER(ctypes.c_float)
-        c_short_p = ctypes.POINTER(ctypes.c_short)
-        freeverbprocess = freeverb.process
-        freeverbprocess.argtypes = [c_float_p, c_float_p, c_int]
-        # not used:
-        freeverbmix = freeverb.mix
-        freeverbmix.argtypes = [c_short_p, c_float_p, c_float, c_int]
-        freeverbmixback = freeverb.mixback
-        freeverbmixback.argtypes = [c_float_p, c_float_p, c_float, c_short_p, c_float, c_short_p, c_float, c_int]
-
-
-
-        def __init__(self):
-            pass
-
-
-        def unichr_multiplier(self, val):
-            return int((val / 127.0 * 100) / 100 * (self.hd44780_20x4.LCD_COLS - 1)) + 1
-
-        def setroomsize(self, val):
-            self.fvsetroomsize(val/127.0)
-            gv.percent_effect = int(val / 127.0 * 100)
-            gv.displayer.disp_change(changed_var=['effect', 'roomsize'])
-
-        def setdamp(self, val):
-            self.fvsetdamp(val/127.0)
-            gv.percent_effect = int(val / 127.0 * 100)
-            gv.displayer.disp_change(changed_var=['effect', 'damping'])
-
-
-        def setwet(self, val):
-            # Disable Freeverb @ 0. BUG: slight audio hiccup when it kicks back in. Needs a better solution.
-            if val <= 0:
-                gv.USE_FREEVERB = False
-            else:
-                gv.USE_FREEVERB = True
-            self.fvsetwet(val/127.0)
-            gv.percent_effect = int(val / 127.0 * 100)
-            gv.displayer.disp_change(changed_var=['effect', 'wet'])
+            fvsetroomsize = freeverb.setroomsize
+            fvsetroomsize.argtypes = [c_float]
+            fvgetroomsize = freeverb.getroomsize
+            fvgetroomsize.restype = c_float
+            fvsetdamp = freeverb.setdamp
+            fvsetdamp.argtypes = [c_float]
+            fvgetdamp = freeverb.getdamp
+            fvgetdamp.restype = c_float
+            fvsetwet = freeverb.setwet
+            fvsetwet.argtypes = [c_float]
+            fvgetwet = freeverb.getwet
+            fvgetwet.restype = c_float
+            fvsetdry = freeverb.setdry
+            fvsetdry.argtypes = [c_float]
+            fvgetdry = freeverb.getdry
+            fvgetdry.restype = c_float
+            fvsetwidth = freeverb.setwidth
+            fvsetwidth.argtypes = [c_float]
+            fvgetwidth = freeverb.getwidth
+            fvgetwidth.restype = c_float
+            fvsetmode = freeverb.setmode
+            fvsetmode.argtypes = [c_float]
+            fvgetmode = freeverb.getmode
+            fvgetmode.restype = c_float
+            c_float_p = ctypes.POINTER(ctypes.c_float)
+            c_short_p = ctypes.POINTER(ctypes.c_short)
+            freeverbprocess = freeverb.process
+            freeverbprocess.argtypes = [c_float_p, c_float_p, c_int]
+            # not used:
+            freeverbmix = freeverb.mix
+            freeverbmix.argtypes = [c_short_p, c_float_p, c_float, c_int]
+            freeverbmixback = freeverb.mixback
+            freeverbmixback.argtypes = [c_float_p, c_float_p, c_float, c_short_p, c_float, c_short_p, c_float, c_int]
 
 
 
-        def setdry(self, val):
-            self.fvsetdry(val/127.0)
-            gv.percent_effect = int(val / 127.0 * 100)
-            gv.displayer.disp_change(changed_var=['effect', 'dry'])
+            def __init__(self):
+                pass
 
-        def setwidth(self, val):
-            self.fvsetwidth(val/127.0)
-            gv.percent_effect = int(val / 127.0 * 100)
-            gv.displayer.disp_change(changed_var=['effect', 'width'])
+
+            def unichr_multiplier(self, val):
+                return int((val / 127.0 * 100) / 100 * (self.hd44780_20x4.LCD_COLS - 1)) + 1
+
+            def setroomsize(self, val):
+                self.fvsetroomsize(val/127.0)
+                gv.percent_effect = int(val / 127.0 * 100)
+                gv.displayer.disp_change(changed_var=['effect', 'roomsize'])
+
+            def setdamp(self, val):
+                self.fvsetdamp(val/127.0)
+                gv.percent_effect = int(val / 127.0 * 100)
+                gv.displayer.disp_change(changed_var=['effect', 'damping'])
+
+
+            def setwet(self, val):
+                # Disable Freeverb @ 0. BUG: slight audio hiccup when it kicks back in. Needs a better solution.
+                if val <= 0:
+                    gv.USE_FREEVERB = False
+                else:
+                    gv.USE_FREEVERB = True
+                self.fvsetwet(val/127.0)
+                gv.percent_effect = int(val / 127.0 * 100)
+                gv.displayer.disp_change(changed_var=['effect', 'wet'])
+
+
+
+            def setdry(self, val):
+                self.fvsetdry(val/127.0)
+                gv.percent_effect = int(val / 127.0 * 100)
+                gv.displayer.disp_change(changed_var=['effect', 'dry'])
+
+            def setwidth(self, val):
+                self.fvsetwidth(val/127.0)
+                gv.percent_effect = int(val / 127.0 * 100)
+                gv.displayer.disp_change(changed_var=['effect', 'width'])
 
 

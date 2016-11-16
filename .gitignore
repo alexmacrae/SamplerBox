@@ -8,3 +8,4 @@ bfg-instructions.txt
 samplerbox_audio.pyd
 samplerbox_audio.c
 samplerbox_audio.so
+build/
