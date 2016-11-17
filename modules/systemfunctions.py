@@ -27,7 +27,7 @@ class SystemFunctions:
             GPIO.cleanup()
         import os
         # Python calls 2 command line commands in one line: kill all python scripts, and re-run samplerbox.py
-        os.system('sudo killall python && python ' + str(os.getcwd()) + '/samplerbox.py')
+        os.system('sudo killall python && sudo python ' + str(os.getcwd()) + '/samplerbox.py')
 
     def shutdown(self):
         gv.displayer.disp_change(str_override='Good bye!', line=1, timeout=1)
