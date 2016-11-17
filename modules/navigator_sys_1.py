@@ -351,7 +351,7 @@ class MoveSong(Navigator):
         self.display()
 
     def display(self):
-        gv.displayer.disp_change('Select song', line=1, timeout=0)
+        gv.displayer.disp_change('Moving song', line=1, timeout=0)
         gv.displayer.disp_change(str(gv.preset + 1) + " " + str(self.setlistList[gv.preset]), line=2)
 
     # Move song up the setlist
