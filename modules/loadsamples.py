@@ -36,7 +36,7 @@ def ActuallyLoad():
     gv.globaltranspose = 0
     gv.voices = []
 
-    # midicallback.AllNotesOff()
+    # midicallback.all_notes_off()
     mode = []
     gv.sample_mode = gv.PLAYLIVE
     gv.gain = 1
