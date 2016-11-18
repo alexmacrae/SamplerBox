@@ -13,6 +13,12 @@ class AudioControls:
             self.Reverb().setdry(127)
             self.Reverb().setwidth(127)
 
+    def all_notes_off(self):
+        gv.playingsounds = []
+        gv.playingnotes = {}
+        gv.sustainplayingnotes = []
+        gv.triggernotes = [128] * 128  # fill with unplayable note
+
 
     class MasterVolume:
         def setvolume(self, vel):

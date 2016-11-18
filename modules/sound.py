@@ -74,14 +74,13 @@ class waveread(wave.Wave_read):
 
 class PlayingSound:
 
-    def __init__(self, sound, note, vel, timestamp):
+    def __init__(self, sound, note, vel):
         self.sound = sound
         self.pos = 0
         self.fadeoutpos = 0
         self.isfadeout = False
         self.note = note
         self.vel = vel
-        self.timestamp = timestamp
 
     def fadeout(self, i):
         self.isfadeout = True
@@ -111,8 +110,8 @@ class Sound:
         wf.close()
 
 
-    def play(self, note, vel, timestamp):
-        snd = PlayingSound(self, note, vel, timestamp)
+    def play(self, note, vel):
+        snd = PlayingSound(self, note, vel)
         #print 'fname: ' + self.fname + ' note/vel: ' + str(note) + '/' + str(vel) + ' midinote: ' + str(self.midinote) + ' vel: ' + str(self.velocity)
         gv.playingsounds.append(snd)
         return snd

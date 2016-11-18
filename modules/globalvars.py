@@ -84,7 +84,7 @@ NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
 MAJOR_KEY_CHORDS = [1, 4, 2, 4, 2, 1, 4, 1, 4, 2, 4, 4]
 MINOR_KEY_CHORDS = [2, 4, 2, 1, 4, 2, 4, 2, 1, 4, 1, 4]
 
-current_chord = 0  # single note, "normal play"
+current_chord = 1  # single note, "normal play"
 current_key = 3
 
 
@@ -164,6 +164,7 @@ LOW_EQ = (2 * LOW_EQ_FREQ) / SAMPLERATE
 samples = {}
 playingnotes = {}
 sustainplayingnotes = []
+triggernotes = [128]*128
 sustain = False
 playingsounds = []
 globaltranspose = 0
