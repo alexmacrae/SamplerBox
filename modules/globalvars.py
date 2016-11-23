@@ -48,16 +48,7 @@ GPIO_LCD_D6 = int(cp.get_option_by_name('GPIO_LCD_D6'))
 GPIO_LCD_D7 = int(cp.get_option_by_name('GPIO_LCD_D7'))
 GPIO_7SEG = int(cp.get_option_by_name('GPIO_7SEG'))
 
-########  LITERALS, don't change ########
-# by Hans
 
-PLAYLIVE = "Keyb"  # reacts on "keyboard" interaction
-PLAYBACK = "Once"  # ignores loop markers and note-off ("just play the sample")
-PLAYSTOP = "On64"  # ignores loop markers with note-off by note+64 ("just play the sample with option to stop")
-PLAYLOOP = "Loop"  # recognize loop markers, note-off by note+64 ("just play the loop with option to stop")
-PLAYLO2X = "Loo2"  # recognize loop markers, note-off by same note ("just play the loop with option to stop")
-VELSAMPLE = "Sample"  # velocity equals sampled value, requires multiple samples to get differentation
-VELACCURATE = "Accurate"  # velocity as played, allows for multiple (normalized!) samples for timbre
 
 #########################################
 # by Hans
@@ -72,20 +63,22 @@ USE_ALSA_MIXER = cp.get_option_by_name('USE_ALSA_MIXER')
 ########## Chords definitions  # You always need index=0 (is single note, "normal play")
 # by Hans
 
-CHORD_NAMES = ["", "Maj", "Min", "Augm", "Dim", "Sus2", "Sus4", "Dom7", "Maj7", "Min7", "MiMa7", "hDim7", "Dim7",
-               "Aug7",
-               "AuMa7", "D7S4"]
+CHORD_NAMES = ["", "Maj", "Min", "Augm", "Dim", "Sus2", "Sus4", "Dom7",
+               "Maj7", "Min7", "MiMa7", "hDim7", "Dim7", "Aug7", "AuMa7", "D7S4"]
 CHORD_NOTES = [[0], [0, 4, 7], [0, 3, 7], [0, 4, 8], [0, 3, 6], [0, 2, 7], [0, 5, 7], [0, 4, 7, 10], [0, 4, 7, 11],
                [0, 3, 7, 10], [0, 3, 7, 11], [0, 3, 6, 10], [0, 3, 6, 9], [0, 4, 8, 10], [0, 4, 8, 11], [0, 5, 7, 10]]
 
 NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
 
-# MAJOR_KEY_CHORDS = [1, 2, 2, 1, 1, 2, 4]
+NO_CHORD = [0] * 12
+ALL_MAJOR_CHORDS = [1] * 12
 MAJOR_KEY_CHORDS = [1, 4, 2, 4, 2, 1, 4, 1, 4, 2, 4, 4]
+MAJOR_KEY_CHORDS_2 = [1, 1, 2, 1, 2, 1, 1, 1, 1, 2, 1, 4]
 MINOR_KEY_CHORDS = [2, 4, 2, 1, 4, 2, 4, 2, 1, 4, 1, 4]
 
-current_chord = 1  # single note, "normal play"
-current_key = 3
+current_chord_mode = NO_CHORD
+current_chord = 0  # single note, "normal play"
+current_key = 0
 
 
 def button_assign(midi_str):
@@ -164,7 +157,7 @@ LOW_EQ = (2 * LOW_EQ_FREQ) / SAMPLERATE
 samples = {}
 playingnotes = {}
 sustainplayingnotes = []
-triggernotes = [128]*128
+triggernotes = [128] * 128
 sustain = False
 playingsounds = []
 globaltranspose = 0
@@ -187,7 +180,6 @@ displayer = None
 sysfunc = None
 ac = None
 
-
 # add to selection of samples, not to Velocity Volume
 VelocitySelectionOffset = 0
 
@@ -195,8 +187,19 @@ VelocitySelectionOffset = 0
 # OTHER GLOBALS
 ###################
 
+# Constants
+
+PLAYLIVE = "Keyb"  # reacts on "keyboard" interaction
+PLAYBACK = "Once"  # ignores loop markers and note-off ("just play the sample")
+PLAYSTOP = "On64"  # ignores loop markers with note-off by note+64 ("just play the sample with option to stop")
+PLAYLOOP = "Loop"  # recognize loop markers, note-off by note+64 ("just play the loop with option to stop")
+PLAYLO2X = "Loo2"  # recognize loop markers, note-off by same note ("just play the loop with option to stop")
+VELSAMPLE = "Sample"  # velocity equals sampled value, requires multiple samples to get differentation
+VELACCURATE = "Accurate"  # velocity as played, allows for multiple (normalized!) samples for timbre
+VELOCITY_MODE_DEFAULT = VELACCURATE # we need a default: original samplerbox
+
 sample_mode = PLAYLIVE  # we need a default: original samplerbox
-velocity_mode = VELACCURATE  # we need a default: original samplerbox
+velocity_mode = VELOCITY_MODE_DEFAULT
 # global_volume used in favour
 # volume = 87  # the startup (alsa=output) volume (0-100), change with function buttons
 volumeCC = 1.0  # assumed value of the volumeknob controller before first use, max=1.0 (the knob can only decrease).
