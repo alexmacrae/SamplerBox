@@ -11,9 +11,10 @@ line - the LCD line to be displayed on. Not applicable for 7 segment display.
 
 import globalvars as gv
 import psutil
+import os
+
 
 class Displayer:
-
     DISP_PRESET_MODE = 'preset'
     DISP_UTILS_MODE = 'utils'
     DISP_MENU_MODE = 'menu'
@@ -63,11 +64,7 @@ class Displayer:
 
             if gv.SYSTEM_MODE == 1:
 
-                if gv.USE_HD44780_16x2_LCD:
-
-                    # No logic for 16x2 display just yet
-                    pass
-                elif gv.USE_HD44780_20x4_LCD:
+                if gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD:
 
                     if self.menu_mode == self.DISP_PRESET_MODE:
 
@@ -76,7 +73,7 @@ class Displayer:
                             p = gv.preset
                             self.LCD_SYS.display(str(p - gv.PRESET_BASE + 1) + unichr(2) + gv.SETLIST_LIST[p], 1,
                                                  is_priority=True, timeout_custom=timeout)
-                            if p < gv.NUM_FOLDERS-1:
+                            if p < gv.NUM_FOLDERS - 1:
                                 p += 1
                             else:
                                 p = 0
@@ -101,22 +98,30 @@ class Displayer:
                         elif 'voice' in changed_var:
                             self.LCD_SYS.display('', timeout_custom=0)
 
-
                     if self.menu_mode == self.DISP_UTILS_MODE:
                         if 'util' in changed_var:
                             self.LCD_SYS.display_called = True
 
-                            SD_usage_percent = int(psutil.disk_usage('/').__getattribute__('percent') / (gv.LCD_COLS - 4)) + 1
-                            cpu = int(psutil.cpu_percent(None) / (gv.LCD_COLS - 4)) + 1
-                            ram = int(float(psutil.virtual_memory().percent) / (gv.LCD_COLS - 4)) + 1
+                            SD_usage_percent = int(psutil.disk_usage('/')
+                                                   .__getattribute__('percent') / (gv.LCD_COLS / 2 - 4)) + 1
+                            cpu = int(psutil.cpu_percent(None) / (gv.LCD_COLS / 2 - 4)) + 1
+                            ram = int(float(psutil.virtual_memory().percent) / (gv.LCD_COLS / 2 - 4)) + 1
+                            temp = float(os.popen('vcgencmd measure_temp')
+                                         .readline().replace('temp=', '').replace("'C\n", ''))
 
-                            disk_usage_str = 'DSK'+(unichr(1) * SD_usage_percent)
+                            disk_usage_str = 'DSK' + (unichr(1) * SD_usage_percent)
                             cpu_str = 'CPU' + (unichr(1) * cpu)
                             ram_str = 'RAM' + (unichr(1) * ram)
+                            if gv.USE_HD44780_16x2_LCD:
+                                temp_str = ' ' + str(temp)
+                            elif gv.USE_HD44780_20x4_LCD:
+                                temp_str = 'TEMP ' + str(temp)
+
                             self.LCD_SYS.display('SYSTEM MONITOR'.center(gv.LCD_COLS, ' '), line=1, is_priority=False,
                                                  timeout_custom=timeout)
                             self.LCD_SYS.display(disk_usage_str, line=2, is_priority=False, timeout_custom=timeout)
-                            self.LCD_SYS.display(cpu_str, line=3, is_priority=False, timeout_custom=timeout)
+                            line_4_str = cpu_str + ' ' * (gv.LCD_COLS / 2 - len(cpu_str)) + temp_str
+                            self.LCD_SYS.display(line_4_str, line=3, is_priority=False, timeout_custom=timeout)
                             self.LCD_SYS.display(ram_str, line=4, is_priority=False, timeout_custom=timeout)
 
                     if self.menu_mode == self.DISP_MENU_MODE:

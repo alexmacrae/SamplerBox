@@ -7,14 +7,31 @@ import threading
 import numpy
 import globalvars as gv
 import sound
+import time
+import psutil
 
 LoadingThread = None
 LoadingInterrupt = False
 
+setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
+
+preset_current_is_loaded = False
+preset_change_triggered = False
+preset_current_loading = gv.preset
+
+
+RAM_usage_limit = 75 # Percentage of RAM we should allow samples to be loaded into before killing
+
+#####################
+# Initiate sample loading
+#####################
 
 def LoadSamples():
-    global LoadingThread
-    global LoadingInterrupt
+    global LoadingThread, LoadingInterrupt, preset_current_is_loaded, preset_current_loading, preset_change_triggered
+
+    preset_current_is_loaded = False
+    preset_current_loading = gv.preset
+    preset_change_triggered = True
 
     if LoadingThread:
         LoadingInterrupt = True
@@ -26,59 +43,165 @@ def LoadSamples():
     LoadingThread.daemon = True
     LoadingThread.start()
 
+#####################
+#
+#####################
+
+def pause_if_playingsounds():
+    if preset_current_is_loaded:
+        if len(gv.playingsounds) > 0:
+            print '########\n-- Initiate pause on sample loading --'
+            for i in xrange(999999):
+                print '(in pause loop)'
+                if len(gv.playingsounds) == 0 or preset_change_triggered:
+                    print 'No more playingsounds (or new preset triggered)\nContinue loading\n########'
+                    return
+                time.sleep(0.02)
+        else:
+            # print '++ FAST sample loading ++'
+            return
+
+#####################
+# Memory management
+#####################
+
+def is_memory_too_high():
+    RAM_usage_percentage = psutil.virtual_memory().percent
+    if RAM_usage_percentage > RAM_usage_limit:
+        return True, RAM_usage_percentage
+    else:
+        return False, RAM_usage_percentage
+
+def free_up_memory():
+
+    print '########\nRAM usage too high (%dpercent) so let\'s kill something >:)' % is_memory_too_high()[1] # debug
+    prev_preset = get_prev_preset(gv.preset)
+
+    # Kill previous preset (if it exists)
+    if gv.samples.has_key(prev_preset):
+        print 'Killing samples in previous preset [%d: %s]' % (prev_preset, setlist_list[prev_preset-1]) # debug
+        gv.samples.pop(prev_preset)
+    else:
+        print 'No samples loaded in previous preset slot - do nothing' # debug
+    print '########' # debug
+
+
+def kill_two_before():
+    print '########'
+    two_preset_prev = get_prev_preset(get_prev_preset(gv.preset))
+    # Kill previous preset (if it exists)
+    if gv.samples.has_key(two_preset_prev):
+        print 'Killing two presets previous [%d: %s]' % (two_preset_prev, setlist_list[two_preset_prev - 1])  # debug
+        gv.samples.pop(two_preset_prev)
+    else:
+        print 'No samples loaded in two presets previous - do nothing'  # debug
+    print '########'  # debug
+
+#####################
+#
+#####################
+
+def get_next_preset(current_preset):
+    if current_preset < len(gv.SONG_FOLDERS_LIST) - 1:
+        preset_next_to_load = current_preset + 1
+    else:
+        preset_next_to_load = 0
+    return preset_next_to_load
+
+def get_prev_preset(current_preset):
+    if current_preset > 0:
+        preset_prev_to_load = current_preset - 1
+    else:
+        preset_prev_to_load = len(gv.SONG_FOLDERS_LIST) - 1
+    return preset_prev_to_load
+
+#####################
+#
+#####################
 
 def ActuallyLoad():
-    global LoadingThread
+    global LoadingThread, preset_current_is_loaded, preset_current_loading, preset_change_triggered
 
-    gv.playingsounds = []
-    gv.samples = {}
+    preset_focus_is_loaded = False
+
+    if preset_current_loading == gv.preset:
+        print '\nCurrent preset: [%d: %s]' % (preset_current_loading, setlist_list[preset_current_loading]) # debug
+        print 'Keys loaded before:\n',gv.samples.keys() # debug
+        kill_two_before()
+        print 'Keys loaded after:\n',gv.samples.keys() # debug
+        preset_current_is_loaded = False
+        preset_change_triggered = False
+
+        if is_memory_too_high()[0]:
+            free_up_memory()
+            print gv.samples.keys()
+
+    pause_if_playingsounds()
+
+    if gv.samples.has_key(preset_current_loading):
+        if gv.samples[preset_current_loading].has_key('loaded'):
+            # Preset has been fully loaded into memory so no need to load again!
+            print '[%d: %s] has already been loaded. Skipping.' % (preset_current_loading, setlist_list[preset_current_loading])
+            preset_focus_is_loaded = True
+            #return
+        else:
+            # Preset seems to have been partially loaded at some point. Stop all playing sounds to avoid pops.
+            gv.playingsounds = []  # clear/stop all currently playing samples
+    else:
+        # Preset has never been loaded. Init its dict and stop all playing sounds.
+        gv.samples[preset_current_loading] = {}
+        gv.playingsounds = []
+
     # gv.global_volume = 10 ** (-6.0/20)  # -12dB default global volume
     gv.globaltranspose = 0
     gv.voices = []
-
-    # midicallback.all_notes_off()
-    mode = []
     gv.sample_mode = gv.PLAYLIVE
+    gv.velocity_mode = gv.VELOCITY_MODE_DEFAULT
     gv.gain = 1
     gv.currvoice = 1
     gv.pitchnotes = gv.PITCHRANGE
-    gv.samples = {}
     release = 3  # results in FADEOUTLENGTH=30000, the samplerbox default
 
-    prevbase = gv.basename  # disp_changed from currbase. Hans, doens't this make more sense?
+    # prevbase = gv.basename  # disp_changed from currbase
+
+    gv.basename = setlist_list[gv.preset]
+    current_basename = gv.basename
 
     if gv.SYSTEM_MODE == 1:
-        setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
-        gv.basename = setlist_list[gv.preset]
+        current_basename = setlist_list[preset_current_loading]
     elif gv.SYSTEM_MODE == 2:
-        gv.basename = next((f for f in os.listdir(gv.SAMPLES_DIR) if f.startswith("%d " % gv.preset)),
+        current_basename = next((f for f in os.listdir(gv.SAMPLES_DIR) if f.startswith("%d " % preset_current_loading)),
                            None)  # or next(glob.iglob("blah*"), None)
 
-    if gv.basename:
-        if gv.basename == prevbase:  # don't waste time reloading a patch
-            # print 'Kept preset %s' % basename
-            # hd44780_20x4.display("Kept %s" % gv.basename)
-            gv.displayer.disp_change('preset')
-            return
-        dirname = os.path.join(gv.SAMPLES_DIR, gv.basename)
-    if not gv.basename:
-        # hd44780_20x4.display('Preset empty: %s' % gv.preset)
-        gv.displayer.disp_change('preset')
-        return
+    # if gv.basename:
+    #     if gv.basename == prevbase:  # don't waste time reloading a patch
+    #         # print 'Kept preset %s' % basename
+    #         # hd44780_20x4.display("Kept %s" % gv.basename)
+    #         gv.displayer.disp_change('preset')
+    #         return
+    #     dirname = os.path.join(gv.SAMPLES_DIR, gv.basename)
+    # if not gv.basename:
+    #     gv.displayer.disp_change('preset')
+    #     return
 
-    gv.displayer.disp_change('preset')
+    dirname = os.path.join(gv.SAMPLES_DIR, current_basename)
+
+    # gv.displayer.disp_change('preset')
 
     definitionfname = os.path.join(dirname, "definition.txt")
     file_count = len(os.listdir(dirname))
     file_current = 0
 
-    if os.path.isfile(definitionfname):
-
+    if os.path.isfile(definitionfname) and preset_focus_is_loaded == False:
+        print '---------- LOADING: [%d] %s' % (preset_current_loading, current_basename)  # debug
         numberOfPatterns = len(list(enumerate(open(definitionfname, 'r'))))
 
         with open(definitionfname, 'r') as definitionfile:
 
+            pause_if_playingsounds()
+
             for i, pattern in enumerate(definitionfile):
+                pause_if_playingsounds()
                 try:
                     if r'%%gain' in pattern:
                         gv.gain = abs(float(pattern.split('=')[1].strip()))
@@ -109,7 +232,8 @@ def ActuallyLoad():
                         continue
                     if r'%%velmode' in pattern:
                         mode = pattern.split('=')[1].strip().title()
-                        if mode == gv.VELSAMPLE or mode == gv.VELACCURATE: gv.velocity_mode = mode
+                        if mode == gv.VELSAMPLE or mode == gv.VELACCURATE:
+                            gv.velocity_mode = mode
                         continue
                     defaultparams = {'midinote': '0', 'velocity': '127', 'notename': '',
                                      'voice': '1', 'mode': 'keyb', 'velmode': 'accurate', 'release': '3', 'gain': '1',
@@ -135,6 +259,7 @@ def ActuallyLoad():
                         .replace(r"\*", r".*?").strip()  # .*? => non greedy
 
                     for fname in os.listdir(dirname):
+                        pause_if_playingsounds()
                         # print 'Processing ' + fname
                         if LoadingInterrupt:
                             # print 'Loading % s interrupted...' % dirname
@@ -143,9 +268,10 @@ def ActuallyLoad():
                             100 / numberOfPatterns)) / file_count  # more accurate loading progress
                         # Visual percentage loading with blocks. Load on last row of LCD
                         # hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100.0) + 1), hd44780_20x4.LCD_ROWS)
-                        gv.percent_loaded = percent_loaded
 
-                        gv.displayer.disp_change('loading', timeout=0.5)
+                        if preset_current_loading == gv.preset:
+                            gv.percent_loaded = percent_loaded
+                            gv.displayer.disp_change('loading', timeout=0.5)
 
                         file_current += 1
                         if LoadingInterrupt:
@@ -157,26 +283,25 @@ def ActuallyLoad():
                             gv.voices.append(voice)
                             midinote = int(info.get('midinote', defaultparams['midinote']))
                             velocity = int(info.get('velocity', defaultparams['velocity']))
-                            # - Commented out for now; can't be sample-level variables yet 
-                            # mode = str(info.get('velocity', defaultparams['mode']))
-                            # mode = mode.strip(' \t\n\r')
-                            # velmode = str(info.get('velocity', defaultparams['velmode']))
-                            # velmode = velmode.strip(' \t\n\r')
-                            # release = int(info.get('release', defaultparams['release']))
-                            # gain = int(info.get('gain', defaultparams['gain']))
-                            # transpose = int(info.get('transpose', defaultparams['transpose']))
+
                             notename = info.get('notename', defaultparams['notename'])
                             # next statement places note 60 on C3/C4/C5 with the +0/1/2. So now it is C4:
                             if notename:
                                 midinote = gv.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
-                            gv.samples[midinote, velocity, voice] = sound.Sound(os.path.join(dirname, fname),
-                                                                                midinote, velocity)
-                            # print "sample: %s, note: %d, voice: %d" %(fname, midinote, voice)
+
+                            if gv.samples[preset_current_loading].has_key((midinote, velocity, voice)):
+                                print 'sample already loaded!'
+                            else:
+                                gv.samples[preset_current_loading][midinote, velocity, voice] = sound.Sound(
+                                    os.path.join(dirname, fname),
+                                    midinote, velocity)
+                                # print "sample: %s, note: %d, voice: %d" %(fname, midinote, voice)
                 except:
                     print "Error in definition file, skipping line %s." % (i + 1)
 
     else:
         for midinote in range(0, 127):
+            pause_if_playingsounds()
             if LoadingInterrupt:
                 return
             gv.voices.append(1)
@@ -184,7 +309,7 @@ def ActuallyLoad():
             # print "Trying " + file
             if os.path.isfile(file):
                 # print "Processing " + file
-                gv.samples[midinote, 127, 1] = sound.Sound(file, midinote, 127)
+                gv.samples[preset_current_loading][midinote, 127, 1] = sound.Sound(file, midinote, 127)
 
             percent_loaded = (file_current * 100) / file_count  # more accurate loading progress
             # hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100) + 1), 4)
@@ -192,26 +317,27 @@ def ActuallyLoad():
             gv.displayer.disp_change('loading')
             file_current += 1
 
-    initial_keys = set(gv.samples.keys())
+    initial_keys = set(gv.samples[preset_current_loading].keys())
 
     if len(initial_keys) > 0:
         gv.voices = list(set(gv.voices))  # Remove duplicates by converting to a set
 
         for voice in gv.voices:
-
             for midinote in xrange(128):
                 last_velocity = None
                 for velocity in xrange(128):
                     if (midinote, velocity, voice) in initial_keys:
                         if not last_velocity:
                             for v in xrange(velocity):
-                                gv.samples[midinote, v, voice] = gv.samples[midinote, velocity, voice]
-                        last_velocity = gv.samples[midinote, velocity, voice]
+                                pause_if_playingsounds()
+                                gv.samples[preset_current_loading][midinote, v, voice] = gv.samples[preset_current_loading][
+                                    midinote, velocity, voice]
+                        last_velocity = gv.samples[preset_current_loading][midinote, velocity, voice]
                     else:
                         if last_velocity:
-                            gv.samples[midinote, velocity, voice] = last_velocity
+                            gv.samples[preset_current_loading][midinote, velocity, voice] = last_velocity
 
-            initial_keys = set(gv.samples.keys())  # we got more keys, but not enough yet
+            initial_keys = set(gv.samples[preset_current_loading].keys())  # we got more keys, but not enough yet
             last_low = -130  # force lowest unfilled notes to be filled with the next_high
             next_high = None  # next_high not found yet
             for midinote in xrange(128):  # and start filling the missing notes
@@ -230,7 +356,9 @@ def ActuallyLoad():
                         m = next_high
                     # print "Note %d will be generated from %d" % (midinote, m)
                     for velocity in xrange(128):
-                        gv.samples[midinote, velocity, voice] = gv.samples[m, velocity, voice]
+                        pause_if_playingsounds()
+                        gv.samples[preset_current_loading][midinote, velocity, voice] = gv.samples[preset_current_loading][
+                            m, velocity, voice]
 
         if not (release * 10000) == gv.FADEOUTLENGTH:
             gv.FADEOUTLENGTH = release * 10000
@@ -242,13 +370,41 @@ def ActuallyLoad():
             # print 'Preset loaded: ' + str(preset)
             # lcd.display("")
 
-    elif len(initial_keys) == 0:
-        # hd44780_20x4.display(' Error loading ', 1)
-        # hd44780_20x4.display(str(gv.preset + 1) + unichr(2) + gv.basename, 2)
-        gv.displayer.disp_change('preset')
-    else:
-        # hd44780_20x4.display('', 5, timeout_custom=0)  # as soon as the sample set is loaded, go straight to play screen
-        gv.displayer.disp_change('')
 
-    # in future we may not want to go to the preset mode as we might also navigating the menu
-    gv.displayer.disp_change('preset', timeout=0)
+
+
+
+        print '++++++++++ LOADED: [%d] %s' % (preset_current_loading, current_basename)  # debug
+        gv.samples[preset_current_loading]['loaded'] = True  # flag this preset's dict item as loaded
+
+        if is_memory_too_high()[0] == False:
+
+            if preset_current_loading == gv.preset:
+                gv.displayer.disp_change('preset', timeout=0)
+                preset_next_to_load = get_next_preset(gv.preset)
+                preset_current_is_loaded = True
+            else:
+                preset_next_to_load = get_next_preset(preset_current_loading)
+                if preset_next_to_load == gv.preset: return
+
+            print '++ Memory usage is ok (%dpercent) \n++ Load next preset' % is_memory_too_high()[1]  # debug
+            preset_current_loading = preset_next_to_load
+            ActuallyLoad()  # load next preset
+
+        else:
+            print '-- Memory usage is high (%dpercent) \n-- Stop loading other presets' % is_memory_too_high()[
+                1]  # debug
+            return
+
+
+
+
+
+    elif len(initial_keys) == 0:
+        gv.displayer.disp_change('preset')
+        pass
+    else:
+        gv.displayer.disp_change('')
+        pass
+
+
