@@ -27,14 +27,16 @@ class SystemFunctions:
             GPIO.cleanup()
         import os
         # Python calls 2 command line commands in one line: kill all python scripts, and re-run samplerbox.py
-        os.system('sudo killall python && sudo python ' + str(os.getcwd()) + '/samplerbox.py')
+        # os.system('sudo killall python && sudo python ' + str(os.getcwd()) + '/samplerbox.py')
+        os.system('systemctl stop samplerbox && sudo python ' + str(os.getcwd()) + '/samplerbox.py')
+
 
     def shutdown(self):
         gv.displayer.disp_change(str_override='Good bye!', line=1, timeout=1)
         gv.displayer.disp_change(str_override='Good bye!', line=2, timeout=1)
         gv.displayer.disp_change(str_override='Good bye!', line=3, timeout=1)
         gv.displayer.disp_change(str_override='Good bye!', line=4, timeout=1)
-        sleep(0.2)
+        sleep(0.02)
         if gv.IS_DEBIAN:
             import RPi.GPIO as GPIO
             GPIO.cleanup()

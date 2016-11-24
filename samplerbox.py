@@ -108,25 +108,27 @@ first_loop = True
 
 try:
     while True:
-        curr_ports = rtmidi2.get_in_ports()
-        # print curr_ports
-        if (len(prev_ports) != len(curr_ports)):
-            print '\n==== START GETTING MIDI DEVICES ===='
-            midi_in.close_ports()
-            prev_ports = []
-            for port in curr_ports:
-                if port not in prev_ports and 'Midi Through' not in port and (
-                        len(prev_ports) != len(curr_ports) and 'LoopBe Internal' not in port):
-                    midi_in.open_ports(port)
-                    midi_in.callback = midicallback.MidiCallback
-                    if first_loop:
-                        print 'Opened MIDI port: ' + port
-                    else:
-                        print 'Reopening MIDI port: ' + port
-            print '====  END GETTING MIDI DEVICES  ====\n'
-        prev_ports = curr_ports
-        first_loop = False
-        time.sleep(2)
+        if not gv.playingnotes: # only check when there are no sounds
+            curr_ports = rtmidi2.get_in_ports()
+            # print curr_ports
+            if (len(prev_ports) != len(curr_ports)):
+                print '\n==== START GETTING MIDI DEVICES ===='
+                midi_in.close_ports()
+                prev_ports = []
+                for port in curr_ports:
+                    if port not in prev_ports and 'Midi Through' not in port and (
+                            len(prev_ports) != len(curr_ports) and 'LoopBe Internal' not in port):
+                        midi_in.open_ports(port)
+                        midi_in.callback = midicallback.MidiCallback
+                        if first_loop:
+                            print 'Opened MIDI port: ' + port
+                        else:
+                            print 'Reopening MIDI port: ' + port
+                print '====  END GETTING MIDI DEVICES  ====\n'
+            prev_ports = curr_ports
+            first_loop = False
+        time.sleep(0.2)
+
 except KeyboardInterrupt:
     print "\nstopped by ctrl-c\n"
 except:
