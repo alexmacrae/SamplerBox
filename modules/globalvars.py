@@ -223,8 +223,8 @@ msleep = lambda x: time.sleep(x / 1000.0)
 ###################
 # FADE / RELEASE / SPEED
 ###################
-
-FADEOUTLENGTH = 30000
+FADEOUTLENGTH_DEFAULT = 30000
+FADEOUTLENGTH = FADEOUTLENGTH_DEFAULT
 FADEOUT = numpy.linspace(1., 0., FADEOUTLENGTH)  # by default, float64
 FADEOUT = numpy.power(FADEOUT, 6)
 FADEOUT = numpy.append(FADEOUT, numpy.zeros(FADEOUTLENGTH, numpy.float32)).astype(numpy.float32)

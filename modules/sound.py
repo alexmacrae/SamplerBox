@@ -152,7 +152,7 @@ def AudioCallback(outdata, frame_count, time_info, status):
             pass
 
     b *= (gv.global_volume * gv.volumeCC)
-    #outdata[:] = b.reshape(outdata.shape)
+    outdata[:] = b.reshape(outdata.shape) # sounddevice
 
 
     # if gv.USE_TONECONTOL:
@@ -240,29 +240,29 @@ for i in range(p.get_device_count()):
             #     continue
 
 
-try:
-    stream = p.open(format=pyaudio.paInt16, channels=gv.CHANNELS, rate=gv.SAMPLERATE,
-                    frames_per_buffer=gv.BUFFERSIZE, output=True,
-                    output_device_index=gv.AUDIO_DEVICE_ID, stream_callback=AudioCallback)
-except:
-    print "Sample audio:  Invalid Audio Device ID"
-    exit(1)
-
-
-
 # try:
-#     sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, blocksize=gv.BUFFERSIZE,
-#                                   samplerate=gv.SAMPLERATE, channels=gv.CHANNELS,
-#                                   dtype='int16', callback=AudioCallback)
-#     sd.start()
-#     print 'Opened audio device #%i' % gv.AUDIO_DEVICE_ID
+#     stream = p.open(format=pyaudio.paInt16, channels=gv.CHANNELS, rate=gv.SAMPLERATE,
+#                     frames_per_buffer=gv.BUFFERSIZE, output=True,
+#                     output_device_index=gv.AUDIO_DEVICE_ID, stream_callback=AudioCallback)
 # except:
-#
-#     gv.displayer.disp_change(str_override="Invalid audiodev")
-#     print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
-#     print 'Available devices:'
-#     print(sounddevice.query_devices())
+#     print "Sample audio:  Invalid Audio Device ID"
 #     exit(1)
+
+
+
+try:
+    sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, blocksize=gv.BUFFERSIZE,
+                                  samplerate=gv.SAMPLERATE, channels=gv.CHANNELS,
+                                  dtype='int16', callback=AudioCallback)
+    sd.start()
+    print 'Opened audio device #%i' % gv.AUDIO_DEVICE_ID
+except:
+
+    gv.displayer.disp_change(str_override="Invalid audiodev")
+    print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
+    print 'Available devices:'
+    print(sounddevice.query_devices())
+    exit(1)
 
 if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
     import alsaaudio
