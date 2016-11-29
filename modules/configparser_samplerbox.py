@@ -12,6 +12,7 @@ if not os.path.exists(CONFIG_FILE_PATH):
     if not os.path.exists(CONFIG_FILE_PATH):
         CONFIG_FILE_PATH = "./config.ini"
 
+
 # This dict will probably not be used. It is a backup for if neither the user-specified or the default config files can be found
 DEFAULTS = {
     # SAMPLERBOX CONFIG

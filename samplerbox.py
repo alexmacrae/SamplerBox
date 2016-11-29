@@ -106,6 +106,8 @@ curr_ports = []
 prev_ports = []
 first_loop = True
 
+time.sleep(0.5)
+
 try:
     while True:
         if not gv.playingnotes: # only check when there are no sounds

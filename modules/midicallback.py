@@ -265,7 +265,8 @@ def MidiCallback(src, message, time_stamp):
                                     else:
                                         # print "stop note " + str(playnote)
                                         m.fadeout(50)
-                                gv.playingnotes[playnote] = []
+                                # gv.playingnotes[playnote] = []
+                                gv.playingnotes.pop(playnote)
                             gv.triggernotes[playnote] = 128  # housekeeping
 
 

@@ -12,7 +12,7 @@ CONFIG_PRINT = True
 # IMPORT CONFIG.INI
 ####################
 
-if CONFIG_PRINT: print '==== START CONFIG IMPORT ===='
+if CONFIG_PRINT: print '\n#### START CONFIG IMPORT ####\n'
 
 SYSTEM_MODE = int(cp.get_option_by_name('SYSTEM_MODE'))
 MAX_POLYPHONY = int(cp.get_option_by_name('MAX_POLYPHONY'))
@@ -126,7 +126,7 @@ BUTTON_UP_GPIO = int(cp.get_option_by_name('BUTTON_UP_GPIO'))
 BUTTON_DOWN_GPIO = int(cp.get_option_by_name('BUTTON_DOWN_GPIO'))
 BUTTON_FUNC_GPIO = int(cp.get_option_by_name('BUTTON_FUNC_GPIO'))
 
-if CONFIG_PRINT: print '==== END CONFIG IMPORT ====\n'
+if CONFIG_PRINT: print '\n#### END CONFIG IMPORT ####\n'
 
 VERSION1 = " -=SAMPLER-BOX=- "
 VERSION2 = "V2.0.1 15-06-2016"
@@ -205,7 +205,7 @@ velocity_mode = VELOCITY_MODE_DEFAULT
 volumeCC = 1.0  # assumed value of the volumeknob controller before first use, max=1.0 (the knob can only decrease).
 PRESET_BASE = 0  # Does the programchange / sample set start at 0 (MIDI style) or 1 (human style)
 preset = 0 + PRESET_BASE  # the default patch to load
-PITCHRANGE = 12  # default range of the pitchwheel in semitones (max=12 is een octave)
+PITCHRANGE = 24  # default range of the pitchwheel in semitones (12 is an octave, max=24)
 PITCHBITS = 7  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
 voices = []
 currvoice = 1
