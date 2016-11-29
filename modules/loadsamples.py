@@ -9,6 +9,7 @@ import globalvars as gv
 import sound
 import time
 import psutil
+import definitionparser
 
 LoadingThread = None
 LoadingInterrupt = False
@@ -19,7 +20,7 @@ preset_current_is_loaded = False
 preset_current_loading = gv.preset
 preset_change_triggered = False
 
-RAM_usage_limit = 40  # Percentage of RAM we should allow samples to be loaded into before killing
+RAM_usage_limit = 90  # Percentage of RAM we should allow samples to be loaded into before killing
 
 #####################
 # Initiate sample loading
@@ -49,15 +50,17 @@ def LoadSamples():
 #####################
 
 def pause_if_playingsounds():
+    if LoadingInterrupt:
+        return
     # return  # More testing required, but sounddevice doesn't *seem* to glitch when other samples are being loaded
-    if preset_current_is_loaded:
+    if preset_current_is_loaded and preset_current_loading != gv.preset:
         if gv.playingsounds:
             print '########\n-- Initiate pause on sample loading --'
             for i in xrange(999999):
-                print '(in pause loop)'
                 if not gv.playingsounds or preset_change_triggered:
                     print 'No more playingsounds (or new preset triggered)\nContinue loading\n########'
                     return
+                print '// loading paused //'
                 time.sleep(0.02)
         else:
             # print '++ FAST sample loading ++'
@@ -100,6 +103,18 @@ def kill_two_before():
         print 'No samples loaded in two presets previous - do nothing'  # debug
     print '########'  # debug
 
+all_presets_loaded = False
+def is_all_presets_loaded():
+    global all_presets_loaded
+    i = 0
+    for s in gv.samples.keys():
+        if gv.samples[s].has_key('loaded'):
+            i += 1
+    if len(gv.SONG_FOLDERS_LIST) == i:
+        print '///// All presets are now loaded into memory /////'
+        all_presets_loaded = True
+    else:
+        print '///// Not all presets have been loaded into memory /////'
 
 #####################
 # Next and previous preset getters
@@ -120,22 +135,22 @@ def get_prev_preset(current_preset):
         preset_prev_to_load = len(gv.SONG_FOLDERS_LIST) - 1
     return preset_prev_to_load
 
-
 #####################
 # Set globals from dict from definitions
 #####################
 
 def set_globals_from_keywords():
+
     preset_keywords_dict = gv.samples[gv.preset]['keywords']
 
-    keywords_to_try = (('gv.gain', 'gain'),
-                       ('gv.globaltranspose', 'globaltranspose'),
-                       ('gv.FADEOUTLENGTH', 'release'),
-                       ('gv.pitchnotes', 'pitchnotes'),
-                       ('gv.sample_mode', 'sample_mode'),
-                       ('gv.velocity_mode', 'velmode'))
+    # keywords_to_try = (('gv.gain', 'gain'),
+    #                    ('gv.globaltranspose', 'transpose'),
+    #                    ('gv.FADEOUTLENGTH', 'release'),
+    #                    ('gv.PITCHBITS', 'pitchbend'),
+    #                    ('gv.sample_mode', 'sample_mode'),
+    #                    ('gv.velocity_mode', 'velmode'))
 
-    for global_var, keyword in keywords_to_try:
+    for global_var, keyword in definitionparser.keywords_to_try:
         if preset_keywords_dict.has_key(keyword):
             value = preset_keywords_dict.get(keyword)
             print '>>>>>>>Keyword found. %s: %s' % (keyword, str(value))  # debug
@@ -151,7 +166,7 @@ def reset_global_defaults():
     gv.FADEOUTLENGTH = gv.FADEOUTLENGTH_DEFAULT
     gv.gain = 1
     gv.currvoice = 1
-    gv.pitchnotes = gv.PITCHRANGE
+    gv.PITCHBITS = gv.PITCHRANGE
     # prevbase = gv.basename  # disp_changed from currbase
     gv.basename = setlist_list[gv.preset]
 
@@ -172,6 +187,13 @@ def set_global_fadeout():
 
 def ActuallyLoad():
     global LoadingThread, preset_current_is_loaded, preset_current_loading, preset_change_triggered
+
+    # Check
+    if all_presets_loaded:
+        print 'LOADED NOTHING: all samples have been loaded into memory'
+        set_globals_from_keywords()
+        set_global_fadeout()
+        return
 
     preset_focus_is_loaded = False
 
@@ -243,7 +265,7 @@ def ActuallyLoad():
                                 float(pattern.split('=')[1].strip()))
                             continue
                         if r'%%transpose' in pattern:
-                            gv.samples[preset_current_loading]['keywords']['globaltranspose'] = int(
+                            gv.samples[preset_current_loading]['keywords']['transpose'] = int(
                                 pattern.split('=')[1].strip())
                             continue
                         if r'%%release' in pattern:
@@ -251,21 +273,21 @@ def ActuallyLoad():
                                 int(pattern.split('=')[1].strip())) * 10000
                             continue
                         if r'%%pitchbend' in pattern:
-                            pitchnotes = abs(int(pattern.split('=')[1].strip()))
-                            if pitchnotes > 12:
-                                print "Pitchbend of %d limited to 12" % pitchnotes
-                                gv.samples[preset_current_loading]['keywords']['pitchnotes'] = 12
+                            pitchbend = abs(int(pattern.split('=')[1].strip()))
+                            if pitchbend > 12:
+                                print "Pitchbend of %d limited to 24" % pitchbend
+                                gv.samples[preset_current_loading]['keywords']['pitchbend'] = 24
                             else:
-                                gv.samples[preset_current_loading]['keywords']['pitchnotes'] = pitchnotes
+                                gv.samples[preset_current_loading]['keywords']['pitchbend'] = pitchbend
                             continue
                         if r'%%mode' in pattern:
-                            sample_mode = pattern.split('=')[1].strip().title()
-                            if sample_mode == gv.PLAYLIVE \
-                                    or sample_mode == gv.PLAYBACK \
-                                    or sample_mode == gv.PLAYSTOP \
-                                    or sample_mode == gv.PLAYLOOP \
-                                    or sample_mode == gv.PLAYLO2X:
-                                gv.samples[preset_current_loading]['keywords']['sample_mode'] = sample_mode
+                            mode = pattern.split('=')[1].strip().title()
+                            if mode == gv.PLAYLIVE \
+                                    or mode == gv.PLAYBACK \
+                                    or mode == gv.PLAYSTOP \
+                                    or mode == gv.PLAYLOOP \
+                                    or mode == gv.PLAYLO2X:
+                                gv.samples[preset_current_loading]['keywords']['mode'] = mode
                             continue
                         if r'%%velmode' in pattern:
                             velmode = pattern.split('=')[1].strip().title()
@@ -338,6 +360,7 @@ def ActuallyLoad():
                     except:
                         print "Error in definition file, skipping line %s." % (i + 1)
 
+        # If no definition.txt file found in folder, look for numbered files (eg 64.wav, 65.wav etc)
         else:
             for midinote in range(0, 127):
                 pause_if_playingsounds()
@@ -353,7 +376,6 @@ def ActuallyLoad():
                     gv.samples[preset_current_loading][midinote, 127, 1] = sound.Sound(file, midinote, 127)
 
                 percent_loaded = (file_current * 100) / file_count  # more accurate loading progress
-                # hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100) + 1), 4)
                 gv.percent_loaded = percent_loaded
                 gv.displayer.disp_change('loading')
                 file_current += 1
@@ -412,7 +434,10 @@ def ActuallyLoad():
 
         gv.samples[preset_current_loading]['loaded'] = True  # flag this preset's dict item as loaded
 
+
     print '++++++++++ LOADED: [%d] %s' % (preset_current_loading, current_basename)  # debug
+
+    is_all_presets_loaded()
 
     if preset_current_loading == gv.preset:
         set_globals_from_keywords()

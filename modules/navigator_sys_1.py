@@ -313,18 +313,18 @@ class MenuNav(Navigator):
 
 
 class SelectSong(Navigator):
-    def __init__(self, nextState):
-        self.setlistList = open(gv.SETLIST_FILE_PATH).read().splitlines()
-        self.nextState = nextState
+    def __init__(self, next_state):
+        self.setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
+        self.next_state = next_state
         self.display()
 
     def display(self):
         gv.displayer.disp_change('Select song', line=1, timeout=0)
-        gv.displayer.disp_change(str(gv.preset + 1) + " " + str(self.setlistList[gv.preset]), line=2)
+        gv.displayer.disp_change(str(gv.preset + 1) + " " + str(self.setlist_list[gv.preset]), line=2)
 
     # next song
     def right(self):
-        if (gv.preset < len(self.setlistList) - 1):
+        if (gv.preset < len(self.setlist_list) - 1):
             gv.preset += 1
         self.display()
 
@@ -335,8 +335,7 @@ class SelectSong(Navigator):
         self.display()
 
     def enter(self):
-
-        self.loadState(self.nextState)
+        self.loadState(self.next_state)
 
     def cancel(self):
         self.loadState(MenuNav)
@@ -346,42 +345,42 @@ class SelectSong(Navigator):
 
 class MoveSong(Navigator):
     def __init__(self):
-        self.setlistList = open(gv.SETLIST_FILE_PATH).read().splitlines()
-        self.prevState = SelectSong
+        self.setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
+        self.prev_state = SelectSong
         self.display()
 
     def display(self):
         gv.displayer.disp_change('Moving song', line=1, timeout=0)
-        gv.displayer.disp_change(str(gv.preset + 1) + " " + str(self.setlistList[gv.preset]), line=2)
+        gv.displayer.disp_change(str(gv.preset + 1) + " " + str(self.setlist_list[gv.preset]), line=2)
 
     # Move song up the setlist
     def left(self):
         if (gv.preset > 0):
-            self.setlistList[int(gv.preset)], self.setlistList[int(gv.preset) - 1] = self.setlistList[
+            self.setlist_list[int(gv.preset)], self.setlist_list[int(gv.preset) - 1] = self.setlist_list[
                                                                                          int(gv.preset) - 1], \
-                                                                                     self.setlistList[
+                                                                                     self.setlist_list[
                                                                                          int(gv.preset)]
             gv.preset -= 1
-            # write_setlist(self.setlistList)
+            # write_setlist(self.setlist_list)
         self.display()
 
     # Move song down the setlist
     def right(self):
-        if (gv.preset < len(self.setlistList) - 1):
-            self.setlistList[int(gv.preset)], self.setlistList[int(gv.preset) + 1] = self.setlistList[
+        if (gv.preset < len(self.setlist_list) - 1):
+            self.setlist_list[int(gv.preset)], self.setlist_list[int(gv.preset) + 1] = self.setlist_list[
                                                                                          int(gv.preset) + 1], \
-                                                                                     self.setlistList[
+                                                                                     self.setlist_list[
                                                                                          int(gv.preset)]
             gv.preset += 1
-            # write_setlist(self.setlistList)
+            # write_setlist(self.setlist_list)
         self.display()
 
     def enter(self):
-        write_setlist(self.setlistList)
-        Navigator.state = self.prevState(MoveSong)
+        write_setlist(self.setlist_list)
+        Navigator.state = self.prev_state(MoveSong)
 
     def cancel(self):
-        Navigator.state = self.prevState(MoveSong)
+        Navigator.state = self.prev_state(MoveSong)
 
 
 # ______________________________________________________________________________
@@ -418,23 +417,23 @@ class SetlistRemoveMissing(Navigator):
 
 class DeleteSong(Navigator):
     def __init__(self):
-        self.prevState = eval(self.menuPosition[self.menuCoords[-1]]['fn'][0])
-        self.setlistList = open(gv.SETLIST_FILE_PATH).read().splitlines()
+        self.prev_state = eval(self.menuPosition[self.menuCoords[-1]]['fn'][0])
+        self.setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
         gv.displayer.disp_change('Are you sure? [Y/N]', line=1, timeout=0)
         gv.displayer.disp_change('WARNING: will crash if we delete all songs', line=2)
 
     def enter(self):
-        print self.setlistList
-        del self.setlistList[gv.preset]
-        write_setlist(self.setlistList)
-        print self.setlistList
+        print self.setlist_list
+        del self.setlist_list[gv.preset]
+        write_setlist(self.setlist_list)
+        print self.setlist_list
         if gv.preset != 0:
             gv.preset -= 1
 
-        self.loadState(self.prevState)
+        self.loadState(self.prev_state)
 
     def cancel(self):
-        self.loadState(self.prevState)
+        self.loadState(self.prev_state)
 
 
 # ______________________________________________________________________________
@@ -797,3 +796,143 @@ class MasterVolumeConfig(Navigator):
         self.enter()
 
 # _____________________________________________________________________________
+
+import definitionparser
+
+
+
+
+def set_global_from_keyword(keyword, value):
+    keyword = keyword.strip('%%')
+    if isinstance(value, str): value = value.title()
+    for gvar, k in definitionparser.keywords_to_try:
+        if k == keyword:
+            print '>>>>>>>Setting global from keyword. %s: %s' % (keyword, str(value))  # debug
+            exec (gvar + '=value') # set the global variable
+
+
+
+
+
+
+def clamp(n, minn, maxn):
+    return max(min(maxn, n), minn)
+
+class EditDefinition(Navigator):
+    def __init__(self):
+
+        self.in_a_mode = False
+        self.mode = 0
+        self.selected_keyword = None
+        self.allowed_values = None
+        self.i = 0
+        self.selected_keyword_value = None
+
+        self.setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
+        self.prev_state = SelectSong
+        self.song_name = self.setlist_list[int(gv.preset)]
+        self.dp = definitionparser.DefinitionParser(self.song_name)
+        self.keywords_dict = self.dp.keywords_dict
+        self.keywords_defaults_dict = self.dp.keywords_defaults_dict
+        self.display()
+
+
+    def display(self):
+        if not self.in_a_mode:
+            keyword_str = self.keywords_dict[self.mode].items()[0][0].strip('%%').title()
+            gv.displayer.disp_change(self.song_name, line=1, timeout=0)
+            gv.displayer.disp_change(keyword_str, line=2, timeout=0)
+        else:
+            keyword = self.keywords_dict[self.mode].items()[0][0]
+            keyword_str = keyword.strip('%%').title()
+            if isinstance(self.allowed_values, list):
+                value_str = str(self.allowed_values[self.i])
+            elif isinstance(self.allowed_values, tuple):
+                value_str = str(self.i)
+            line_str = keyword_str + ' ' + value_str
+            gv.displayer.disp_change(self.song_name, line=1, timeout=0)
+            gv.displayer.disp_change(line_str, line=2, timeout=0)
+
+
+    def left(self):
+        if not self.in_a_mode:
+            if not self.mode <= 0:
+                self.mode -= 1
+        else:
+            if isinstance(self.allowed_values, list):
+                if not self.i <= 0:
+                    self.i -= 1
+                    self.selected_keyword_value = self.allowed_values[self.i]
+            elif isinstance(self.allowed_values, tuple):
+                self.i = clamp(int(self.i) - 1, self.allowed_values[0], self.allowed_values[1])
+                self.selected_keyword_value = self.i
+
+            set_global_from_keyword(self.selected_keyword, self.selected_keyword_value)
+
+        self.display()
+
+
+    def right(self):
+        if not self.in_a_mode:
+            if not self.mode >= len(self.keywords_dict)-1:
+                self.mode += 1
+        else:
+            if isinstance(self.allowed_values, list):
+                if not self.i >= len(self.allowed_values)-1:
+                    self.i += 1
+                    self.selected_keyword_value = self.allowed_values[self.i]
+            elif isinstance(self.allowed_values, tuple):
+                self.i = clamp(int(self.i) + 1, self.allowed_values[0], self.allowed_values[1])
+                self.selected_keyword_value = self.i
+
+            set_global_from_keyword(self.selected_keyword, self.selected_keyword_value)
+
+        self.display()
+
+
+
+
+    def enter(self):
+        if not self.in_a_mode:
+            self.in_a_mode = True
+            self.selected_keyword = self.keywords_dict[self.mode].items()[0][0]
+            self.allowed_values = self.keywords_dict[self.mode].items()[0][1]
+            if self.dp.existing_patterns.has_key(self.selected_keyword):
+
+                self.selected_keyword_value = self.dp.existing_patterns[self.selected_keyword]
+                if isinstance(self.allowed_values, list):
+                    self.i = self.allowed_values.index(self.selected_keyword_value)
+                elif isinstance(self.allowed_values, tuple):
+                    self.i = self.selected_keyword_value
+
+                print '### %s exists with a value of %s ###'\
+                      % (self.selected_keyword.title(), str(self.selected_keyword_value).title())
+            else:
+                self.i = int(self.keywords_defaults_dict[self.selected_keyword])
+                if isinstance(self.allowed_values, list):
+                    self.selected_keyword_value = self.keywords_dict[self.i]
+                elif isinstance(self.allowed_values, tuple):
+                    self.selected_keyword_value = self.i
+                print '### %s does not exist. Set default: %d ###'\
+                      % (self.selected_keyword.title(), self.i)
+            self.display()
+        elif self.in_a_mode:
+
+            if isinstance(self.allowed_values, list):
+                self.dp.set_new_keyword(self.selected_keyword, str(self.selected_keyword_value))
+            elif isinstance(self.allowed_values, tuple):
+                self.dp.set_new_keyword(self.selected_keyword, int(self.selected_keyword_value))
+
+            self.dp.compare_existing_patterns()
+            self.dp.write_definition_file()
+
+            self.loadState(EditDefinition)
+
+    def cancel(self):
+        if not self.in_a_mode:
+            Navigator.state = self.prev_state(EditDefinition)
+        elif self.in_a_mode:
+            self.in_a_mode = False
+            self.display()
+
+

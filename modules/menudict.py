@@ -198,5 +198,6 @@ menu = {
 
             },
         5: {'name': 'Restart', 'fn': 'gv.sysfunc.restart()'},
+        6: {'name': 'Edit definitions', 'fn': ['SelectSong', 'EditDefinition']}
     }
 }

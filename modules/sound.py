@@ -1,4 +1,3 @@
-
 #########################################
 # MIXER CLASSES
 #########################################
@@ -11,12 +10,15 @@ import pyaudio
 import sounddevice
 import globalvars as gv
 
+
 #########################################
 ##  SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE
 ##  TO READ CUE MARKERS & LOOP MARKERS if applicable in mode
 #########################################
 class WaveReadError(Exception):
     pass
+
+
 class waveread(wave.Wave_read):
     def initfp(self, file):
         self._convert = None
@@ -71,9 +73,7 @@ class waveread(wave.Wave_read):
             return self._loops
 
 
-
 class PlayingSound:
-
     def __init__(self, sound, note, vel, timestamp=None):
         self.sound = sound
         self.pos = 0
@@ -94,7 +94,6 @@ class PlayingSound:
 
 
 class Sound:
-
     def __init__(self, filename, midinote, velocity):
         wf = waveread(filename)
         self.fname = filename
@@ -110,13 +109,11 @@ class Sound:
         self.data = self.frames2array(wf.readframes(self.nframes), wf.getsampwidth(), wf.getnchannels())
         wf.close()
 
-
     def play(self, note, vel, timestamp=None):
         snd = PlayingSound(self, note, vel, timestamp)
-        #print 'fname: ' + self.fname + ' note/vel: ' + str(note) + '/' + str(vel) + ' midinote: ' + str(self.midinote) + ' vel: ' + str(self.velocity)
+        # print 'fname: ' + self.fname + ' note/vel: ' + str(note) + '/' + str(vel) + ' midinote: ' + str(self.midinote) + ' vel: ' + str(self.velocity)
         gv.playingsounds.append(snd)
         return snd
-
 
     def frames2array(self, data, sampwidth, numchan):
         if sampwidth == 2:
@@ -140,10 +137,10 @@ def AudioCallback(outdata, frame_count, time_info, status):
                                          gv.FADEOUT, gv.FADEOUTLENGTH, gv.SPEED,
                                          gv.PITCHBEND, gv.PITCHSTEPS)
 
-
     if gv.USE_FREEVERB and gv.IS_DEBIAN:
         b_verb = b
-        gv.ac.Reverb.freeverbprocess(b_verb.ctypes.data_as(gv.ac.Reverb.c_float_p), b.ctypes.data_as(gv.ac.Reverb.c_float_p), frame_count)
+        gv.ac.Reverb.freeverbprocess(b_verb.ctypes.data_as(gv.ac.Reverb.c_float_p),
+                                     b.ctypes.data_as(gv.ac.Reverb.c_float_p), frame_count)
 
     for e in rmlist:
         try:
@@ -152,8 +149,7 @@ def AudioCallback(outdata, frame_count, time_info, status):
             pass
 
     b *= (gv.global_volume * gv.volumeCC)
-    outdata[:] = b.reshape(outdata.shape) # sounddevice
-
+    outdata[:] = b.reshape(outdata.shape)  # sounddevice
 
     # if gv.USE_TONECONTOL:
     #      b = numpy.array(chain.filter(bb))
@@ -210,67 +206,44 @@ def AudioCallback(outdata, frame_count, time_info, status):
 
         return (newdata.astype(numpy.int16).tostring(), pyaudio.paContinue)
 
+
 #########################################
 # OPEN AUDIO DEVICE
 #########################################
+print '\n#### START OF AUDIO DEVICES ####\n'
+print sounddevice.query_devices() # all available audio devices
 
-# Using pyaudio only to list device names. sounddevice doesn't seem to have that option
-
-p = pyaudio.PyAudio()
-print '\n==== LIST OF AUDIO DEVICES ===='
-foundByDeviceName = False
-dev_name = ''
-for i in range(p.get_device_count()):
-    dev = p.get_device_info_by_index(i)
-    s = ""
-    if not foundByDeviceName:
-        if i == gv.AUDIO_DEVICE_ID:
-            s += " <--- SELECTED BY ID"
-            dev_name = dev['name']
-        if (gv.AUDIO_DEVICE_NAME in dev['name']):
-            gv.AUDIO_DEVICE_ID = i
-            s += " <--- SELECTED BY MATCHED NAME (takes precedence)"
-            dev_name = dev['name']
-            foundByDeviceName = True
-        if dev['maxOutputChannels'] > 0:
-            print str(i) + ": " + dev['name'] + s
-            # if (s != ""):
-            #     break
-            # else:
-            #     continue
-
-
-# try:
-#     stream = p.open(format=pyaudio.paInt16, channels=gv.CHANNELS, rate=gv.SAMPLERATE,
-#                     frames_per_buffer=gv.BUFFERSIZE, output=True,
-#                     output_device_index=gv.AUDIO_DEVICE_ID, stream_callback=AudioCallback)
-# except:
-#     print "Sample audio:  Invalid Audio Device ID"
-#     exit(1)
-
-
+# Select a device by the name specified in the config.ini (if found)
+# If no match is found, use the default AUDIO_DEVICE_ID
+i = 0
+for d in sounddevice.query_devices():
+    if gv.AUDIO_DEVICE_NAME in d['name']:
+        gv.AUDIO_DEVICE_ID = i
+        print '\n>>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
+        break
+    i += 1
 
 try:
-    sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, blocksize=gv.BUFFERSIZE,
-                                  samplerate=gv.SAMPLERATE, channels=gv.CHANNELS,
-                                  dtype='int16', callback=AudioCallback)
+    sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, samplerate=gv.SAMPLERATE,
+                                  channels=gv.CHANNELS, dtype='int16', latency='low',
+                                  callback=AudioCallback)
     sd.start()
-    print 'Opened audio device #%i' % gv.AUDIO_DEVICE_ID
+    print '>>>>> Opened audio device #%i (latency: %ims)' % (gv.AUDIO_DEVICE_ID, sd.latency * 1000)
 except:
-
-    gv.displayer.disp_change(str_override="Invalid audiodev")
-    print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
+    gv.displayer.disp_change(str_override="Invalid audio device")
     print 'Available devices:'
     print(sounddevice.query_devices())
-    exit(1)
+    print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
+    # exit(1)
 
 if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
     import alsaaudio
+
     for i in range(0, 4):
         try:
-            amix = alsaaudio.Mixer(cardindex=gv.MIXER_CARD_ID+i,control=gv.MIXER_CONTROL)
-            gv.MIXER_CARD_ID+=i    # save the found value
-            i=0                 # indicate OK
+            amix = alsaaudio.Mixer(cardindex=gv.MIXER_CARD_ID + i, control=gv.MIXER_CONTROL)
+            gv.MIXER_CARD_ID += i  # save the found value
+            i = 0  # indicate OK
             print 'Opened Alsamixer: card id "%i", control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
             break
         except:
@@ -281,18 +254,25 @@ if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
         print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
         print(sounddevice.query_devices())
         exit(1)
+
+
     def getvolume():
         vol = amix.getvolume()
         gv.volume = int(vol[0])
+
+
     def setvolume(volume):
         amix.setvolume(volume)
+
+
     setvolume(gv.volume)
     getvolume()
 else:
     def getvolume():
         pass
+
+
     def setvolume(volume):
         pass
 
-
-print '\n==== END OF AUDIO DEVICES ===='
+print '\n#### END OF AUDIO DEVICES ####\n'
