@@ -24,6 +24,7 @@ preset_change_triggered = False
 
 RAM_usage_limit = 90  # Percentage of RAM we should allow samples to be loaded into before killing
 
+
 #####################
 # Initiate sample loading
 #####################
@@ -105,7 +106,10 @@ def kill_two_before():
         print 'No samples loaded in two presets previous - do nothing'  # debug
     print '########'  # debug
 
+
 all_presets_loaded = False
+
+
 def is_all_presets_loaded():
     global all_presets_loaded
     i = 0
@@ -117,6 +121,7 @@ def is_all_presets_loaded():
         all_presets_loaded = True
     else:
         print '///// Not all presets have been loaded into memory /////'
+
 
 #####################
 # Next and previous preset getters
@@ -137,12 +142,12 @@ def get_prev_preset(current_preset):
         preset_prev_to_load = len(gv.SONG_FOLDERS_LIST) - 1
     return preset_prev_to_load
 
+
 #####################
 # Set globals from dict from definitions
 #####################
 
 def set_globals_from_keywords():
-
     preset_keywords_dict = gv.samples[gv.preset]['keywords']
 
     # keywords_to_try = (('gv.gain', 'gain'),
@@ -156,7 +161,7 @@ def set_globals_from_keywords():
         if preset_keywords_dict.has_key(keyword):
             value = preset_keywords_dict.get(keyword)
             print '>>>>>>>Keyword found. %s: %s' % (keyword, str(value))  # debug
-            exec (global_var + '=value') # set the global variable
+            exec (global_var + '=value')  # set the global variable
 
 
 def reset_global_defaults():
@@ -216,8 +221,8 @@ def ActuallyLoad():
     voices_local = []
     pause_if_playingsounds()
 
-    if gv.samples.has_key(preset_current_loading): # If key exists, preset has started to load at some point
-        if gv.samples[preset_current_loading].has_key('loaded'): # If 'loaded' key exists, preset is fully loaded
+    if gv.samples.has_key(preset_current_loading):  # If key exists, preset has started to load at some point
+        if gv.samples[preset_current_loading].has_key('loaded'):  # If 'loaded' key exists, preset is fully loaded
             print '[%d: %s] has already been loaded. Skipping.' % (
                 preset_current_loading, setlist_list[preset_current_loading])
             preset_focus_is_loaded = True
@@ -297,9 +302,7 @@ def ActuallyLoad():
                                 gv.samples[preset_current_loading]['keywords']['velmode'] = velmode
                             continue
                         defaultparams = {'midinote': '0', 'velocity': '127', 'notename': '',
-                                         'voice': '1', 'mode': 'keyb', 'velmode': 'accurate', 'release': '3',
-                                         'gain': '1',
-                                         'transpose': '0'}
+                                         'voice': '1', 'seq': 1}
 
                         if len(pattern.split(',')) > 1:
                             defaultparams.update(dict([item.split('=') for item in
@@ -311,12 +314,7 @@ def ActuallyLoad():
                             .replace(r"\%midinote", r"(?P<midinote>\d+)") \
                             .replace(r"\%velocity", r"(?P<velocity>\d+)") \
                             .replace(r"\%voice", r"(?P<voice>\d+)") \
-                            .replace(r"\%%voice", r"(?P<voice>\d+)") \
-                            .replace(r"\%%mode", r"(?P<mode>\d+)") \
-                            .replace(r"\%%velmode", r"(?P<velmode>\d+)") \
-                            .replace(r"\%%release", r"(?P<release>\d+)") \
-                            .replace(r"\%%gain", r"(?P<gain>\d+)") \
-                            .replace(r"\%%transpose", r"(?P<transpose>\d+)") \
+                            .replace(r"\%seq", r"(?P<seq>\d+)") \
                             .replace(r"\%notename", r"(?P<notename>[A-Ga-g]#?[0-9])") \
                             .replace(r"\*", r".*?").strip()  # .*? => non greedy
 
@@ -346,18 +344,24 @@ def ActuallyLoad():
                                 if preset_current_loading == gv.preset: gv.voices = voices_local
                                 midinote = int(info.get('midinote', defaultparams['midinote']))
                                 velocity = int(info.get('velocity', defaultparams['velocity']))
-
+                                seq = int(info.get('seq', defaultparams['seq']))
                                 notename = info.get('notename', defaultparams['notename'])
                                 # next statement places note 60 on C3/C4/C5 with the +0/1/2. So now it is C4:
                                 if notename:
                                     midinote = gv.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
-
                                 if gv.samples[preset_current_loading].has_key((midinote, velocity, voice)):
-                                    print 'sample already loaded!'
+                                    for s in gv.samples[preset_current_loading][midinote, velocity, voice]:
+                                        if s.seq == seq:
+                                            print 'Sequence:%i, File:%s already loaded' % (seq, fname)
+                                        else:
+                                            if (midinote, velocity, voice) in gv.samples[preset_current_loading]:
+                                                gv.samples[preset_current_loading][midinote, velocity, voice].append(sound.Sound(
+                                                    os.path.join(dirname, fname), midinote, velocity, seq))
+                                                print 'Found Sequence:%i of File:%s -- loading' % (seq, fname)
                                 else:
-                                    gv.samples[preset_current_loading][midinote, velocity, voice] = sound.Sound(
-                                        os.path.join(dirname, fname),
-                                        midinote, velocity)
+                                    gv.samples[preset_current_loading][midinote, velocity, voice] = [
+                                        sound.Sound(
+                                            os.path.join(dirname, fname), midinote, velocity, seq)]
                                     # print "sample: %s, note: %d, voice: %d" %(fname, midinote, voice)
                     except:
                         print "Error in definition file, skipping line %s." % (i + 1)
@@ -425,8 +429,7 @@ def ActuallyLoad():
                         for velocity in xrange(128):
                             pause_if_playingsounds()
                             gv.samples[preset_current_loading][midinote, velocity, voice] = \
-                                gv.samples[preset_current_loading][
-                                    m, velocity, voice]
+                            gv.samples[preset_current_loading][m, velocity, voice]
         elif len(initial_keys) == 0:
             gv.displayer.disp_change('preset')
             pass
@@ -435,7 +438,6 @@ def ActuallyLoad():
             pass
 
         gv.samples[preset_current_loading]['loaded'] = True  # flag this preset's dict item as loaded
-
 
     print '++++++++++ LOADED: [%d] %s' % (preset_current_loading, current_basename)  # debug
 

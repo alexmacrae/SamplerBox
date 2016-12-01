@@ -156,6 +156,7 @@ LOW_EQ = (2 * LOW_EQ_FREQ) / SAMPLERATE
 # ADMINISTRATION SAMPLER
 samples = {}
 playingnotes = {}
+lastplayedseq = {}
 sustainplayingnotes = []
 triggernotes = [128] * 128
 sustain = False
