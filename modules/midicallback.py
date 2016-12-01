@@ -1,6 +1,7 @@
 import globalvars as gv
 import loadsamples
 import time
+import random
 
 
 def noteon(messagetype, note, vel):
@@ -190,7 +191,6 @@ def MidiCallback(src, message, time_stamp):
 
                 if gv.SYSTEM_MODE > 0:
                     # Hans
-
                     for n in range(len(gv.CHORD_NOTES[gv.current_chord])):
                         playnote = midinote + gv.CHORD_NOTES[gv.current_chord][n]
                         for m in gv.sustainplayingnotes:  # safeguard polyphony; don't sustain double notes
@@ -203,10 +203,28 @@ def MidiCallback(src, message, time_stamp):
                                     # print "clean note " + str(playnote)
                                     m.fadeout(50)
                                 gv.playingnotes[playnote] = []  # housekeeping
+
+                        # Start David Hilowitz
+                        # Get the list of available samples for this note and velocity
+                        notesamples = gv.samples[gv.preset][playnote, velocity, gv.currvoice]
+                        print '>>>>>>>>>>>>'
+                        print notesamples
+                        # Choose a sample from the list
+                        sample = random.choice(notesamples)
+                        # If we have no value for lastplayedseq, set it to 0
+                        gv.lastplayedseq.setdefault(playnote, 0)
+
+                        # If we have more than 2 samples to work with, reject duplicates
+                        if len(notesamples) >= 3:
+                            while sample.seq == gv.lastplayedseq[playnote]:
+                                sample = random.choice(notesamples)
+                        # End David Hilowitz
                         gv.triggernotes[playnote] = midinote  # we are last playing this one
                         # print "start note " + str(playnote)
                         gv.playingnotes.setdefault(playnote, []).append(
-                            gv.samples[gv.preset][playnote, velocity, gv.currvoice].play(playnote, velmixer))
+                            sample.play(playnote, velmixer))
+
+                        gv.lastplayedseq[playnote] = sample.seq # David Hilowitz
 
 
             except:
