@@ -4,12 +4,14 @@
 import os
 import re
 import threading
+import time
+
 import numpy
+import psutil
+
 import globalvars as gv
 import sound
-import time
-import psutil
-import definitionparser
+from modules import definitionparser
 
 LoadingThread = None
 LoadingInterrupt = False

@@ -211,30 +211,65 @@ def AudioCallback(outdata, frame_count, time_info, status):
 # OPEN AUDIO DEVICE
 #########################################
 print '\n#### START OF AUDIO DEVICES ####\n'
-print sounddevice.query_devices() # all available audio devices
+print sounddevice.query_devices()  # all available audio devices
 
-# Select a device by the name specified in the config.ini (if found)
-# If no match is found, use the default AUDIO_DEVICE_ID
-i = 0
-for d in sounddevice.query_devices():
-    if gv.AUDIO_DEVICE_NAME in d['name']:
-        gv.AUDIO_DEVICE_ID = i
-        print '\n>>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
-        break
-    i += 1
 
-try:
-    sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, samplerate=gv.SAMPLERATE,
-                                  channels=gv.CHANNELS, dtype='int16', latency='low',
-                                  callback=AudioCallback)
-    sd.start()
-    print '>>>>> Opened audio device #%i (latency: %ims)' % (gv.AUDIO_DEVICE_ID, sd.latency * 1000)
-except:
-    gv.displayer.disp_change(str_override="Invalid audio device")
-    print 'Available devices:'
-    print(sounddevice.query_devices())
-    print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
-    # exit(1)
+
+sd = None
+
+def start_stream():
+    global sd
+    try:
+        sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, samplerate=gv.SAMPLERATE,
+                                      channels=gv.CHANNELS, dtype='int16', latency='low',
+                                      callback=AudioCallback)
+        sd.start()
+        print '>>>>> Opened audio device #%i (latency: %ims)' % (gv.AUDIO_DEVICE_ID, sd.latency * 1000)
+    except:
+        gv.displayer.disp_change(str_override="Invalid audio device")
+        print 'Available devices:'
+        print(sounddevice.query_devices())
+        print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
+        # exit(1)
+
+
+def close_stream():
+    global sd
+    if sd:
+        print ">>>>> Closing sounddevice stream"
+        sd.abort()
+        sd.stop()
+        sd.close()
+
+def get_all_audio_devices():
+    all_output_devices = {}
+    i = 0
+    for d in sounddevice.query_devices():
+        if d['max_output_channels'] > 0:
+            all_output_devices[i] = d
+            i += 1
+    return all_output_devices
+
+"""
+Select a device by name. On startup try AUDIO_DEVICE_NAME specified in the config.ini.
+If no match is found, use the default AUDIO_DEVICE_ID.
+In SYSTEM_MODE=1 we can change the device via the menu.
+"""
+def set_audio_device(device_name):
+    i = 0
+    try:
+        for d in sounddevice.query_devices():
+            if device_name in d['name'] and d['max_output_channels'] > 0:
+                gv.AUDIO_DEVICE_ID = i
+                print '\n>>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
+                break
+            i += 1
+    except:
+        pass
+    close_stream()
+    start_stream()
+
+set_audio_device(gv.AUDIO_DEVICE_NAME)
 
 if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
     import alsaaudio
@@ -276,3 +311,5 @@ else:
         pass
 
 print '\n#### END OF AUDIO DEVICES ####\n'
+
+
