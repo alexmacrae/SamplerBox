@@ -11,14 +11,15 @@
 # Import
 #
 #########################################
-import os
+import threading
+import time
+
 import configparser
+
 import configparser_samplerbox as cs
 import globalvars as gv
 import loadsamples as ls
 import menudict
-import threading
-import time
 
 
 def write_setlist(list_to_write):
@@ -262,6 +263,9 @@ class MenuNav(Navigator):
         gv.displayer.menu_mode = gv.displayer.DISP_MENU_MODE
         gv.displayer.disp_change(changed_var=self.getMenuPathStr(), line=1, timeout=0)
         gv.displayer.disp_change(changed_var='-' * 20, line=2, timeout=0)
+        gv.displayer.disp_change(changed_var='', line=3, timeout=0)
+        gv.displayer.disp_change(changed_var='', line=4, timeout=0)
+
 
     def left(self):
 
@@ -289,7 +293,6 @@ class MenuNav(Navigator):
                 self.menuCoords.append(0)
                 self.loadState(MenuNav)
             if menu.has_key('fn'):
-
                 if (menu.get('fn') == 'MidiLearn') or (menu.get('fn') == 'DeleteMidiMap'):
                     self.menuCoords.append(0)
                     Navigator.state = eval(menu.get('fn'))(functionToMap, functionNiceName)
@@ -297,6 +300,7 @@ class MenuNav(Navigator):
                     Navigator.state = eval(menu.get('fn')[0])(eval(menu.get('fn')[1]))  # for SelectSong
                 else:
                     Navigator.state = eval(menu.get('fn'))()
+
 
         except:
             pass
@@ -357,9 +361,9 @@ class MoveSong(Navigator):
     def left(self):
         if (gv.preset > 0):
             self.setlist_list[int(gv.preset)], self.setlist_list[int(gv.preset) - 1] = self.setlist_list[
-                                                                                         int(gv.preset) - 1], \
-                                                                                     self.setlist_list[
-                                                                                         int(gv.preset)]
+                                                                                           int(gv.preset) - 1], \
+                                                                                       self.setlist_list[
+                                                                                           int(gv.preset)]
             gv.preset -= 1
             # write_setlist(self.setlist_list)
         self.display()
@@ -368,9 +372,9 @@ class MoveSong(Navigator):
     def right(self):
         if (gv.preset < len(self.setlist_list) - 1):
             self.setlist_list[int(gv.preset)], self.setlist_list[int(gv.preset) + 1] = self.setlist_list[
-                                                                                         int(gv.preset) + 1], \
-                                                                                     self.setlist_list[
-                                                                                         int(gv.preset)]
+                                                                                           int(gv.preset) + 1], \
+                                                                                       self.setlist_list[
+                                                                                           int(gv.preset)]
             gv.preset += 1
             # write_setlist(self.setlist_list)
         self.display()
@@ -795,11 +799,10 @@ class MasterVolumeConfig(Navigator):
     def cancel(self):
         self.enter()
 
+
 # _____________________________________________________________________________
 
-import definitionparser
-
-
+from modules import definitionparser
 
 
 def set_global_from_keyword(keyword, value):
@@ -807,16 +810,14 @@ def set_global_from_keyword(keyword, value):
     if isinstance(value, str): value = value.title()
     for gvar, k in definitionparser.keywords_to_try:
         if k == keyword:
+            if 'release' in keyword: value = value * 10000
             print '>>>>>>>Setting global from keyword. %s: %s' % (keyword, str(value))  # debug
-            exec (gvar + '=value') # set the global variable
-
-
-
-
+            exec (gvar + '=value')  # set the global variable
 
 
 def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
+
 
 class EditDefinition(Navigator):
     def __init__(self):
@@ -836,7 +837,6 @@ class EditDefinition(Navigator):
         self.keywords_defaults_dict = self.dp.keywords_defaults_dict
         self.display()
 
-
     def display(self):
         if not self.in_a_mode:
             keyword_str = self.keywords_dict[self.mode].items()[0][0].strip('%%').title()
@@ -852,7 +852,6 @@ class EditDefinition(Navigator):
             line_str = keyword_str + ' ' + value_str
             gv.displayer.disp_change(self.song_name, line=1, timeout=0)
             gv.displayer.disp_change(line_str, line=2, timeout=0)
-
 
     def left(self):
         if not self.in_a_mode:
@@ -871,14 +870,13 @@ class EditDefinition(Navigator):
 
         self.display()
 
-
     def right(self):
         if not self.in_a_mode:
-            if not self.mode >= len(self.keywords_dict)-1:
+            if not self.mode >= len(self.keywords_dict) - 1:
                 self.mode += 1
         else:
             if isinstance(self.allowed_values, list):
-                if not self.i >= len(self.allowed_values)-1:
+                if not self.i >= len(self.allowed_values) - 1:
                     self.i += 1
                     self.selected_keyword_value = self.allowed_values[self.i]
             elif isinstance(self.allowed_values, tuple):
@@ -888,9 +886,6 @@ class EditDefinition(Navigator):
             set_global_from_keyword(self.selected_keyword, self.selected_keyword_value)
 
         self.display()
-
-
-
 
     def enter(self):
         if not self.in_a_mode:
@@ -905,7 +900,7 @@ class EditDefinition(Navigator):
                 elif isinstance(self.allowed_values, tuple):
                     self.i = self.selected_keyword_value
 
-                print '### %s exists with a value of %s ###'\
+                print '### %s exists with a value of %s ###' \
                       % (self.selected_keyword.title(), str(self.selected_keyword_value).title())
             else:
                 self.i = int(self.keywords_defaults_dict[self.selected_keyword])
@@ -913,7 +908,7 @@ class EditDefinition(Navigator):
                     self.selected_keyword_value = self.keywords_dict[self.i]
                 elif isinstance(self.allowed_values, tuple):
                     self.selected_keyword_value = self.i
-                print '### %s does not exist. Set default: %d ###'\
+                print '### %s does not exist. Set default: %d ###' \
                       % (self.selected_keyword.title(), self.i)
             self.display()
         elif self.in_a_mode:
@@ -936,3 +931,40 @@ class EditDefinition(Navigator):
             self.display()
 
 
+class AudioDevice(Navigator):
+
+    def __init__(self):
+        import sound
+        self.all_audio_devices = sound.get_all_audio_devices()
+        self.i = 0
+        self.device_name = str(self.all_audio_devices[self.i].get('name'))
+        self.display(False)
+
+    def display(self, changed=False):
+        gv.displayer.disp_change('Choose new audio device', line=1, timeout=0)
+        if changed:
+            gv.displayer.disp_change('Device changed', line=2, timeout=0)
+            gv.displayer.disp_change(self.device_name, line=3, timeout=0)
+        else:
+            gv.displayer.disp_change(self.device_name, line=2, timeout=0)
+            gv.displayer.disp_change('', line=3, timeout=0)
+
+    def left(self):
+        if self.i > 0:
+            self.i -= 1
+        self.device_name = str(self.all_audio_devices[self.i].get('name'))
+        self.display(False)
+
+    def right(self):
+        if self.i < len(self.all_audio_devices) - 1:
+            self.i += 1
+        self.device_name = str(self.all_audio_devices[self.i].get('name'))
+        self.display(False)
+
+    def enter(self):
+        import sound
+        sound.set_audio_device(self.device_name)
+        self.display(changed=True)
+
+    def cancel(self):
+        self.loadState(MenuNav)

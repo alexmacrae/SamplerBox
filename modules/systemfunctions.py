@@ -1,6 +1,6 @@
 import globalvars as gv
 from time import sleep
-
+import sound
 
 
 class SystemFunctions:
@@ -37,6 +37,7 @@ class SystemFunctions:
         gv.displayer.disp_change(str_override='Good bye!', line=3, timeout=1)
         gv.displayer.disp_change(str_override='Good bye!', line=4, timeout=1)
         sleep(0.02)
+        sound.close_stream()
         if gv.IS_DEBIAN:
             import RPi.GPIO as GPIO
             GPIO.cleanup()
