@@ -40,7 +40,7 @@ The previous examples also showed the usage of global keywords. Available global
 |%%mode= |Description                                                                              |
 +========+=========================================================================================+
 |keyb    | | "Normal": end on note-off and use loop markers if any while key is pressed            |
-|        | | (original samplerbox).                                                                |
+|        | | (original SamplerBox).                                                                |
 +--------+-----------------------------------------------------------------------------------------+
 |once    | | "Playback": play sample from start to end ignoring standard note-off.                 |
 +--------+-----------------------------------------------------------------------------------------+
@@ -63,8 +63,8 @@ The way that volume is derived from the velocity.
 +-----------+--------------------------------------------------------------------------------------+
 |%%velmode= |Description                                                                           |
 +===========+======================================================================================+
-|sample     | | volume equals the value in the sample, so it requires multiple samples using       |
-|           | | the %velocity parameter to get differentation (original samplerbox).               |
+|sample     | | Volume equals the value in the sample, so it requires multiple samples using       |
+|           | | the %velocity parameter to get differentiation (original SamplerBox).              |
 +-----------+--------------------------------------------------------------------------------------+
 |accurate   | | "Playback": play sample from start to end ignoring standard note-off.              |
 +-----------+--------------------------------------------------------------------------------------+
@@ -103,3 +103,23 @@ Default is 0. The script assigns "middle C" (C4) to midi note 60. With this you 
 The depth of the pitchbend in semitones.
 
 Possible values: 0-12, where 12 means range is 1 octave up and down and zero disables the pitchwheel/joystick.
+
+
+Examples
+--------
+
+Example 1
+^^^^^^^^^
+
++--------------------------------|----------------------------------------
+|D#5v16.wav                      | | The original GrandPiano set uses multiple lines specifying the wav's to be selected and the corresponding fixed velocity value. Remember that default velocity is 127
+|D#5v16.wav                      | | %%mode=keyb
+|D#5v16.wav                      | | %%velmode=sample
+|D#5v16.wav                      | | %notenamev4.wav,%velocity=40
+|D#5v16.wav                      | | %notenamev7.wav,%velocity=60
+|D#5v16.wav                      | | %notenamev11.wav,%velocity=80
+|D#5v16.wav                      | | %notenamev14.wav,%velocity=100
+|D#5v16.wav                      | | %notenamev16.wav
+
+
+03 Alesis-Fusion-Bass-Loop.wav

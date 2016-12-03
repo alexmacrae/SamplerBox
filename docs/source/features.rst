@@ -85,6 +85,7 @@ Sustain
 
 Pitch wheel
 ```````````
+
 .. warning::
 
     Feature not implemented yet.
@@ -98,6 +99,7 @@ Mod wheel
 SamplerBox Navigation
 `````````````````````
 Map MIDI controls to each of the 4 navigation buttons (left, right, enter and cancel). Mapping a control to one of these functions will not override any other controls mapped to the same function, thus allowing
+
 
 .. _system-settings:
 

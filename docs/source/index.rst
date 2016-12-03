@@ -62,8 +62,9 @@ About
 
 .. toctree::
     :maxdepth: 2
-    :caption: Licensing
+    :caption: Other
 
+    faq
     license
 
 Indices and tables
