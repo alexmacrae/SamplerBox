@@ -45,6 +45,7 @@ About
     installation
     features
     config
+    definition
 
 .. _how-tos:
 
@@ -53,7 +54,6 @@ About
     :caption: How Tos
 
     howto-makesamplesets
-    howto-managedefinitiontxt
     howto-setupsoftware
     howto-buildelectronics
     howto-buildenclosure

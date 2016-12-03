@@ -54,7 +54,7 @@ If MIDI controls and/or GPIO pins connected to buttons are known, you may define
 
 .. note::
 
-    NB: when ``PRINT_MIDI_MESSAGES = true``, SamplerBox will return MIDI messages in the format required below.
+    When ``PRINT_MIDI_MESSAGES = true``, SamplerBox will return MIDI messages in the format required below.
 
 ::
 
