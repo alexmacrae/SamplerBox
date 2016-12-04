@@ -1,13 +1,17 @@
 The config.ini
 ==============
 
-The config.ini file contains settings for your SamplerBox.
+The ``config.ini`` file contains settings for your SamplerBox.
+
+.. note::
+
+    In :ref:`system-mode-1` many of these settings are configurable from the menu. However an initial setup of this
+    file may still be required.
 
 Main configuration
 ^^^^^^^^^^^^^^^^^^
 
 ::
-
 
     MAX_POLYPHONY = 80
     MIDI_CHANNEL = 0
@@ -42,7 +46,6 @@ Useful for debugging issues (when connected to a screen or via SSH) and seeing w
 
     PRINT_MIDI_MESSAGES = true
     PRINT_LCD_MESSAGES = true
-
 
 
 System mode 1 controls
