@@ -7,8 +7,10 @@ The definition.txt files
 Definition of sample names
 --------------------------
 
-In the most basic situation, the sample files within the folders have to be called 0.wav, 2.wav and so on till 127.wav. For the translation of notes to numbers, see the picture on the right.
-The structure of names within this folder can described in the definition.txt on or more line(s) using keywords and fixed text (wildcards can be used).
+In the most basic situation, the sample files within the folders have to be called 0.wav, 2.wav and so on till 127.wav.
+For the translation of notes to numbers, see the picture on the right.
+The structure of names within this folder can described in the definition.txt on or more line(s) using keywords and fixed
+text (wildcards can be used).
 
 +-------------------+------------------------------------------------------------------------------+
 |Definition keyword |Description                                                                   |
@@ -32,14 +34,15 @@ The structure of names within this folder can described in the definition.txt on
 Global behaviour keywords
 -------------------------
 
-The previous examples also showed the usage of global keywords. Available global keywords in the definition.txt for influencing the playback on load of preset/patch (all lowercase).
+The previous examples also showed the usage of global keywords. Available global keywords in the definition.txt for
+influencing the playback on load of preset/patch (all lowercase).
 
 %%mode
 ^^^^^^
 +--------+-----------------------------------------------------------------------------------------+
 |%%mode= |Description                                                                              |
 +========+=========================================================================================+
-|keyb    | | "Normal": end on note-off and use loop markers if any while key is pressed            |
+|keyb    | | (Default) "Normal": end on note-off and use loop markers if any while key is pressed  |
 |        | | (original SamplerBox).                                                                |
 +--------+-----------------------------------------------------------------------------------------+
 |once    | | "Playback": play sample from start to end ignoring standard note-off.                 |
@@ -63,8 +66,8 @@ The way that volume is derived from the velocity.
 +-----------+--------------------------------------------------------------------------------------+
 |%%velmode= |Description                                                                           |
 +===========+======================================================================================+
-|sample     | | Volume equals the value in the sample, so it requires multiple samples using       |
-|           | | the %velocity parameter to get differentiation (original SamplerBox).              |
+|sample     | | (Default) Volume equals the value in the sample, so it requires multiple           |
+|           | | samples using the %velocity parameter to get differentiation (original SamplerBox).|
 +-----------+--------------------------------------------------------------------------------------+
 |accurate   | | "Playback": play sample from start to end ignoring standard note-off.              |
 +-----------+--------------------------------------------------------------------------------------+
@@ -73,21 +76,26 @@ The way that volume is derived from the velocity.
 %%release
 ^^^^^^^^^
 
-Time to fadeout playback volume from the sample level to zero after the key is released (=note-off received) in tenth's of seconds.
+Time to fadeout playback volume from the sample level to zero after the key is released (=note-off received) in
+tenth's of seconds.
 
-Default is 3 (0.3 seconds).
+Default = 3 (0.3 seconds).
 
 %%gain
 ^^^^^^
 
-Adapts sample volume before alsamixer by means of a multiplication factor. With this you can adapt presets to SamplerBox input without actually changing the wav files.
+Adapts sample volume before alsamixer by means of a multiplication factor. With this you can adapt presets to
+SamplerBox input without actually changing the wav files.
 
-Default is 1. Possible values: 2, 1.5, 0.25, .5 etc.
+Default = 1. Possible values: 2, 1.5, 0.25, .5 etc.
 
 %%transpose
 ^^^^^^^^^^^
 
-Default is 0. The script assigns "middle C" (C4) to midi note 60. With this you can for instance normalize presets using C3 or C5 without renaming the WAV-files.
+The script assigns "middle C" (C4) to midi note 60. With this you can for instance normalize
+presets using C3 or C5 without renaming the WAV-files.
+
+Default = 0.
 
 .. note::
 
@@ -111,15 +119,18 @@ Examples
 Example 1
 ^^^^^^^^^
 
-+--------------------------------|----------------------------------------
-|D#5v16.wav                      | | The original GrandPiano set uses multiple lines specifying the wav's to be selected and the corresponding fixed velocity value. Remember that default velocity is 127
-|D#5v16.wav                      | | %%mode=keyb
-|D#5v16.wav                      | | %%velmode=sample
-|D#5v16.wav                      | | %notenamev4.wav,%velocity=40
-|D#5v16.wav                      | | %notenamev7.wav,%velocity=60
-|D#5v16.wav                      | | %notenamev11.wav,%velocity=80
-|D#5v16.wav                      | | %notenamev14.wav,%velocity=100
-|D#5v16.wav                      | | %notenamev16.wav
+The original GrandPiano set uses multiple lines specifying the wav's to be
+selected and the corresponding fixed velocity value. Remember that default velocity is 127
+
++-----------|----------------------------------------
+|D#5v16.wav | |
+|D#5v16.wav | | %%mode=keyb
+|D#5v16.wav | | %%velmode=sample
+|D#5v16.wav | | %notenamev4.wav,%velocity=40
+|D#5v16.wav | | %notenamev7.wav,%velocity=60
+|D#5v16.wav | | %notenamev11.wav,%velocity=80
+|D#5v16.wav | | %notenamev14.wav,%velocity=100
+|D#5v16.wav | | %notenamev16.wav
 
 
 03 Alesis-Fusion-Bass-Loop.wav
