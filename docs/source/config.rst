@@ -1,17 +1,17 @@
 The config.ini
-==============
+**************
 
 The ``config.ini`` file contains settings for your SamplerBox.
 
 .. note::
 
     In :ref:`system-mode-1` many of these settings are configurable from the menu. However an initial setup of this
-    file may still be required.
+    file is likely required.
 
 Main configuration
-^^^^^^^^^^^^^^^^^^
+==================
 
-::
+.. code-block:: text
 
     MAX_POLYPHONY = 80
     MIDI_CHANNEL = 0
@@ -38,28 +38,29 @@ Main configuration
 
 
 System messages
-^^^^^^^^^^^^^^^
+===============
 
 Useful for debugging issues (when connected to a screen or via SSH) and seeing what MIDI messages are being sent by a MIDI device.
 
-::
+.. code-block:: text
 
     PRINT_MIDI_MESSAGES = true
     PRINT_LCD_MESSAGES = true
 
 
 System mode 1 controls
-^^^^^^^^^^^^^^^^^^^^^^
+======================
 
-Controls for controlling and navigating the SamplerBox when in System Mode 1.
+Controls for controlling and navigating the SamplerBox when in :ref:`system-mode-1`.
 
 If MIDI controls and/or GPIO pins connected to buttons are known, you may define them here.
 
 .. note::
 
     When ``PRINT_MIDI_MESSAGES = true``, SamplerBox will return MIDI messages in the format required below.
+    This only needs to be done once.
 
-::
+.. code-block:: text
 
     BUTTON_LEFT_MIDI = 176, 48, <nanoKONTROL2>
     BUTTON_RIGHT_MIDI = 176, 50, <nanoKONTROL2>
@@ -72,13 +73,18 @@ If MIDI controls and/or GPIO pins connected to buttons are known, you may define
     BUTTON_CANCEL_GPIO = 12
 
 System mode 2 controls
-^^^^^^^^^^^^^^^^^^^^^^
+======================
 
-Controls for controlling and navigating the SamplerBox when in System Mode 2.
+Controls for controlling and navigating the SamplerBox when in :ref:`system-mode-2`.
 
 If MIDI controls and/or GPIO pins connected to buttons are known, you may define them here.
 
-::
+.. note::
+
+    When ``PRINT_MIDI_MESSAGES = true``, SamplerBox will return MIDI messages in the format required below.
+    This only needs to be done once.
+
+.. code-block:: text
 
     BUTTON_UP_MIDI = 176, 50, <nanoKONTROL2>
     BUTTON_DOWN_MIDI = 176, 48, <nanoKONTROL2>
@@ -89,11 +95,11 @@ If MIDI controls and/or GPIO pins connected to buttons are known, you may define
     BUTTON_FUNC_GPIO = 6
 
 GPIO pin setup for HD44780 LCD modules
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+======================================
 
 If you're using a HD44780 LCD module (16x2 or 20x4) you must define the numbers of the GPIO pins they are connected to here.
 
-::
+.. code-block:: text
 
     GPIO_LCD_RS = 7
     GPIO_LCD_E = 8
@@ -103,11 +109,11 @@ If you're using a HD44780 LCD module (16x2 or 20x4) you must define the numbers 
     GPIO_LCD_D7 = 4
 
 GPIO pin setup for a 7 segment display
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+======================================
 
 If you're using a 7 segment display you must define the number of the GPIO pin it is connected to here.
 
-::
+.. code-block:: text
 
     GPIO_7SEG = 1
 

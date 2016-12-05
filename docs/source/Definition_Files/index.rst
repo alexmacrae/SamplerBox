@@ -1,14 +1,16 @@
 The definition.txt files
-========================
+************************
 
-
+If you're not naming your samples by the convention ``45.wav``, ``46.wav`` etc, or ``C1.wav``, ``C#1.wav`` etc, you can
+create a ``definition.txt`` file inside a sample-set's directory. This file tells SamplerBox how to read and playback
+samples.
 
 
 Definition of sample names
---------------------------
+==========================
 
 In the most basic situation, the sample files within the folders have to be called 0.wav, 2.wav and so on till 127.wav.
-For the translation of notes to numbers, see the picture on the right.
+
 The structure of names within this folder can described in the definition.txt on or more line(s) using keywords and fixed
 text (wildcards can be used).
 
@@ -27,18 +29,26 @@ text (wildcards can be used).
 |                   | | sample set, so that switching between them has no delay.                   |
 +-------------------+------------------------------------------------------------------------------+
 |%seq               | | If you have multiple versions of the same sample (eg different snare       |
-|                   | | samples) you can number them. On playback a random sample will be selected.|
+|                   | | samples) you can number them. On playback a random sample will             |
+|                   | | be selected.                                                               |
 +-------------------+------------------------------------------------------------------------------+
 
 
-Global behaviour keywords
--------------------------
+.. _global-keywords:
 
-The previous examples also showed the usage of global keywords. Available global keywords in the definition.txt for
-influencing the playback on load of preset/patch (all lowercase).
+Global behaviour keywords
+=========================
+
+These are global keywords in the definition.txt for influencing the playback upon load of a preset/sample-set.
+For every keyword not defined in the file, the default value is used.
+
+.. note::
+
+    In ``system-mode-1`` it is possible to modify these keywords from menu.
 
 %%mode
-^^^^^^
+------
+
 +--------+-----------------------------------------------------------------------------------------+
 |%%mode= |Description                                                                              |
 +========+=========================================================================================+
@@ -59,7 +69,7 @@ influencing the playback on load of preset/patch (all lowercase).
 +--------+-----------------------------------------------------------------------------------------+
 
 %%velmode
-^^^^^^^^^
+---------
 
 The way that volume is derived from the velocity.
 
@@ -74,63 +84,54 @@ The way that volume is derived from the velocity.
 
 
 %%release
-^^^^^^^^^
+---------
 
 Time to fadeout playback volume from the sample level to zero after the key is released (=note-off received) in
 tenth's of seconds.
 
-Default = 3 (0.3 seconds).
+.. code-block:: text
+
+    Default = 3 (0.3 seconds)
 
 %%gain
-^^^^^^
+------
 
 Adapts sample volume before alsamixer by means of a multiplication factor. With this you can adapt presets to
 SamplerBox input without actually changing the wav files.
 
-Default = 1. Possible values: 2, 1.5, 0.25, .5 etc.
+.. code-block:: text
+
+    Default = 1
+    Possible values: 2, 1.5, 0.25, .5 etc.
 
 %%transpose
-^^^^^^^^^^^
+-----------
 
-The script assigns "middle C" (C4) to midi note 60. With this you can for instance normalize
-presets using C3 or C5 without renaming the WAV-files.
+Transpose up or down a desired number of semitones.
 
-Default = 0.
+.. code-block:: text
 
-.. note::
+    Default = 0
 
-    12 is 1 octave up. Conversely -12 is 1 octave down.
-
-.. note::
-
-    Original SamplerBox uses C5.
 
 %%pitchbend
-^^^^^^^^^^^
+-----------
 
 The depth of the pitchbend in semitones.
 
-Possible values: 0-12, where 12 means range is 1 octave up and down and zero disables the pitchwheel/joystick.
+Possible values: 0-12, where 12 means range is 1 octave up and down and zero disables the pitch wheel/joystick.
 
+.. code-block:: text
+
+    Default = 7
+
+-----------------------------------
 
 Examples
---------
+========
 
-Example 1
-^^^^^^^^^
+.. toctree::
+    :maxdepth: 3
 
-The original GrandPiano set uses multiple lines specifying the wav's to be
-selected and the corresponding fixed velocity value. Remember that default velocity is 127
+    examples
 
-+-----------|----------------------------------------
-|D#5v16.wav | |
-|D#5v16.wav | | %%mode=keyb
-|D#5v16.wav | | %%velmode=sample
-|D#5v16.wav | | %notenamev4.wav,%velocity=40
-|D#5v16.wav | | %notenamev7.wav,%velocity=60
-|D#5v16.wav | | %notenamev11.wav,%velocity=80
-|D#5v16.wav | | %notenamev14.wav,%velocity=100
-|D#5v16.wav | | %notenamev16.wav
-
-
-03 Alesis-Fusion-Bass-Loop.wav
