@@ -1,6 +1,9 @@
 Frequently asked questions
 ==========================
 
+.. contents:: :local:
+
+
 What is SamplerBox, and why this project?
 -----------------------------------------
 

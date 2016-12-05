@@ -8,11 +8,7 @@ Welcome to SamplerBox
 
 An open-source audio sampler project based on RaspberryPi.
 
-This modification is very much a work in progress and is likely to be buggy - please bare with me! You will need a
-HD44780 LCD screen and an external USB DAC. Configurations may need to be made in `lcd.py` and `globalvars.py`.
-I'll work to make this less painful in the future.
-
-Website: `www.samplerbox.org <http://www.samplerbox.org>`_
+This modification has some significant changes and additions to Joseph Ernet's original `SamplerBox <http://www.samplerbox.org>`_.
 
 .. image:: http://gget.it/flurexml/1.jpg
     :target: https://www.youtube.com/watch?v=yz7GZ8YOjTw
@@ -45,10 +41,10 @@ About
     :caption: User Documentation
 
     installation
-    using-samplerbox
     features
+    Using_SamplerBox/index
     config
-    definition
+    Definition_Files/index
 
 .. _how-tos:
 
@@ -68,6 +64,7 @@ About
     :caption: Other
 
     faq
+    support
     license
 
 Indices and tables
