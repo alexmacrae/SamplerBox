@@ -1,8 +1,6 @@
 Features
 ********
 
-
-
 Basic features
 ==============
 
@@ -14,7 +12,9 @@ Two system modes
 ================
 
 SamplerBox has two system modes available which is determined by the ``SYSTEM_MODE`` option in ``config.ini``.
-
+:ref:`system-mode-1` (by Alex MacRae) has more advanced features such as setlist mode, ability to modify
+system settings, MIDI mapping, and more. :ref:`system-mode-2` (by Hans Hommersom) is a simpler and arguably easier system
+to use but with less features.
 
 Voices
 ======
