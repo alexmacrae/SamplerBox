@@ -20,6 +20,7 @@ MIDI_CHANNEL = int(cp.get_option_by_name('MIDI_CHANNEL'))
 CHANNELS = int(cp.get_option_by_name('CHANNELS'))
 BUFFERSIZE = int(cp.get_option_by_name('BUFFERSIZE'))
 SAMPLERATE = int(cp.get_option_by_name('SAMPLERATE'))
+RAM_LIMIT_PERCENTAGE = int(cp.get_option_by_name('RAM_LIMIT_PERCENTAGE'))
 global_volume = int(cp.get_option_by_name('GLOBAL_VOLUME'))
 global_volume_percent = int((float(global_volume) / 100.0) * 100)
 global_volume = 0 if global_volume < 0 else 100 if global_volume > 100 else global_volume
@@ -180,6 +181,7 @@ nav = None
 displayer = None
 sysfunc = None
 ac = None
+setlist = None
 
 # add to selection of samples, not to Velocity Volume
 VelocitySelectionOffset = 0
@@ -202,7 +204,7 @@ VELOCITY_MODE_DEFAULT = VELACCURATE # we need a default: original samplerbox
 sample_mode = PLAYLIVE  # we need a default: original samplerbox
 velocity_mode = VELOCITY_MODE_DEFAULT
 # global_volume used in favour
-# volume = 87  # the startup (alsa=output) volume (0-100), change with function buttons
+# volume_alsa = 87  # the startup (alsa=output) volume (0-100), change with function buttons
 volumeCC = 1.0  # assumed value of the volumeknob controller before first use, max=1.0 (the knob can only decrease).
 PRESET_BASE = 0  # Does the programchange / sample set start at 0 (MIDI style) or 1 (human style)
 preset = 0 + PRESET_BASE  # the default patch to load
@@ -235,13 +237,13 @@ SPEED = numpy.power(2, numpy.arange(-48.0 * PITCHSTEPS, 48.0 * PITCHSTEPS) / (12
 # BACKING TRACK VARS
 ###################
 
-wf_back = None
-wf_click = None
-BackingRunning = False
-backvolume = 0
-backvolumeDB = 0
-clickvolume = 0
-clickvolumeDB = 0
+# wf_back = None
+# wf_click = None
+# BackingRunning = False
+# backvolume = 0
+# backvolumeDB = 0
+# clickvolume = 0
+# clickvolumeDB = 0
 
 ###################
 # MIDI LEARNING
