@@ -1,10 +1,5 @@
-.. SamplerBox documentation master file, created by
-   sphinx-quickstart on Fri Dec 02 12:02:07 2016.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 SamplerBox
-**********
+==========
 
 An open-source audio sampler project based on `Raspberry Pi <https://www.raspberrypi.org/>`_.
 
@@ -17,12 +12,19 @@ smaller pieces/modules.
 
 .. image:: http://gget.it/flurexml/1.jpg
     :target: https://www.youtube.com/watch?v=yz7GZ8YOjTw
+    :align: center
 
 .. image:: http://img.youtube.com/vi/-JsubgWiJeg/sddefault.jpg
     :target: https://www.youtube.com/watch?v=-JsubgWiJeg
+    :align: center
 
+Documentation
+=============
 
-**Contributors**
+More in-depth documentation can be found `here <http://samplerbox.readthedocs.io/>`_.
+
+Contributors
+------------
 
 +------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 |**Joseph Ernest** |twitter: `@JosephErnest <http:/twitter.com/JosephErnest>`_ mail: `contact@samplerbox.org <mailto:contact@samplerbox.org>`_              |
@@ -35,38 +37,7 @@ smaller pieces/modules.
 +------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 
-.. _user-docs:
+License
+-------
 
-.. toctree::
-    :maxdepth: 3
-    :caption: User Documentation
-    :glob:
-
-    installation
-    features
-    Using_SamplerBox/index
-    config
-    Definition_Files/index
-
-.. _how-tos:
-
-.. toctree::
-    :maxdepth: 3
-    :caption: How Tos
-    :glob:
-
-    howto-makesamplesets
-    howto-setupsoftware
-    howto-buildelectronics
-    howto-buildenclosure
-
-.. _other:
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Other
-    :glob:
-
-    faq
-    support
-    license
+`Creative Commons BY-SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0>`_

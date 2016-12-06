@@ -4,7 +4,7 @@ Build the electronic parts
 .. image:: http://www.samplerbox.org/files/samplerbox_schematics.jpg
 
 
-* Raspberry Pi 2 : ~ 39€
+* Raspberry Pi : ~ 39€
 * Sparkfun 7-segment display : ~ 12 €
 * USB DAC PCM2704 : ~ 6,50 €
 * PCB SD card reader : ~ 1 €
