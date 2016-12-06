@@ -1,14 +1,9 @@
-#########################################
-# LOAD SAMPLES
-#########################################
 import os
 import re
 import threading
 import time
-
 import numpy
 import psutil
-
 import globalvars as gv
 import sound
 from modules import definitionparser
@@ -22,12 +17,9 @@ preset_current_is_loaded = False
 preset_current_loading = gv.preset
 preset_change_triggered = False
 
-RAM_usage_limit = 90  # Percentage of RAM we should allow samples to be loaded into before killing
-
-
-#####################
-# Initiate sample loading
-#####################
+###########################
+# Initiate sample loading #
+###########################
 
 def LoadSamples():
     global LoadingThread, LoadingInterrupt, preset_current_is_loaded, preset_current_loading, preset_change_triggered
@@ -47,10 +39,10 @@ def LoadSamples():
     LoadingThread.start()
 
 
-#####################
-# Pause loading script if
-# there are sounds playing
-#####################
+############################
+# Pause loading script if  #
+# there are sounds playing #
+############################
 
 def pause_if_playingsounds():
     if LoadingInterrupt:
@@ -71,12 +63,12 @@ def pause_if_playingsounds():
 
 
 #####################
-# Memory management
+# Memory management #
 #####################
 
 def is_memory_too_high():
     RAM_usage_percentage = psutil.virtual_memory().percent
-    if RAM_usage_percentage > RAM_usage_limit:
+    if RAM_usage_percentage > gv.RAM_LIMIT_PERCENTAGE:
         return True, RAM_usage_percentage
     else:
         return False, RAM_usage_percentage
@@ -123,9 +115,9 @@ def is_all_presets_loaded():
         print '///// Not all presets have been loaded into memory /////'
 
 
-#####################
-# Next and previous preset getters
-#####################
+####################################
+# Next and previous preset getters #
+####################################
 
 def get_next_preset(current_preset):
     if current_preset < len(gv.SONG_FOLDERS_LIST) - 1:
@@ -143,9 +135,9 @@ def get_prev_preset(current_preset):
     return preset_prev_to_load
 
 
-#####################
-# Set globals from dict from definitions
-#####################
+##########################################
+# Set globals from dict from definitions #
+##########################################
 
 def set_globals_from_keywords():
     preset_keywords_dict = gv.samples[gv.preset]['keywords']
@@ -188,9 +180,9 @@ def set_global_fadeout():
         # print 'Preset loaded: ' + str(preset)
 
 
-#####################
-# The mother load
-#####################
+###################
+# The mother load #
+###################
 
 def ActuallyLoad():
     global LoadingThread, preset_current_is_loaded, preset_current_loading, preset_change_triggered
@@ -350,14 +342,16 @@ def ActuallyLoad():
                                 if notename:
                                     midinote = gv.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
                                 if gv.samples[preset_current_loading].has_key((midinote, velocity, voice)):
-                                    for s in gv.samples[preset_current_loading][midinote, velocity, voice]:
-                                        if s.seq == seq:
-                                            print 'Sequence:%i, File:%s already loaded' % (seq, fname)
-                                        else:
-                                            if (midinote, velocity, voice) in gv.samples[preset_current_loading]:
-                                                gv.samples[preset_current_loading][midinote, velocity, voice].append(sound.Sound(
-                                                    os.path.join(dirname, fname), midinote, velocity, seq))
-                                                print 'Found Sequence:%i of File:%s -- loading' % (seq, fname)
+                                    # Find samples marked for randomization (seq).
+                                    # Check existing list of sound objects if s.seq == seq
+                                    if any(s.seq == seq for s in gv.samples[preset_current_loading][midinote, velocity, voice]):
+                                        print 'Sequence:%i, File:%s already loaded' % (seq, fname)
+                                        break
+                                    else:
+                                        if (midinote, velocity, voice) in gv.samples[preset_current_loading]:
+                                            gv.samples[preset_current_loading][midinote, velocity, voice].append(sound.Sound(
+                                                os.path.join(dirname, fname), midinote, velocity, seq))
+                                            print 'Sample randomization: found seq:%i (%s) >> loading' % (seq, fname)
                                 else:
                                     gv.samples[preset_current_loading][midinote, velocity, voice] = [
                                         sound.Sound(
