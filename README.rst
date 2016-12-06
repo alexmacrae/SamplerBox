@@ -12,14 +12,12 @@ smaller pieces/modules.
 
 .. image:: http://gget.it/flurexml/1.jpg
     :target: https://www.youtube.com/watch?v=yz7GZ8YOjTw
-    :align: center
 
 .. image:: http://img.youtube.com/vi/-JsubgWiJeg/sddefault.jpg
     :target: https://www.youtube.com/watch?v=-JsubgWiJeg
-    :align: center
 
 Documentation
-=============
+-------------
 
 More in-depth documentation can be found `here <http://samplerbox.readthedocs.io/>`_.
 
@@ -31,7 +29,7 @@ Contributors
 +------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 |**Alex MacRae**   |web: `GitHub <https://github.com/alexmacrae/SamplerBox>`_ mail: `alex.finlay.macrae@gmail.com <mailto:alex.finlay.macrae@gmail.com>`_   |
 +------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-|**Hans**          |web: http://homspace.xs4all.nl/homspace/samplerbox/index.html                                                                           |
+|**Hans Hommersom**|web: http://homspace.xs4all.nl/homspace/samplerbox/index.html                                                                           |
 +------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 |**Erik**          |web: http://www.nickyspride.nl/sb2/                                                                                                     |
 +------------------+----------------------------------------------------------------------------------------------------------------------------------------+
