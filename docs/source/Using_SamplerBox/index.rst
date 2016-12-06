@@ -1,10 +1,12 @@
 Using SamplerBox
 ****************
 
+.. _system-modes:
+
 Introduction
 ============
 
-SamplerBox has two available system modes which is determined by the SYSTEM_MODE option in the ``config.ini`` file.
+SamplerBox has two system modes available which is determined by the ``SYSTEM_MODE`` option in ``config.ini``.
 
 +----------------------+---------------------------------------------------------------------------------------+
 |:ref:`system-mode-1`  || config.ini: ``SYSTEM_MODE = 1``                                                      |
