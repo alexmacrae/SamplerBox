@@ -854,7 +854,7 @@ class ChordMode(Navigator):
 
     def display(self):
         if gv.ac.autochorder.chord_set_index == 1 or gv.ac.autochorder.chord_set_index == 2:
-            first_line = 'Mode (Key:%s)' % gv.NOTES[gv.ac.autochorder.current_key_index].capitalize()
+            first_line = 'Mode [Key:%s]' % gv.NOTES[gv.ac.autochorder.current_key_index].capitalize()
         else:
             first_line = 'Mode'
         chord_mode_name = self.AVAILABLE_CHORD_SETS[gv.ac.autochorder.chord_set_index][0]
