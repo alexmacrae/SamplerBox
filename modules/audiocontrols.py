@@ -22,9 +22,6 @@ class AudioControls:
 
     class MasterVolume:
         def setvolume(self, vel):
-            # i = int(float(vel / 127.0) * (hd44780_20x4.LCD_COLS - 1)) + 1
-            # hd44780_20x4.display('Volume', 3)
-            # hd44780_20x4.display((unichr(1) * i), 4)
             gv.global_volume_percent = int((float(vel) / 127.0) * 100)
             gv.global_volume = (10.0 ** (-12.0 / 20.0)) * (float(vel) / 127.0)
             gv.displayer.disp_change('volume')
@@ -75,9 +72,6 @@ class AudioControls:
                     gv.currvoice = 4
 
 
-
-
-
     class Reverb:
 
         if gv.USE_FREEVERB and gv.IS_DEBIAN:
@@ -119,11 +113,8 @@ class AudioControls:
             freeverbmixback = freeverb.mixback
             freeverbmixback.argtypes = [c_float_p, c_float_p, c_float, c_short_p, c_float, c_short_p, c_float, c_int]
 
-
-
             def __init__(self):
                 pass
-
 
             def unichr_multiplier(self, val):
                 return int((val / 127.0 * 100) / 100 * (self.hd44780_20x4.LCD_COLS - 1)) + 1
@@ -138,18 +129,15 @@ class AudioControls:
                 gv.percent_effect = int(val / 127.0 * 100)
                 gv.displayer.disp_change(changed_var=['effect', 'damping'])
 
-
             def setwet(self, val):
                 # Disable Freeverb @ 0. BUG: slight audio hiccup when it kicks back in. Needs a better solution.
-                if val <= 0:
-                    gv.USE_FREEVERB = False
-                else:
-                    gv.USE_FREEVERB = True
+                # if val <= 0:
+                #     gv.USE_FREEVERB = False
+                # else:
+                #     gv.USE_FREEVERB = True
                 self.fvsetwet(val/127.0)
                 gv.percent_effect = int(val / 127.0 * 100)
                 gv.displayer.disp_change(changed_var=['effect', 'wet'])
-
-
 
             def setdry(self, val):
                 self.fvsetdry(val/127.0)
