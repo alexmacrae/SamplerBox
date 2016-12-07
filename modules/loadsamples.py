@@ -187,6 +187,7 @@ def set_global_fadeout():
 def ActuallyLoad():
     global LoadingThread, preset_current_is_loaded, preset_current_loading, preset_change_triggered
 
+
     # Check
     if all_presets_loaded:
         print 'LOADED NOTHING: all samples have been loaded into memory'
@@ -206,7 +207,6 @@ def ActuallyLoad():
 
         if is_memory_too_high()[0] == True:
             free_up_memory()
-            print gv.samples.keys()
 
         reset_global_defaults()
 
@@ -227,7 +227,7 @@ def ActuallyLoad():
         # Preset has never been loaded. Initialize its dict and load samples.
         gv.samples[preset_current_loading] = {}
         gv.samples[preset_current_loading]['keywords'] = {}
-        # gv.playingsounds = []
+        # gv.playingsounds = [] # clear/stop all currently playing samples
 
     current_basename = gv.basename
 
@@ -273,11 +273,7 @@ def ActuallyLoad():
                             continue
                         if r'%%pitchbend' in pattern:
                             pitchbend = abs(int(pattern.split('=')[1].strip()))
-                            if pitchbend > 12:
-                                print "Pitchbend of %d limited to 24" % pitchbend
-                                gv.samples[preset_current_loading]['keywords']['pitchbend'] = 24
-                            else:
-                                gv.samples[preset_current_loading]['keywords']['pitchbend'] = pitchbend
+                            gv.samples[preset_current_loading]['keywords']['pitchbend'] = pitchbend
                             continue
                         if r'%%mode' in pattern:
                             mode = pattern.split('=')[1].strip().title()
@@ -319,8 +315,6 @@ def ActuallyLoad():
                             percent_loaded = (file_current * (
                                 100 / numberOfPatterns)) / file_count  # more accurate loading progress
                             # Visual percentage loading with blocks. Load on last row of LCD
-                            # hd44780_20x4.display(unichr(1) * int(percent_loaded * (hd44780_20x4.LCD_COLS / 100.0) + 1), hd44780_20x4.LCD_ROWS)
-
                             if preset_current_loading == gv.preset:
                                 gv.percent_loaded = percent_loaded
                                 gv.displayer.disp_change('loading', timeout=0.5)
@@ -369,16 +363,18 @@ def ActuallyLoad():
                 voices_local.append(1)
                 if preset_current_loading == gv.preset: gv.voices = voices_local
 
-                file = os.path.join(dirname, "%d.wav" % midinote)
-                # print "Trying " + file
-                if os.path.isfile(file):
-                    # print "Processing " + file
-                    gv.samples[preset_current_loading][midinote, 127, 1] = sound.Sound(file, midinote, 127)
+                file_ = os.path.join(dirname, "%d.wav" % midinote)
+                # print "Trying " + file_
+                if os.path.isfile(file_):
+                    # print "Processing " + file_
+                    gv.samples[preset_current_loading][midinote, 127, 1] = sound.Sound(file_, midinote, 127)
 
                 percent_loaded = (file_current * 100) / file_count  # more accurate loading progress
                 gv.percent_loaded = percent_loaded
                 gv.displayer.disp_change('loading')
                 file_current += 1
+
+
 
         initial_keys = set(gv.samples[preset_current_loading].keys())
 
@@ -432,6 +428,7 @@ def ActuallyLoad():
             pass
 
         gv.samples[preset_current_loading]['loaded'] = True  # flag this preset's dict item as loaded
+
 
     print '++++++++++ LOADED: [%d] %s' % (preset_current_loading, current_basename)  # debug
 

@@ -14,19 +14,12 @@
 # MODULES
 #########################################
 import time
-
 usleep = lambda x: time.sleep(x / 1000000.0)
 msleep = lambda x: time.sleep(x / 1000.0)
-# import curses
 import threading
-import \
-    rtmidi2  # Use rtmidi2 instead. Make sure when installing rtmidi2 to change RPI date: $sudo date -s "Sept 23 18:31 2016". Then installing takes a while
-
+import rtmidi2
 # from filters import FilterType, Filter, FilterChain
 # from utility import byteToPCM, floatToPCM, pcmToFloat, sosfreqz
-from collections import OrderedDict
-from time import sleep
-
 from modules import globalvars as gv
 from modules import displayer
 from modules import audiocontrols
@@ -40,11 +33,11 @@ from modules import setlist
 # Start the Navigator
 ###########################
 
-
 gv.setlist = setlist.Setlist()
 gv.displayer = displayer.Displayer()
 gv.ac = audiocontrols.AudioControls()
 gv.sysfunc = systemfunctions.SystemFunctions()
+bnt = buttons.Buttons()
 
 from modules import sound
 from modules import loadsamples as ls
@@ -59,8 +52,7 @@ elif gv.SYSTEM_MODE == 2:
     from modules import navigator_sys_2
     gv.nav = navigator_sys_2
 
-# ______________________________________________________________________________
-# On startup detect missing folders and add any new ones found
+
 print '#### START SETLIST ####'
 gv.setlist.find_missing_folders()
 gv.setlist.remove_missing_setlist_songs()
