@@ -4,7 +4,7 @@ from modules import globalvars as gv
 keywords_to_try = (('gv.gain', 'gain'),
                    ('gv.globaltranspose', 'transpose'),
                    ('gv.FADEOUTLENGTH', 'release'),
-                   ('gv.PITCHBITS', 'pitchbend'),
+                   ('gv.pitchnotes', 'pitchbend'),
                    ('gv.sample_mode', 'mode'),
                    ('gv.velocity_mode', 'velmode'))
 
@@ -43,8 +43,8 @@ class DefinitionParser:
             1: {'%%mode': ['keyb', 'once', 'on64', 'loop', 'loo2']},
             2: {'%%velmode': ['sample', 'accurate']},
             3: {'%%release': (0, 100)},
-            4: {'%%transpose': (-100, 100)},
-            5: {'%%pitchbend': (-24, 24)}
+            4: {'%%transpose': (-48, 48)},
+            5: {'%%pitchbend': (0, 12)}
         }
 
         self.keywords_defaults_dict = {

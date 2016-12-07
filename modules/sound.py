@@ -1,22 +1,20 @@
-#########################################
-# MIXER CLASSES
-#########################################
+#################
+# MIXER CLASSES #
+#################
 import samplerbox_audio
 import struct
 import wave
 from chunk import Chunk
 import numpy
-import pyaudio
 import sounddevice
 import globalvars as gv
+import time
+import exceptions
 
-
-#########################################
-##  SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE
-##  TO READ CUE MARKERS & LOOP MARKERS if applicable in mode
-#########################################
-class WaveReadError(Exception):
-    pass
+############################################################
+# SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE              #
+# TO READ CUE MARKERS & LOOP MARKERS if applicable in mode #
+############################################################
 
 
 class waveread(wave.Wave_read):
@@ -28,9 +26,9 @@ class waveread(wave.Wave_read):
         self._ieee = False
         self._file = Chunk(file, bigendian=0)
         if self._file.getname() != 'RIFF':
-            raise WaveReadError, 'file does not start with RIFF id'
+            raise exceptions.WaveReadError, 'file does not start with RIFF id'
         if self._file.read(4) != 'WAVE':
-            raise WaveReadError, 'not a WAVE file'
+            raise exceptions.WaveReadError, 'not a WAVE file'
         self._fmt_chunk_read = 0
         self._data_chunk = None
         while 1:
@@ -45,7 +43,7 @@ class waveread(wave.Wave_read):
                 self._fmt_chunk_read = 1
             elif chunkname == 'data':
                 if not self._fmt_chunk_read:
-                    raise WaveReadError, 'data chunk before fmt chunk'
+                    raise exceptions.WaveReadError, 'data chunk before fmt chunk'
                 self._data_chunk = chunk
                 self._nframes = chunk.chunksize // self._framesize
                 self._data_seek_needed = 0
@@ -63,7 +61,7 @@ class waveread(wave.Wave_read):
                     self._loops.append([start, end])
             chunk.skip()
         if not self._fmt_chunk_read or not self._data_chunk:
-            raise WaveReadError, 'fmt chunk and/or data chunk missing'
+            raise exceptions.WaveReadError, 'fmt chunk and/or data chunk missing'
 
     def getmarkers(self):
         return self._cue
@@ -126,9 +124,9 @@ class Sound:
         return npdata
 
 
-#########################################
-# AUDIO CALLBACK
-#########################################
+##################
+# AUDIO CALLBACK #
+##################
 
 def AudioCallback(outdata, frame_count, time_info, status):
     rmlist = []
@@ -150,62 +148,67 @@ def AudioCallback(outdata, frame_count, time_info, status):
             pass
 
     b *= (gv.global_volume * gv.volumeCC)
-    outdata[:] = b.reshape(outdata.shape)  # sounddevice
+    outdata[:] = b.reshape(outdata.shape)
 
-    # if gv.USE_TONECONTOL:
-    #      b = numpy.array(chain.filter(bb))
-    #      b=bb
+    # if gv.USE_TONECONTROL:
+    #     b_tc = numpy.array(gv.ac.tone_control.chain.filter(b))
+    #     # b = b_tc
 
+    ########################
+    # Backing tracks       #
+    # 4 channel playback   #
+    # Warning: untested!   #
+    ########################
 
-    if gv.CHANNELS == 4:  # 4 channel playback
-
-        # if backingtrack running: add in the audio
-        if gv.BackingRunning:
-            BackData = gv.BackWav[gv.BackIndex:gv.BackIndex + 2 * frame_count]
-            gv.ClickData = gv.ClickWav[gv.ClickIndex:gv.ClickIndex + 2 * frame_count]
-            gv.BackIndex += 2 * frame_count
-            gv.ClickIndex += 2 * frame_count
-            if len(b) != len(BackData) or len(b) != len(gv.ClickData):
-                gv.BackingRunning = False
-                gv.BackData = None
-                gv.BackIndex = 0
-                gv.ClickData = None
-                gv.ClickIndex = 0
-
-        if gv.BackingRunning:
-            newdata = (gv.backvolume * gv.BackData + b * gv.global_volume)
-            gv.Click = gv.ClickData * gv.clickvolume
-        else:
-            gv.Click = numpy.zeros(frame_count * 2, dtype=numpy.float32)
-            newdata = b * gv.global_volume
-
-        # putting streams in 4 channel audio by magic in numpy reshape
-        a1 = newdata.reshape(frame_count, 2)
-        a2 = gv.Click.reshape(frame_count, 2)
-        ch4 = numpy.hstack((a1, a2)).reshape(1, frame_count * 4)
-
-        # mute while loading Sample or BackingTrack, otherwise there could be dirty hick-ups
-        # if SampleLoading or (BackLoadingPerc > 0 and BackLoadingPerc < 100):
-        #     ch4 *= 0
-        return (ch4.astype(numpy.int16).tostring(), pyaudio.paContinue)
-
-    else:  # 2 Channel playback
-
-        # if backingtrack running: add in the audio
-        if gv.BackingRunning:
-            BackData = gv.BackWav[gv.BackIndex:gv.BackIndex + 2 * frame_count]
-            gv.BackIndex += 2 * frame_count
-            if len(b) != len(BackData):
-                gv.BackingRunning = False
-                BackData = None
-                BackIndex = 0
-
-        if gv.BackingRunning:
-            newdata = (gv.backvolume * gv.BackData + b * gv.global_volume)
-        else:
-            newdata = b * gv.global_volume
-
-        return (newdata.astype(numpy.int16).tostring(), pyaudio.paContinue)
+    # if gv.CHANNELS == 4:  # 4 channel playback
+    #
+    #     # if backingtrack running: add in the audio
+    #     if gv.BackingRunning:
+    #         BackData = gv.BackWav[gv.BackIndex:gv.BackIndex + 2 * frame_count]
+    #         gv.ClickData = gv.ClickWav[gv.ClickIndex:gv.ClickIndex + 2 * frame_count]
+    #         gv.BackIndex += 2 * frame_count
+    #         gv.ClickIndex += 2 * frame_count
+    #         if len(b) != len(BackData) or len(b) != len(gv.ClickData):
+    #             gv.BackingRunning = False
+    #             gv.BackData = None
+    #             gv.BackIndex = 0
+    #             gv.ClickData = None
+    #             gv.ClickIndex = 0
+    #
+    #     if gv.BackingRunning:
+    #         newdata = (gv.backvolume * gv.BackData + b * gv.global_volume)
+    #         gv.Click = gv.ClickData * gv.clickvolume
+    #     else:
+    #         gv.Click = numpy.zeros(frame_count * 2, dtype=numpy.float32)
+    #         newdata = b * gv.global_volume
+    #
+    #     # putting streams in 4 channel audio by magic in numpy reshape
+    #     a1 = newdata.reshape(frame_count, 2)
+    #     a2 = gv.Click.reshape(frame_count, 2)
+    #     ch4 = numpy.hstack((a1, a2)).reshape(1, frame_count * 4)
+    #
+    #     # mute while loading Sample or BackingTrack, otherwise there could be dirty hick-ups
+    #     # if SampleLoading or (BackLoadingPerc > 0 and BackLoadingPerc < 100):
+    #     #     ch4 *= 0
+    #     return (ch4.astype(numpy.int16).tostring(), pyaudio.paContinue)
+    #
+    # else:  # 2 Channel playback
+    #
+    #     # if backingtrack running: add in the audio
+    #     if gv.BackingRunning:
+    #         BackData = gv.BackWav[gv.BackIndex:gv.BackIndex + 2 * frame_count]
+    #         gv.BackIndex += 2 * frame_count
+    #         if len(b) != len(BackData):
+    #             gv.BackingRunning = False
+    #             BackData = None
+    #             BackIndex = 0
+    #
+    #     if gv.BackingRunning:
+    #         newdata = (gv.backvolume * gv.BackData + b * gv.global_volume)
+    #     else:
+    #         newdata = b * gv.global_volume
+    #
+    #     return (newdata.astype(numpy.int16).tostring(), pyaudio.paContinue)
 
 
 #########################################
@@ -214,25 +217,54 @@ def AudioCallback(outdata, frame_count, time_info, status):
 print '\n#### START OF AUDIO DEVICES ####\n'
 print sounddevice.query_devices()  # all available audio devices
 
-
-
 sd = None
 
 def start_stream():
     global sd
     try:
+        # print sounddevice.query_devices()
+        # print gv.AUDIO_DEVICE_ID
         sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, samplerate=gv.SAMPLERATE,
                                       channels=gv.CHANNELS, dtype='int16', latency='low',
                                       callback=AudioCallback)
         sd.start()
+
         print '>>>>> Opened audio device #%i (latency: %ims)' % (gv.AUDIO_DEVICE_ID, sd.latency * 1000)
     except:
-        gv.displayer.disp_change(str_override="Invalid audio device")
+        gv.displayer.disp_change('Invalid audio device', line=2, timeout=0)
         print 'Available devices:'
         print(sounddevice.query_devices())
         print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
         # exit(1)
 
+def start_alsa_stream():
+    # print alsaaudio.mixers() #show available mixer controls
+    for i in range(0, 4):
+        try:
+            amix = alsaaudio.Mixer(cardindex=gv.MIXER_CARD_ID + i, control=gv.MIXER_CONTROL)
+            gv.MIXER_CARD_ID += i  # save the found value
+            i = 0  # indicate OK
+            print 'Opened Alsamixer: card id "%i", control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
+            break
+        except:
+            pass
+    if i > 0:
+        gv.displayer.disp_change('Invalid mixerdev', line=2, timeout=0)
+        print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
+        print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
+        print(sounddevice.query_devices())
+
+
+    def getvolume():
+        vol = amix.getvolume()
+        gv.global_volume = int(vol[0])
+
+
+    def setvolume(volume):
+        amix.setvolume(int(volume))
+
+    setvolume(gv.global_volume)
+    getvolume()
 
 def close_stream():
     global sd
@@ -241,6 +273,7 @@ def close_stream():
         sd.abort()
         sd.stop()
         sd.close()
+
 
 def get_all_audio_devices():
     all_output_devices = {}
@@ -251,8 +284,9 @@ def get_all_audio_devices():
             i += 1
     return all_output_devices
 
+
 """
-Select a device by name. On startup try AUDIO_DEVICE_NAME specified in the config.ini.
+Select a device by name. On startup try AUDIO_DEVICE_NAME specified in the config.rst.ini.
 If no match is found, use the default AUDIO_DEVICE_ID.
 In SYSTEM_MODE=1 we can change the device via the menu.
 """
@@ -268,48 +302,16 @@ def set_audio_device(device_name):
     except:
         pass
     close_stream()
-    start_stream()
+    if 'bcm2835' in device_name:
+        start_alsa_stream()
+    else:
+        start_stream()
 
 set_audio_device(gv.AUDIO_DEVICE_NAME)
 
 if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
     import alsaaudio
-
-    for i in range(0, 4):
-        try:
-            amix = alsaaudio.Mixer(cardindex=gv.MIXER_CARD_ID + i, control=gv.MIXER_CONTROL)
-            gv.MIXER_CARD_ID += i  # save the found value
-            i = 0  # indicate OK
-            print 'Opened Alsamixer: card id "%i", control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
-            break
-        except:
-            pass
-    if i > 0:
-        gv.displayer.disp_change(str_override="Invalid mixerdev")
-        print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
-        print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
-        print(sounddevice.query_devices())
-        exit(1)
-
-
-    def getvolume():
-        vol = amix.getvolume()
-        gv.volume = int(vol[0])
-
-
-    def setvolume(volume):
-        amix.setvolume(volume)
-
-
-    setvolume(gv.volume)
-    getvolume()
-else:
-    def getvolume():
-        pass
-
-
-    def setvolume(volume):
-        pass
+    start_alsa_stream()
 
 print '\n#### END OF AUDIO DEVICES ####\n'
 

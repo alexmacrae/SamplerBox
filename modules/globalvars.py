@@ -49,8 +49,6 @@ GPIO_LCD_D6 = int(cp.get_option_by_name('GPIO_LCD_D6'))
 GPIO_LCD_D7 = int(cp.get_option_by_name('GPIO_LCD_D7'))
 GPIO_7SEG = int(cp.get_option_by_name('GPIO_7SEG'))
 
-
-
 #########################################
 # by Hans
 
@@ -61,9 +59,7 @@ MIXER_CONTROL = str(cp.get_option_by_name('MIXER_CONTROL'))
 # (config.ini) Set to True to use to use the alsa mixer (via pyalsaaudio)
 USE_ALSA_MIXER = cp.get_option_by_name('USE_ALSA_MIXER')
 
-
 NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
-
 
 
 def button_assign(midi_str):
@@ -117,6 +113,12 @@ VERSION1 = " -=SAMPLER-BOX=- "
 VERSION2 = "V2.0.1 15-06-2016"
 
 ###################
+# MIDI MAPS
+###################
+
+MIDIMAPS_FILE_PATH = 'midimaps.pkl'
+
+###################
 # SETLIST
 ###################
 
@@ -128,15 +130,6 @@ NUM_FOLDERS = len(os.walk(SAMPLES_DIR).next()[1])
 # Disable Freeverb when not on Pi
 if not IS_DEBIAN:
     USE_FREEVERB = False
-
-###################
-# TONE CONTROL
-###################
-
-LOW_EQ_FREQ = 80.0
-HIGH_EQ_FREQ = 8000.0
-HIGH_EQ = (2 * HIGH_EQ_FREQ) / SAMPLERATE
-LOW_EQ = (2 * LOW_EQ_FREQ) / SAMPLERATE
 
 # ADMINISTRATION SAMPLER
 samples = {}
@@ -183,7 +176,7 @@ PLAYLOOP = "Loop"  # recognize loop markers, note-off by note+64 ("just play the
 PLAYLO2X = "Loo2"  # recognize loop markers, note-off by same note ("just play the loop with option to stop")
 VELSAMPLE = "Sample"  # velocity equals sampled value, requires multiple samples to get differentation
 VELACCURATE = "Accurate"  # velocity as played, allows for multiple (normalized!) samples for timbre
-VELOCITY_MODE_DEFAULT = VELACCURATE # we need a default: original samplerbox
+VELOCITY_MODE_DEFAULT = VELACCURATE  # we need a default: original samplerbox
 
 sample_mode = PLAYLIVE  # we need a default: original samplerbox
 velocity_mode = VELOCITY_MODE_DEFAULT
@@ -192,14 +185,15 @@ velocity_mode = VELOCITY_MODE_DEFAULT
 volumeCC = 1.0  # assumed value of the volumeknob controller before first use, max=1.0 (the knob can only decrease).
 PRESET_BASE = 0  # Does the programchange / sample set start at 0 (MIDI style) or 1 (human style)
 preset = 0 + PRESET_BASE  # the default patch to load
-PITCHRANGE = 24  # default range of the pitchwheel in semitones (12 is an octave, max=24)
-PITCHBITS = 7  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
 voices = []
 currvoice = 1
 midi_mute = False
 gain = 1  # the input volume correction, change per set in definition.txt
+
+PITCHRANGE = 12  # default range of the pitchwheel in semitones (12 is an octave, max=24)
+PITCHBITS = 7  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
 PITCHBEND = 0
-pitchnotes = PITCHRANGE
+pitchnotes = PITCHRANGE * 2
 PITCHSTEPS = 2 ** PITCHBITS
 pitchneutral = PITCHSTEPS / 2
 pitchdiv = 2 ** (14 - PITCHBITS)

@@ -125,6 +125,9 @@ class Displayer:
                             self.LCD_SYS.display(ram_str, line=4, is_priority=False, timeout_custom=timeout)
 
                     if self.menu_mode == self.DISP_MENU_MODE:
+                        #Don't attempt to display any volume, loading, effect or voice messages in menu mode
+                        if 'volume' in changed_var or 'loading' in changed_var or 'effect' in changed_var or 'voice' in changed_var:
+                            return
                         self.LCD_SYS.display(changed_var[0], line=line, is_priority=True, timeout_custom=timeout)
 
                     if str_override:

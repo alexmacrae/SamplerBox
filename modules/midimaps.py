@@ -1,7 +1,6 @@
 import cPickle
 import os
-
-
+import globalvars as gv
 
 class MidiMapping:
 
@@ -9,10 +8,9 @@ class MidiMapping:
 
     def __init__(self):
 
-        self.filename = 'midimaps.pkl'
+        self.filename = gv.MIDIMAPS_FILE_PATH
         # Load the current mappings into maps var
-        MidiMapping.maps = self.loadMaps()
-
+        self.maps = self.load_maps()
 
 
 ########################
@@ -31,19 +29,20 @@ class MidiMapping:
 #  u'nanoKONTROL2': {(176, 54): {'name': 'Voice 4', 'fn': 'Voices.voice4'}}}
 
 
-    def saveMaps(self, obj):
-        with open(self.filename, 'wb') as f:
+    def save_maps(self, obj):
+        with open(self.filename, 'w') as f:
             cPickle.dump(obj, f, 0)
-            print '-- Saving pkl file --'
+            print '##### Saving new file (%s) #####' % (gv.MIDIMAPS_FILE_PATH)
 
-    def loadMaps(self):
+    def load_maps(self):
         if os.path.isfile(self.filename):
-            with open(self.filename, 'rb') as f:
+            with open(self.filename, 'r') as f:
                 try:
                     return cPickle.load(f)
                 except:
                     return {}  # file exists but it's empty. Start afresh with an empty dict
 
         else:
-            self.saveMaps({})  # file not found: create a new empty file
+            self.save_maps({})  # file not found: create a new empty file
+            return {}  # file has been created, but maps needs an empty dict
 

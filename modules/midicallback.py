@@ -23,9 +23,6 @@ def MidiCallback(src, message, time_stamp):
     midimaps = gv.midimaps
     src = src[:src.rfind(" "):]  # remove the port number from the end
 
-    preset_notes = [70, 71]
-    voice_notes = [66, 67, 68, 69]
-
     messagetype = message[0] >> 4
     messagechannel = (message[0] & 15) + 1
     note = message[1] if len(message) > 1 else None
@@ -54,14 +51,12 @@ def MidiCallback(src, message, time_stamp):
     if gv.SYSTEM_MODE == 1:
 
         if gv.learningMode and messagetype != 8:  # don't send note-offs
-
             message_to_match = [message[0], note, str(src)]
             all_sys_buttons = [gv.BUTTON_LEFT_MIDI, gv.BUTTON_RIGHT_MIDI, gv.BUTTON_ENTER_MIDI,
                                gv.BUTTON_CANCEL_MIDI, gv.BUTTON_UP_MIDI, gv.BUTTON_DOWN_MIDI, gv.BUTTON_FUNC_MIDI]
-
             if message_to_match in all_sys_buttons:
-                print 'This MIDI control has been assigned to %s in the config.rst.ini. Will not be mapped.' % str(
-                    message + src)
+                print 'This MIDI control has been assigned to %s in the config.ini. Will not be mapped.' \
+                      % str(str(message) + src)
             else:
                 gv.nav.state.sendControlToMap(message, src)
                 return  # don't continue from here
@@ -76,8 +71,15 @@ def MidiCallback(src, message, time_stamp):
                 if midimaps.get(src).get(messageKey).has_key('fn'):
 
                     try:
-                        # Runs method from class. ie ac.MasterVolume().setvolume(velocity). No doubt a better way to do this
-                        eval(midimaps.get(src).get(messageKey).get('fn'))(velocity)
+                        # Runs method from class. ie ac.master_volume.setvolume(velocity).
+                        # No doubt there's a better way to do this
+                        fn = midimaps.get(src).get(messageKey).get('fn')
+                        if (fn.split('.')[-1] == 'set_pitch'):
+                            eval(fn)(velocity, note)
+                        elif (fn.split('.')[-1] == 'set_sustain'):
+                            eval(fn)(message, src, messagetype)
+                        else:
+                            eval(fn)(velocity)
                     except:
                         # For functions that don't take velocity. eg menu navigation
                         if velocity > 0:
@@ -88,7 +90,7 @@ def MidiCallback(src, message, time_stamp):
                     note = midimaps.get(src).get(messageKey).get('note')
 
         except:
-            # MIDI message isn't mapped, or it is and it failed
+            # print "MIDI message isn't mapped, or it is and it failed" # debug
             pass
 
     ######################
@@ -153,50 +155,24 @@ def MidiCallback(src, message, time_stamp):
             try:
                 # scale the selected sample based on velocity, the volume will be kept,
                 # this will normally make the sound brighter (by Erik)
-                select_velocity = (velocity
-                                   * (127 - gv.VelocitySelectionOffset) / 127) \
+
+                # TODO: make VelocitySelectionOffset a system setting effectively adjusting the sensitivity of a device
+
+                select_velocity = (velocity * (127 - gv.VelocitySelectionOffset) / 127) \
                                   + gv.VelocitySelectionOffset
 
                 if gv.velocity_mode == gv.VELSAMPLE:
                     velmixer = 127 * gv.gain
                 else:
                     velmixer = velocity * gv.gain
-                #
-                # if gv.SYSTEM_MODE == 1:
-                #     # ALEX - play chords based on the note of a scale of a key
-                #
-                #     timestamp_now = time.time()
-                #     note_index = midinote % 12 - gv.current_key
-                #     chord_index = gv.current_chord_mode[note_index]
-                #
-                #     for n in range(len(gv.CHORD_NOTES[chord_index])):
-                #         playnote = midinote + gv.CHORD_NOTES[chord_index][n]
-                #         for m in gv.sustainplayingnotes:  # cleanup predecessors (check if necessary
-                #             if m.note == playnote and (timestamp_now > getattr(m, 'timestamp')):
-                #                 m.fadeout(50)
-                #                 # print 'stop sustain ' + str(playnote)
-                #         if playnote in gv.playingnotes:  # cleanup predecessors
-                #             for m in gv.playingnotes[playnote]:
-                #                 if (timestamp_now > getattr(m, 'timestamp')):
-                #                     # print "stop note " + str(playnote)
-                #                     m.fadeout(50)
-                #
-                #     # ALEX - play chords based on the note of a scale of a key
-                #
-                #
-                #     for n in range(len(gv.CHORD_NOTES[chord_index])):
-                #         playnote = midinote + gv.CHORD_NOTES[chord_index][n]
-                #         # print "start note " + str(playnote)
-                #         gv.playingnotes.setdefault(playnote, []).append(
-                #             gv.samples[playnote, select_velocity, gv.currvoice].play(playnote, velmixer, timestamp_now))
 
                 if gv.SYSTEM_MODE > 0:
 
-                    note_index = midinote % 12 - gv.ac.chord.current_key_index
-                    chord_index = gv.ac.chord.current_chord_mode[note_index]
+                    note_index = midinote % 12 - gv.ac.autochorder.current_key_index
+                    chord_index = gv.ac.autochorder.current_chord_mode[note_index]
 
-                    for n in range(len(gv.ac.chord.CHORD_NOTES[chord_index])):
-                        playnote = midinote + gv.ac.chord.CHORD_NOTES[chord_index][n]
+                    for n in range(len(gv.ac.autochorder.CHORD_NOTES[chord_index])):
+                        playnote = midinote + gv.ac.autochorder.CHORD_NOTES[chord_index][n]
                         for m in gv.sustainplayingnotes:  # safeguard polyphony; don't sustain double notes
                             if m.note == playnote:
                                 m.fadeout(50)
@@ -226,7 +202,7 @@ def MidiCallback(src, message, time_stamp):
                         gv.playingnotes.setdefault(playnote, []).append(
                             sample.play(playnote, velmixer))
 
-                        gv.lastplayedseq[playnote] = sample.seq # David Hilowitz
+                        gv.lastplayedseq[playnote] = sample.seq  # David Hilowitz
 
 
             except:
@@ -238,41 +214,6 @@ def MidiCallback(src, message, time_stamp):
         elif messagetype == 8:  # Note off
             midinote += gv.globaltranspose
             if noteoff == True:
-
-                # print 'Note off ' + str(note) + '->' + str(midinote) + ', voice=' + str(gv.currvoice)    #debug
-
-                # if gv.SYSTEM_MODE == 1:
-                #
-                #     # ALEX - noteoff chords based on the note of a scale of a key
-                #
-                #     note_index = midinote % 12 - gv.current_key
-                #     chord_index = gv.current_chord_mode[note_index]
-                #     timestamp_noteoff = 0
-                #     #timestamp = getattr(gv.playingnotes[note_root], 'timestamp')
-                #     #print getattr(gv.playingnotes[midinote], 'timestamp')
-                #
-                #
-                #
-                #     for n in range(len(gv.CHORD_NOTES[chord_index])):
-                #         playnote = midinote + gv.CHORD_NOTES[chord_index][n]
-                #         if playnote == midinote:
-                #
-                #
-                #             for p in gv.playingnotes[playnote]:
-                #                 timestamp_noteoff = getattr(p, 'timestamp')
-                #                 print timestamp_noteoff, '<-----'
-                #
-                #                 for m in gv.playingnotes[midinote]:
-                #                     if getattr(p, 'timestamp') == getattr(m, 'timestamp'):
-                #                         print 'Root note: %d Chord note: %d Timestamp: %d / %d' % (
-                #                             getattr(m, 'note'), getattr(p, 'note'), getattr(p, 'timestamp'), timestamp_noteoff)
-                #                         if gv.sustain:
-                #                             # print 'Sustain note ' + str(playnote)   # debug
-                #                             gv.sustainplayingnotes.append(p)
-                #                         else:
-                #                             p.fadeout(50)
-                #     gv.playingnotes[midinote] = []
-                #     print '-------'
 
                 if gv.SYSTEM_MODE > 0:
                     for playnote in xrange(128):
@@ -298,21 +239,8 @@ def MidiCallback(src, message, time_stamp):
                 loadsamples.LoadSamples()
 
         elif messagetype == 14:  # Pitch Bend
-            gv.PITCHBEND = (((128 * velocity + note) / gv.pitchdiv) - gv.pitchneutral) * gv.pitchnotes
 
-            # VOICE CHANGE
-            # With MIDI mapping available, this is not necessary anymore
-
-            # if (messagetype == 11) and (velocity == 127) and (note in voice_notes):
-            #     if (note == voice_notes[0]):
-            #         gv.currvoice = 1
-            #     if (note == voice_notes[1]):
-            #         gv.currvoice = 2
-            #     if (note == voice_notes[2]):
-            #         gv.currvoice = 3
-            #     if (note == voice_notes[3]):
-            #         gv.currvoice = 4
-            #     print 'VOICE [' + str(gv.currvoice) + ']'
+            gv.ac.pitchbend.set_pitch(velocity, note)
 
         elif messagetype == 11:  # control change (CC, sometimes called Continuous Controllers)
             CCnum = note
@@ -320,41 +248,22 @@ def MidiCallback(src, message, time_stamp):
 
             # Default master volume control (CC7 is the universal standard)
             if (CCnum == 7):
-                gv.ac.MasterVolume().setvolume(CCval)
+                gv.ac.master_volume.setvolume(CCval)
 
             # Sustain pedal
-            # NB: the microKEY conditionals are unique to Alex's modded keyboard. Remove in future.
-            if (CCnum == 64):
-                if gv.sample_mode == gv.PLAYLIVE:
-                    if (CCval < 64) \
-                            or (("microKEY" in src)
-                                and (messagetype == 14)
-                                and (CCnum == 64 or CCnum == 0)
-                                and (CCval >= 28)) \
-                                    and (gv.sustain == True):  # sustain pedal off
-                        for n in gv.sustainplayingnotes:
-                            n.fadeout(50)
-                        gv.sustainplayingnotes = []
-                        gv.sustain = False
-                    elif (CCval >= 64) \
-                            or (("microKEY" in src)
-                                and (messagetype == 14)
-                                and (CCnum == 64 or CCnum == 0)
-                                and (CCval <= 25)) \
-                                    and (gv.sustain == False):  # sustain pedal on
-                        gv.sustain = True
+            elif (CCnum == 64):
+                gv.ac.sustain.set_sustain(message, src, messagetype)
 
             # general purpose 80 used for voices
             elif CCnum == 80:
                 if CCval in gv.voices:
-                    gv.ac.Voice().change(CCval)
+                    gv.ac.voice.change(CCval)
                     # lcd.display("")
 
             # general purpose 81 used for chords
             elif CCnum == 81:
                 if CCval < len(gv.CHORD_NOTES):
-                    gv.ac.Chord().change()
-
+                    gv.ac.autochorder.change()
 
             # "All sounds off" or "all notes off"
             elif CCnum == 120 or CCnum == 123:
