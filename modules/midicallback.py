@@ -2,6 +2,7 @@ import globalvars as gv
 import loadsamples
 import time
 import random
+import exceptions
 
 
 def noteon(messagetype, note, vel):
@@ -59,7 +60,7 @@ def MidiCallback(src, message, time_stamp):
                                gv.BUTTON_CANCEL_MIDI, gv.BUTTON_UP_MIDI, gv.BUTTON_DOWN_MIDI, gv.BUTTON_FUNC_MIDI]
 
             if message_to_match in all_sys_buttons:
-                print 'This MIDI control has been assigned to %s in the config.ini. Will not be mapped.' % str(
+                print 'This MIDI control has been assigned to %s in the config.rst.ini. Will not be mapped.' % str(
                     message + src)
             else:
                 gv.nav.state.sendControlToMap(message, src)
@@ -190,9 +191,12 @@ def MidiCallback(src, message, time_stamp):
                 #             gv.samples[playnote, select_velocity, gv.currvoice].play(playnote, velmixer, timestamp_now))
 
                 if gv.SYSTEM_MODE > 0:
-                    # Hans
-                    for n in range(len(gv.CHORD_NOTES[gv.current_chord])):
-                        playnote = midinote + gv.CHORD_NOTES[gv.current_chord][n]
+
+                    note_index = midinote % 12 - gv.ac.chord.current_key_index
+                    chord_index = gv.ac.chord.current_chord_mode[note_index]
+
+                    for n in range(len(gv.ac.chord.CHORD_NOTES[chord_index])):
+                        playnote = midinote + gv.ac.chord.CHORD_NOTES[chord_index][n]
                         for m in gv.sustainplayingnotes:  # safeguard polyphony; don't sustain double notes
                             if m.note == playnote:
                                 m.fadeout(50)
@@ -207,18 +211,16 @@ def MidiCallback(src, message, time_stamp):
                         # Start David Hilowitz
                         # Get the list of available samples for this note and velocity
                         notesamples = gv.samples[gv.preset][playnote, velocity, gv.currvoice]
-                        print '>>>>>>>>>>>>'
-                        print notesamples
                         # Choose a sample from the list
                         sample = random.choice(notesamples)
                         # If we have no value for lastplayedseq, set it to 0
                         gv.lastplayedseq.setdefault(playnote, 0)
-
                         # If we have more than 2 samples to work with, reject duplicates
                         if len(notesamples) >= 3:
                             while sample.seq == gv.lastplayedseq[playnote]:
                                 sample = random.choice(notesamples)
                         # End David Hilowitz
+
                         gv.triggernotes[playnote] = midinote  # we are last playing this one
                         # print "start note " + str(playnote)
                         gv.playingnotes.setdefault(playnote, []).append(
@@ -228,7 +230,7 @@ def MidiCallback(src, message, time_stamp):
 
 
             except:
-                print 'NoteOn entered exception routine'
+                raise exceptions.NoteOnError, 'Couldn\'t play note'
                 pass
 
 

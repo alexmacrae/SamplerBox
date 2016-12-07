@@ -2,9 +2,10 @@ import globalvars as gv
 from ctypes import *
 import ctypes
 from os.path import dirname, abspath
+import sys
 
-class AudioControls:
 
+class AudioControls(object):
     def __init__(self):
         if gv.USE_FREEVERB and gv.IS_DEBIAN:
             self.Reverb().setroomsize(60)
@@ -13,11 +14,15 @@ class AudioControls:
             self.Reverb().setdry(127)
             self.Reverb().setwidth(127)
 
+        self.chord = self.Chord()
+
+
     def all_notes_off(self):
         gv.playingsounds = []
         gv.playingnotes = {}
         gv.sustainplayingnotes = []
         gv.triggernotes = [128] * 128  # fill with unplayable note
+
 
 
     class MasterVolume:
@@ -26,10 +31,44 @@ class AudioControls:
             gv.global_volume = (10.0 ** (-12.0 / 20.0)) * (float(vel) / 127.0)
             gv.displayer.disp_change('volume')
 
-    class Chord:
-        def change(self, val):
-            gv.current_chord = val
-            gv.displayer.disp_change(changed_var='chord')
+    class Chord(object):
+
+        ########## Chords definitions
+        # You always need index=0 (is single note, "normal play")
+        # by Hans
+
+        CHORD_NAMES = ["", "Maj", "Min", "Augm", "Dim", "Sus2", "Sus4", "Dom7",
+                            "Maj7", "Min7", "MiMa7", "hDim7", "Dim7", "Aug7", "AuMa7", "D7S4"]
+        CHORD_NOTES = [[0], [0, 4, 7], [0, 3, 7], [0, 4, 8], [0, 3, 6], [0, 2, 7],
+                            [0, 5, 7], [0, 4, 7, 10], [0, 4, 7, 11], [0, 3, 7, 10],
+                            [0, 3, 7, 11], [0, 3, 6, 10], [0, 3, 6, 9], [0, 4, 8, 10],
+                            [0, 4, 8, 11], [0, 5, 7, 10]]
+
+        NO_CHORD = [0] * 12
+        ALL_MAJOR_CHORDS = [1] * 12
+        ALL_MINOR_CHORDS = [2] * 12
+        MAJOR_SCALE_CHORDS = [1, 4, 2, 4, 2, 1, 4, 1, 4, 2, 4, 4]
+        MINOR_SCALE_CHORDS = [2, 4, 2, 1, 4, 2, 4, 2, 1, 4, 1, 4]
+
+        AVAILABLE_CHORDS_SETS = [
+            ('Chords OFF', NO_CHORD),
+            ('MAJ scale chords', MAJOR_SCALE_CHORDS),
+            ('MIN scale chords', MINOR_SCALE_CHORDS),
+            ('All MAJ chords', ALL_MAJOR_CHORDS),
+            ('All MIN chords', ALL_MINOR_CHORDS)
+        ]
+
+        def __init__(self):
+            self.chord_set_index = 0
+            self.current_chord_mode = self.AVAILABLE_CHORDS_SETS[self.chord_set_index][1]
+            self.current_chord = 0  # single note, "normal play"
+            self.current_key_index = 0
+
+        def change_mode(self, mode):
+            self.current_chord_mode = self.AVAILABLE_CHORDS_SETS[mode][1]
+
+        def change_key(self, key):
+            self.current_key_index = key
 
     class Voice:
 
@@ -71,13 +110,12 @@ class AudioControls:
                 else:
                     gv.currvoice = 4
 
-
     class Reverb:
 
         if gv.USE_FREEVERB and gv.IS_DEBIAN:
             sb_dir = dirname(dirname(abspath(__file__)))
 
-            freeverb = cdll.LoadLibrary(sb_dir+'/freeverb/revmodel.so')
+            freeverb = cdll.LoadLibrary(sb_dir + '/freeverb/revmodel.so')
 
             fvsetroomsize = freeverb.setroomsize
             fvsetroomsize.argtypes = [c_float]
@@ -120,12 +158,12 @@ class AudioControls:
                 return int((val / 127.0 * 100) / 100 * (self.hd44780_20x4.LCD_COLS - 1)) + 1
 
             def setroomsize(self, val):
-                self.fvsetroomsize(val/127.0)
+                self.fvsetroomsize(val / 127.0)
                 gv.percent_effect = int(val / 127.0 * 100)
                 gv.displayer.disp_change(changed_var=['effect', 'roomsize'])
 
             def setdamp(self, val):
-                self.fvsetdamp(val/127.0)
+                self.fvsetdamp(val / 127.0)
                 gv.percent_effect = int(val / 127.0 * 100)
                 gv.displayer.disp_change(changed_var=['effect', 'damping'])
 
@@ -135,18 +173,16 @@ class AudioControls:
                 #     gv.USE_FREEVERB = False
                 # else:
                 #     gv.USE_FREEVERB = True
-                self.fvsetwet(val/127.0)
+                self.fvsetwet(val / 127.0)
                 gv.percent_effect = int(val / 127.0 * 100)
                 gv.displayer.disp_change(changed_var=['effect', 'wet'])
 
             def setdry(self, val):
-                self.fvsetdry(val/127.0)
+                self.fvsetdry(val / 127.0)
                 gv.percent_effect = int(val / 127.0 * 100)
                 gv.displayer.disp_change(changed_var=['effect', 'dry'])
 
             def setwidth(self, val):
-                self.fvsetwidth(val/127.0)
+                self.fvsetwidth(val / 127.0)
                 gv.percent_effect = int(val / 127.0 * 100)
                 gv.displayer.disp_change(changed_var=['effect', 'width'])
-
-

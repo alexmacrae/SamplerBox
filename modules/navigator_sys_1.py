@@ -5,12 +5,7 @@
 #  license:   Creative Commons ShareAlike 3.0 (http://creativecommons.org/licenses/by-sa/3.0/)
 #
 #  samplerbox2.py: Main file
-#
 
-#########################################
-# Import
-#
-#########################################
 import threading
 import time
 
@@ -21,132 +16,33 @@ import globalvars as gv
 import loadsamples as ls
 import menudict
 
-
-def write_setlist(list_to_write):
-    print('-= WRITING NEW SETLIST =-')
-    setlist = open(gv.SETLIST_FILE_PATH, "w")
-    list_to_write = list(filter(None, list_to_write))  # remove empty strings / empty lines
-    for song in list_to_write:
-        setlist.write(song + '\n')
-    setlist.close()
-
-
-def findMissingFolders():
-    # Check to see if the song name in the setlist matches the name of a folder.
-    # If it doesn't, mark it by prepending an *asterix and rewrite the setlist file.
-
-    songsInSetlist = open(gv.SETLIST_FILE_PATH).read().splitlines()
-    songsInSetlist = list(filter(None, songsInSetlist))  # remove empty strings / empty lines
-    changes = False
-    k = 0
-    for song_name in songsInSetlist:
-        i = 0
-        for song_folder_name in gv.SONG_FOLDERS_LIST:
-
-            if (song_name == song_folder_name):
-                # print(song_name + ' was found')
-                break
-            elif (song_name.replace('* ', '') == song_folder_name):
-                # print(song_name + ' was found - previous lost')
-                songsInSetlist[k] = song_name.replace('* ', '')
-                # break
-            else:
-                if (i == len(gv.SONG_FOLDERS_LIST) - 1):
-                    print(song_name + ' WAS NOT FOUND. ')
-                    songsInSetlist[k] = '* ' + song_name.replace('* ', '')
-                    changes = True
-                    break
-
-            i += 1
-        k += 1
-
-    if (changes):
-        write_setlist(songsInSetlist)
-    else:
-        print('-= No missing folders detected =-\n')
-
-
-def findAndAddNewFolders():
-    # Check for new song folders and add them to the end of the setlist
-
-    songsInSetlist = open(gv.SETLIST_FILE_PATH).read().splitlines()
-    songsInSetlist = list(filter(None, songsInSetlist))  # remove empty strings / empty lines
-    changes = False
-
-    if (set(songsInSetlist).intersection(gv.SONG_FOLDERS_LIST) != len(gv.SONG_FOLDERS_LIST) and len(
-            songsInSetlist) != 0):
-
-        for song_folder_name in gv.SONG_FOLDERS_LIST:
-            i = 0
-            for song_name in songsInSetlist:
-                if (song_folder_name == song_name):
-                    break
-                elif (i == len(songsInSetlist) - 1):
-                    print (song_folder_name + ' - NEW FOLDER')
-                    changes = True
-                    songsInSetlist.append(song_folder_name)
-                    break
-
-                i += 1
-    elif (len(songsInSetlist) == 0):
-        songsInSetlist = gv.SONG_FOLDERS_LIST
-        changes = True
-        print ('Setlist empty - adding all foldings')
-
-    # print(songsInSetlist)
-    if (changes):
-        write_setlist(songsInSetlist)
-    else:
-        print('-= No new folders found =-\n')
-
-        # ______________________________________________________________________________
-
-
-def removeMissingSetlistSongs():
-    songsInSetlist = open(gv.SETLIST_FILE_PATH).read().splitlines()
-    i = 0
-    for song in songsInSetlist:
-        if ('* ' in song):
-            del songsInSetlist[i]
-            write_setlist(songsInSetlist)
-        i += 1
-
-
 # ______________________________________________________________________________
-# On startup detect missing folders and add any new ones found                
-findMissingFolders()
-removeMissingSetlistSongs()
-findAndAddNewFolders()
-
-
-# ______________________________________________________________________________
-
 
 class Navigator:
     menu = menudict.menu
 
     state = None
-    menuCoords = [0]
-    menuPointer = 0
+    menu_coords = [0]
+    menu_pointer = 0
     function = None
     config = configparser.ConfigParser()
 
-    def __init__(self, initState):
-        Navigator.state = initState
-        self.loadState(Navigator.state)
+    def __init__(self, state_init):
+        Navigator.state = state_init
+        self.load_state(Navigator.state)
 
-    def loadState(self, theClass):
-        Navigator.state = theClass()
+    def load_state(self, which_class):
+        Navigator.state = which_class()
 
-    def getMenuPathStr(self):
+    def get_menu_path_str(self):
 
-        menuMsg = self.getMenu().get(self.menuPointer).get('name')
+        menu_message = self.get_menu().get(self.menu_pointer).get('name')
 
-        return menuMsg
+        return menu_message
 
-    def getMenu(self, mc=None):
+    def get_menu(self, mc=None):
         if not mc:
-            mc = Navigator.menuCoords
+            mc = Navigator.menu_coords
         menu = Navigator.menu.get('submenu')
         i = 0
         while i < len(mc):
@@ -191,21 +87,12 @@ class PresetNav(Navigator):
         ls.LoadSamples()
 
     def enter(self):
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
     def cancel(self):  # can remove empty class methods
-        self.loadState(UtilsView)
-
-        # hd44780_20x4.TimeOut = hd44780_20x4.TimeOutReset
-        # hd44780_20x4.resetModes()
-        # hd44780_20x4.inSysMode = True
-        # eg CPU/RAM, battery life, time, wifi/bluetooth status
-
+        self.load_state(UtilsView)
 
 # ______________________________________________________________________________
-
-
-
 
 
 class UtilsView(PresetNav):
@@ -227,7 +114,7 @@ class UtilsView(PresetNav):
                 gv.displayer.disp_change(changed_var='util')
                 time.sleep(0.25)
             else:
-                self.loadState(PresetNav)
+                self.load_state(PresetNav)
                 looping = False
 
             time.sleep(0.25)
@@ -239,29 +126,23 @@ class UtilsView(PresetNav):
     #     pass
 
     def enter(self):
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
     def cancel(self):  # can remove empty class methods
         self.timeout_start = time.time()
 
-        # hd44780_20x4.TimeOut = hd44780_20x4.TimeOutReset
-        # hd44780_20x4.resetModes()
-        # hd44780_20x4.inSysMode = True
-        # eg CPU/RAM, battery life, time, wifi/bluetooth status
-
-
 # ______________________________________________________________________________
-functionToMap = None
-functionNiceName = None
 
+function_to_map = None
+function_nice_name = None
 
 class MenuNav(Navigator):
     def __init__(self):
 
-        self.menuPointer = self.menuCoords[-1]
+        self.menu_pointer = self.menu_coords[-1]
 
         gv.displayer.menu_mode = gv.displayer.DISP_MENU_MODE
-        gv.displayer.disp_change(changed_var=self.getMenuPathStr(), line=1, timeout=0)
+        gv.displayer.disp_change(changed_var=self.get_menu_path_str(), line=1, timeout=0)
         gv.displayer.disp_change(changed_var='-' * 20, line=2, timeout=0)
         gv.displayer.disp_change(changed_var='', line=3, timeout=0)
         gv.displayer.disp_change(changed_var='', line=4, timeout=0)
@@ -269,33 +150,33 @@ class MenuNav(Navigator):
 
     def left(self):
 
-        if self.menuPointer > 0:
-            self.menuPointer -= 1
-            self.menuCoords[-1] = self.menuPointer
-            gv.displayer.disp_change(self.getMenu().get(self.menuPointer).get('name'), line=1, timeout=0)
+        if self.menu_pointer > 0:
+            self.menu_pointer -= 1
+            self.menu_coords[-1] = self.menu_pointer
+            gv.displayer.disp_change(self.get_menu().get(self.menu_pointer).get('name'), line=1, timeout=0)
 
     def right(self):
 
-        if self.menuPointer < len(self.getMenu()) - 1:
-            self.menuPointer += 1
-            self.menuCoords[-1] = self.menuPointer
-            gv.displayer.disp_change(self.getMenu().get(self.menuPointer).get('name'), line=1, timeout=0)
+        if self.menu_pointer < len(self.get_menu()) - 1:
+            self.menu_pointer += 1
+            self.menu_coords[-1] = self.menu_pointer
+            gv.displayer.disp_change(self.get_menu().get(self.menu_pointer).get('name'), line=1, timeout=0)
 
     def enter(self):
-        global functionToMap, functionNiceName
-        menu = self.getMenu().get(self.menuPointer)
+        global function_to_map, function_nice_name
+        menu = self.get_menu().get(self.menu_pointer)
         try:
             if menu.has_key('submenu'):
                 gv.displayer.LCD_SYS.display('Entering submenu for [' + menu.get('name') + ']')
-                if menu.has_key('functionToMap'):
-                    functionToMap = menu.get('functionToMap')
-                    functionNiceName = menu.get('name')
-                self.menuCoords.append(0)
-                self.loadState(MenuNav)
+                if menu.has_key('function_to_map'):
+                    function_to_map = menu.get('function_to_map')
+                    function_nice_name = menu.get('name')
+                self.menu_coords.append(0)
+                self.load_state(MenuNav)
             if menu.has_key('fn'):
                 if (menu.get('fn') == 'MidiLearn') or (menu.get('fn') == 'DeleteMidiMap'):
-                    self.menuCoords.append(0)
-                    Navigator.state = eval(menu.get('fn'))(functionToMap, functionNiceName)
+                    self.menu_coords.append(0)
+                    Navigator.state = eval(menu.get('fn'))(function_to_map, function_nice_name)
                 elif isinstance(menu.get('fn'), list):
                     Navigator.state = eval(menu.get('fn')[0])(eval(menu.get('fn')[1]))  # for SelectSong
                 else:
@@ -306,11 +187,11 @@ class MenuNav(Navigator):
             pass
 
     def cancel(self):
-        if len(self.menuCoords) > 1:
-            self.menuCoords.pop()
-            self.loadState(MenuNav)
+        if len(self.menu_coords) > 1:
+            self.menu_coords.pop()
+            self.load_state(MenuNav)
         else:
-            self.loadState(PresetNav)  # this will become the gv.presets state
+            self.load_state(PresetNav)  # this will become the gv.presets state
 
 
 # ______________________________________________________________________________
@@ -339,10 +220,10 @@ class SelectSong(Navigator):
         self.display()
 
     def enter(self):
-        self.loadState(self.next_state)
+        self.load_state(self.next_state)
 
     def cancel(self):
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
 
 # ______________________________________________________________________________
@@ -352,6 +233,7 @@ class MoveSong(Navigator):
         self.setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
         self.prev_state = SelectSong
         self.display()
+        print gv.SETLIST_LIST
 
     def display(self):
         gv.displayer.disp_change('Moving song', line=1, timeout=0)
@@ -360,10 +242,8 @@ class MoveSong(Navigator):
     # Move song up the setlist
     def left(self):
         if (gv.preset > 0):
-            self.setlist_list[int(gv.preset)], self.setlist_list[int(gv.preset) - 1] = self.setlist_list[
-                                                                                           int(gv.preset) - 1], \
-                                                                                       self.setlist_list[
-                                                                                           int(gv.preset)]
+            self.setlist_list[gv.preset],\
+            self.setlist_list[gv.preset - 1] = self.setlist_list[gv.preset - 1], self.setlist_list[gv.preset]
             gv.preset -= 1
             # write_setlist(self.setlist_list)
         self.display()
@@ -371,16 +251,14 @@ class MoveSong(Navigator):
     # Move song down the setlist
     def right(self):
         if (gv.preset < len(self.setlist_list) - 1):
-            self.setlist_list[int(gv.preset)], self.setlist_list[int(gv.preset) + 1] = self.setlist_list[
-                                                                                           int(gv.preset) + 1], \
-                                                                                       self.setlist_list[
-                                                                                           int(gv.preset)]
+            self.setlist_list[gv.preset],\
+            self.setlist_list[gv.preset + 1] = self.setlist_list[gv.preset + 1], self.setlist_list[gv.preset]
             gv.preset += 1
             # write_setlist(self.setlist_list)
         self.display()
 
     def enter(self):
-        write_setlist(self.setlist_list)
+        gv.setlist.write_setlist(self.setlist_list)
         Navigator.state = self.prev_state(MoveSong)
 
     def cancel(self):
@@ -396,15 +274,15 @@ class SetlistRemoveMissing(Navigator):
 
     def enter(self):
 
-        songsInSetlist = open(gv.SETLIST_FILE_PATH).read().splitlines()
+        songs_in_setlist = open(gv.SETLIST_FILE_PATH).read().splitlines()
         i = 0
-        for song in songsInSetlist:
+        for song in songs_in_setlist:
             if ('* ' in song):
-                del songsInSetlist[i]
-                write_setlist(songsInSetlist)
+                del songs_in_setlist[i]
+                gv.setlist.write_setlist(songs_in_setlist)
             i += 1
 
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
     def right(self):
         pass
@@ -413,7 +291,7 @@ class SetlistRemoveMissing(Navigator):
         pass
 
     def cancel(self):
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
 
 # ______________________________________________________________________________
@@ -421,7 +299,7 @@ class SetlistRemoveMissing(Navigator):
 
 class DeleteSong(Navigator):
     def __init__(self):
-        self.prev_state = eval(self.menuPosition[self.menuCoords[-1]]['fn'][0])
+        self.prev_state = eval(self.menu_position[self.menu_coords[-1]]['fn'][0])
         self.setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
         gv.displayer.disp_change('Are you sure? [Y/N]', line=1, timeout=0)
         gv.displayer.disp_change('WARNING: will crash if we delete all songs', line=2)
@@ -429,15 +307,15 @@ class DeleteSong(Navigator):
     def enter(self):
         print self.setlist_list
         del self.setlist_list[gv.preset]
-        write_setlist(self.setlist_list)
+        gv.setlist.write_setlist(self.setlist_list)
         print self.setlist_list
         if gv.preset != 0:
             gv.preset -= 1
 
-        self.loadState(self.prev_state)
+        self.load_state(self.prev_state)
 
     def cancel(self):
-        self.loadState(self.prev_state)
+        self.load_state(self.prev_state)
 
 
 # ______________________________________________________________________________
@@ -445,14 +323,14 @@ class DeleteSong(Navigator):
 
 
 class MidiLearn(Navigator):
-    def __init__(self, functionToMap, functionNiceName):
+    def __init__(self, function_to_map, function_nice_name):
 
         self.midimaps = gv.midimaps
         # src[:src.rfind(" "):] # use this to strip the port number off the end of src
 
         gv.learningMode = True
-        self.functionToMap = functionToMap
-        self.functionNiceName = functionNiceName
+        self.function_to_map = function_to_map
+        self.function_nice_name = function_nice_name
         self.learnedMidiMessage = None
         self.learnedMidiDevice = None
         gv.displayer.disp_change('Learning', line=1, timeout=0)
@@ -488,7 +366,7 @@ class MidiLearn(Navigator):
                 print 'WARNING:', messageKey, 'is already mapped to:', mm.get(src).get(messageKey).get('name')
                 print 'Do you want to overwrite? Well too bad - doing it anyway ;)'
 
-            mm.get(src)[messageKey] = {'name': self.functionNiceName, 'fn': self.functionToMap}
+            mm.get(src)[messageKey] = {'name': self.function_nice_name, 'fn': self.function_to_map}
 
             import midimaps
             midimaps.MidiMapping().saveMaps(mm)
@@ -504,23 +382,23 @@ class MidiLearn(Navigator):
         # print devices
         gv.displayer.disp_change('-' * 20, line=2, timeout=0)
         gv.learningMode = False
-        if len(self.menuCoords) > 1:
-            self.menuCoords.pop()
-            self.loadState(MenuNav)
+        if len(self.menu_coords) > 1:
+            self.menu_coords.pop()
+            self.load_state(MenuNav)
         else:
-            self.loadState(MenuNav)  # this will become the gv.presets state
+            self.load_state(MenuNav)  # this will become the gv.presets state
 
 
 # ______________________________________________________________________________
 
 class DeleteMidiMap(Navigator):
-    def __init__(self, functionToUnmap, functionNiceName):
+    def __init__(self, functionToUnmap, function_nice_name):
 
         self.midimaps = gv.midimaps
         # src[:src.rfind(" "):] # use this to strip the port number off the end of src
 
         self.functionToUnmap = functionToUnmap
-        self.functionNiceName = functionNiceName
+        self.function_nice_name = function_nice_name
 
         matchedMappings = {}
         i = 0
@@ -544,10 +422,10 @@ class DeleteMidiMap(Navigator):
 
     def deleteDisplay(self):
         mm = self.matchedMappings
-        functionNiceName = self.functionNiceName
+        function_nice_name = self.function_nice_name
         i = self.i
         # lcd.display(mm[i][2], 1)
-        gv.displayer.disp_change(str(i + 1) + ' ' + functionNiceName, line=1, timeout=0)
+        gv.displayer.disp_change(str(i + 1) + ' ' + function_nice_name, line=1, timeout=0)
         gv.displayer.disp_change(str(mm[i][0])[:8] + str(mm[i][1][:8]), line=2, timeout=0)
 
     def left(self):
@@ -588,11 +466,11 @@ class DeleteMidiMap(Navigator):
         gv.displayer.disp_change('=' * 20, line=2, timeout=0)
 
         gv.learningMode = False
-        if len(self.menuCoords) > 1:
-            self.menuCoords.pop()
-            self.loadState(MenuNav)
+        if len(self.menu_coords) > 1:
+            self.menu_coords.pop()
+            self.load_state(MenuNav)
         else:
-            self.loadState(MenuNav)  # this will become the gv.presets state
+            self.load_state(MenuNav)  # this will become the gv.presets state
 
 
 # ______________________________________________________________________________
@@ -619,10 +497,10 @@ class MaxPolyphonyConfig(Navigator):
         cs.update_config('SAMPLERBOX CONFIG', 'MAX_POLYPHONY', str(self.MAX_POLYPHONY))
         gv.MAX_POLYPHONY = self.MAX_POLYPHONY
         print '-- requires a restart --'  # or a reinstantiation of the sounddevice
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
     def cancel(self):
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
 
 # ______________________________________________________________________________
@@ -649,10 +527,10 @@ class MidiChannelConfig(Navigator):
         cs.update_config('SAMPLERBOX CONFIG', 'MIDI_CHANNEL', str(self.MIDI_CHANNEL))
         gv.MIDI_CHANNEL = self.MIDI_CHANNEL
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the audio device
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
     def cancel(self):
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
 
 # ______________________________________________________________________________
@@ -687,10 +565,10 @@ class ChannelsConfig(Navigator):
         cs.update_config('SAMPLERBOX CONFIG', 'CHANNELS', str(self.CHANNELS))
         gv.CHANNELS = self.CHANNELS
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the sounddevice
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
     def cancel(self):
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
 
 # ______________________________________________________________________________
@@ -725,10 +603,10 @@ class BufferSizeConfig(Navigator):
         cs.update_config('SAMPLERBOX CONFIG', 'BUFFERSIZE', str(self.BUFFERSIZE))
         gv.BUFFERSIZE = self.BUFFERSIZE
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the sounddevice
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
     def cancel(self):
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
 
 # ______________________________________________________________________________
@@ -763,10 +641,10 @@ class SampleRateConfig(Navigator):
         cs.update_config('SAMPLERBOX CONFIG', 'SAMPLERATE', str(self.SAMPLERATE))
         gv.SAMPLERATE = self.SAMPLERATE
         print '-- requires a restart (maybe?) --'  # or a reinstantiation of the sounddevice
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
     def cancel(self):
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
 
 # ______________________________________________________________________________
@@ -794,7 +672,7 @@ class MasterVolumeConfig(Navigator):
 
     def enter(self):
         cs.update_config('SAMPLERBOX CONFIG', 'GLOBAL_VOLUME', str(gv.global_volume))
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
 
     def cancel(self):
         self.enter()
@@ -921,7 +799,7 @@ class EditDefinition(Navigator):
             self.dp.compare_existing_patterns()
             self.dp.write_definition_file()
 
-            self.loadState(EditDefinition)
+            self.load_state(EditDefinition)
 
     def cancel(self):
         if not self.in_a_mode:
@@ -964,7 +842,67 @@ class AudioDevice(Navigator):
     def enter(self):
         import sound
         sound.set_audio_device(self.device_name)
+        cs.update_config('SAMPLERBOX CONFIG', 'AUDIO_DEVICE_NAME', self.device_name)
         self.display(changed=True)
 
     def cancel(self):
-        self.loadState(MenuNav)
+        self.load_state(MenuNav)
+
+class ChordMode(Navigator):
+    def __init__(self):
+
+        self.AVAILABLE_CHORD_SETS = gv.ac.chord.AVAILABLE_CHORDS_SETS
+        self.display()
+
+    def display(self):
+        if gv.ac.chord.chord_set_index == 1 or gv.ac.chord.chord_set_index == 2:
+            first_line = 'Mode (Key:%s)' % gv.NOTES[gv.ac.chord.current_key_index].capitalize()
+        else:
+            first_line = 'Mode'
+        chord_mode_name = self.AVAILABLE_CHORD_SETS[gv.ac.chord.chord_set_index][0]
+
+        gv.displayer.disp_change(first_line, line=1, timeout=0)
+        gv.displayer.disp_change(chord_mode_name, line=2, timeout=0)
+
+    def left(self):
+        if gv.ac.chord.chord_set_index > 0:
+            gv.ac.chord.chord_set_index -= 1
+            gv.ac.chord.change_mode(gv.ac.chord.chord_set_index)
+            self.display()
+
+    def right(self):
+        if gv.ac.chord.chord_set_index < len(self.AVAILABLE_CHORD_SETS)-1:
+            gv.ac.chord.chord_set_index += 1
+            gv.ac.chord.change_mode(gv.ac.chord.chord_set_index)
+            self.display()
+
+    def enter(self):
+        self.cancel()
+    def cancel(self):
+        self.load_state(MenuNav)
+
+class ChordKey(Navigator):
+    def __init__(self):
+        self.display()
+
+    def display(self):
+        key_name = gv.NOTES[gv.ac.chord.current_key_index].capitalize()
+        gv.displayer.disp_change('Key', line=1, timeout=0)
+        gv.displayer.disp_change(key_name, line=2, timeout=0)
+
+    def left(self):
+        if gv.ac.chord.current_key_index > 0:
+            gv.ac.chord.current_key_index -= 1
+            gv.ac.chord.change_key(gv.ac.chord.current_key_index)
+            self.display()
+
+    def right(self):
+        if gv.ac.chord.current_key_index < len(gv.NOTES)-1:
+            gv.ac.chord.current_key_index += 1
+            gv.ac.chord.change_key(gv.ac.chord.current_key_index)
+            self.display()
+
+    def enter(self):
+        self.cancel()
+    def cancel(self):
+        self.load_state(MenuNav)
