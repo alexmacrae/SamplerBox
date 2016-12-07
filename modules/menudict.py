@@ -9,13 +9,18 @@ menu = {
                 2: {'name': 'Delete songs', 'fn': ['SelectSong', 'DeleteSong']}
             }
         },
-        1: {'name': 'All songs', 'fn': ''},
+        1: {'name': 'Auto chords',
+            'submenu':{
+                0: {'name':'Chord mode', 'fn': 'ChordMode'},
+                1: {'name':'Key', 'fn': 'ChordKey'}
+            }
+            },
         2: {'name': 'Master volume', 'fn': 'MasterVolumeConfig'},
         3: {'name': 'MIDI Mapping',
             'submenu': {
                 0: {
                     'name': 'Note remap',
-                    'functionToMap': 'notelist',
+                    'function_to_map': 'notelist',
                     'submenu': {
                         0: {'name': 'Learn', 'fn': 'MidiLearn'},
                         1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -23,7 +28,7 @@ menu = {
                 },
                 1: {
                     'name': 'Master volume',
-                    'functionToMap': 'gv.ac.MasterVolume().setvolume',
+                    'function_to_map': 'gv.ac.MasterVolume().setvolume',
                     'submenu': {
                         0: {'name': 'Learn', 'fn': 'MidiLearn'},
                         1: {'name': 'Min', 'params': [-70]},
@@ -36,7 +41,7 @@ menu = {
                     'submenu': {
                         0: {
                             'name': 'Room size',
-                            'functionToMap': 'gv.ac.Reverb().setroomsize',
+                            'function_to_map': 'gv.ac.Reverb().setroomsize',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Min', 'params': [0]},
@@ -46,7 +51,7 @@ menu = {
                         },
                         1: {
                             'name': 'Damping',
-                            'functionToMap': 'gv.ac.Reverb().setdamp',
+                            'function_to_map': 'gv.ac.Reverb().setdamp',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Min', 'params': [0]},
@@ -56,7 +61,7 @@ menu = {
                         },
                         2: {
                             'name': 'Wet',
-                            'functionToMap': 'gv.ac.Reverb().setwet',
+                            'function_to_map': 'gv.ac.Reverb().setwet',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Min', 'params': [0]},
@@ -66,7 +71,7 @@ menu = {
                         },
                         3: {
                             'name': 'Dry',
-                            'functionToMap': 'gv.ac.Reverb().setdry',
+                            'function_to_map': 'gv.ac.Reverb().setdry',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Min', 'params': [0]},
@@ -76,7 +81,7 @@ menu = {
                         },
                         4: {
                             'name': 'Width',
-                            'functionToMap': 'gv.ac.Reverb().setwidth',
+                            'function_to_map': 'gv.ac.Reverb().setwidth',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Min', 'params': [0]},
@@ -91,7 +96,7 @@ menu = {
                     'submenu': {
                         0: {
                             'name': 'Voice 1',
-                            'functionToMap': 'gv.ac.Voice().voice1',
+                            'function_to_map': 'gv.ac.Voice().voice1',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -99,7 +104,7 @@ menu = {
                         },
                         1: {
                             'name': 'Voice 2',
-                            'functionToMap': 'gv.ac.Voice().voice2',
+                            'function_to_map': 'gv.ac.Voice().voice2',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -107,7 +112,7 @@ menu = {
                         },
                         2: {
                             'name': 'Voice 3',
-                            'functionToMap': 'gv.ac.Voice().voice3',
+                            'function_to_map': 'gv.ac.Voice().voice3',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -115,7 +120,7 @@ menu = {
                         },
                         3: {
                             'name': 'Voice 4',
-                            'functionToMap': 'gv.ac.Voice().voice4',
+                            'function_to_map': 'gv.ac.Voice().voice4',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -125,7 +130,7 @@ menu = {
                 },
                 4: {
                     'name': 'Sustain',
-                    'functionToMap': 'gv.ac.Sustain().setsustain',
+                    'function_to_map': 'gv.ac.Sustain().setsustain',
                     'submenu': {
                         0: {'name': 'Learn', 'fn': 'MidiLearn'},
                         3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -133,7 +138,7 @@ menu = {
                 },
                 5: {
                     'name': 'Pitch wheel',
-                    'functionToMap': 'gv.ac.PitchWheel().setpitch',
+                    'function_to_map': 'gv.ac.PitchWheel().setpitch',
                     'submenu': {
                         0: {'name': 'Learn', 'fn': 'MidiLearn'},
                         3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -141,7 +146,7 @@ menu = {
                 },
                 6: {
                     'name': 'Mod wheel',
-                    'functionToMap': 'gv.ac.ModWheel().setmodulation',
+                    'function_to_map': 'gv.ac.ModWheel().setmodulation',
                     'submenu': {
                         0: {'name': 'Learn', 'fn': 'MidiLearn'},
                         3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -152,7 +157,7 @@ menu = {
                     'submenu': {
                         0: {
                             'name': 'Left',
-                            'functionToMap': 'gv.nav.state.left',
+                            'function_to_map': 'gv.nav.state.left',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -160,7 +165,7 @@ menu = {
                         },
                         1: {
                             'name': 'Right',
-                            'functionToMap': 'gv.nav.state.right',
+                            'function_to_map': 'gv.nav.state.right',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -168,7 +173,7 @@ menu = {
                         },
                         2: {
                             'name': 'Enter',
-                            'functionToMap': 'gv.nav.state.enter',
+                            'function_to_map': 'gv.nav.state.enter',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
@@ -176,7 +181,7 @@ menu = {
                         },
                         3: {
                             'name': 'Cancel',
-                            'functionToMap': 'gv.nav.state.cancel',
+                            'function_to_map': 'gv.nav.state.cancel',
                             'submenu': {
                                 0: {'name': 'Learn', 'fn': 'MidiLearn'},
                                 1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}

@@ -32,6 +32,7 @@ from modules import displayer
 from modules import audiocontrols
 from modules import buttons
 from modules import systemfunctions
+from modules import setlist
 
 ###########################
 # Start Displayer
@@ -39,9 +40,12 @@ from modules import systemfunctions
 # Start the Navigator
 ###########################
 
+
+gv.setlist = setlist.Setlist()
 gv.displayer = displayer.Displayer()
 gv.ac = audiocontrols.AudioControls()
 gv.sysfunc = systemfunctions.SystemFunctions()
+
 from modules import sound
 from modules import loadsamples as ls
 from modules import midicallback
@@ -49,13 +53,19 @@ from modules import midicallback
 if gv.SYSTEM_MODE == 1:
     from modules import midimaps
     from modules import navigator_sys_1
-
     gv.midimaps = midimaps.MidiMapping().maps
     gv.nav = navigator_sys_1.Navigator(navigator_sys_1.PresetNav)
 elif gv.SYSTEM_MODE == 2:
     from modules import navigator_sys_2
-
     gv.nav = navigator_sys_2
+
+# ______________________________________________________________________________
+# On startup detect missing folders and add any new ones found
+print '#### START SETLIST ####'
+gv.setlist.find_missing_folders()
+gv.setlist.remove_missing_setlist_songs()
+gv.setlist.find_and_add_new_folders()
+print '####  END SETLIST  ####\n'
 
 #########################################
 ##  MIDI IN via SERIAL PORT
@@ -112,14 +122,12 @@ try:
     while True:
         if not gv.playingnotes: # only check when there are no sounds
             curr_ports = rtmidi2.get_in_ports()
-            # print curr_ports
             if (len(prev_ports) != len(curr_ports)):
                 print '\n==== START GETTING MIDI DEVICES ===='
                 midi_in.close_ports()
                 prev_ports = []
                 for port in curr_ports:
-                    if port not in prev_ports and 'Midi Through' not in port and (
-                            len(prev_ports) != len(curr_ports) and 'LoopBe Internal' not in port):
+                    if port not in prev_ports and 'Midi Through' not in port and (len(prev_ports) != len(curr_ports) and 'LoopBe Internal' not in port):
                         midi_in.open_ports(port)
                         midi_in.callback = midicallback.MidiCallback
                         if first_loop:
