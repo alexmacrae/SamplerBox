@@ -155,14 +155,14 @@ class Reverb:
         freeverbmixback.argtypes = [c_float_p, c_float_p, c_float, c_short_p, c_float, c_short_p, c_float, c_int]
 
         def __init__(self, roomsize, damp, wet, dry, width):
-            self.reverb.setroomsize(roomsize)
-            self.reverb.setdamp(damp)
-            self.reverb.setwet(wet)
-            self.reverb.setdry(dry)
-            self.reverb.setwidth(width)
+            self.setroomsize(roomsize)
+            self.setdamp(damp)
+            self.setwet(wet)
+            self.setdry(dry)
+            self.setwidth(width)
 
         def unichr_multiplier(self, val):
-            return int((val / 127.0 * 100) / 100 * (self.hd44780_20x4.LCD_COLS - 1)) + 1
+            return int((val / 127.0 * 100) / 100 * (gv.LCD_COLS - 1)) + 1
 
         def setroomsize(self, val):
             self.fvsetroomsize(val / 127.0)

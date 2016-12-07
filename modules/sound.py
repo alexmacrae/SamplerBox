@@ -138,8 +138,8 @@ def AudioCallback(outdata, frame_count, time_info, status):
 
     if gv.USE_FREEVERB and gv.IS_DEBIAN:
         b_verb = b
-        gv.ac.Reverb.freeverbprocess(b_verb.ctypes.data_as(gv.ac.Reverb.c_float_p),
-                                     b.ctypes.data_as(gv.ac.Reverb.c_float_p), frame_count)
+        gv.ac.reverb.freeverbprocess(b_verb.ctypes.data_as(gv.ac.reverb.c_float_p),
+                                     b.ctypes.data_as(gv.ac.reverb.c_float_p), frame_count)
 
     for e in rmlist:
         try:
