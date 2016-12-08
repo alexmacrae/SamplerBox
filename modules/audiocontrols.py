@@ -33,12 +33,13 @@ class MasterVolume:
         gv.global_volume = (10.0 ** (-12.0 / 20.0)) * (float(vel) / 127.0)
         gv.displayer.disp_change('volume')
 
+########################
+# Auto Chorder by Hans #
+#  Additions by Alex   #
+########################
 
 class AutoChorder(object):
-    #############################
-    # Chords definitions, by Hans
-    # Additions by Alex
-    #############################
+
 
     CHORD_NAMES = ["", "Maj", "Min", "Augm", "Dim", "Sus2", "Sus4", "Dom7",
                    "Maj7", "Min7", "MiMa7", "hDim7", "Dim7", "Aug7", "AuMa7", "D7S4"]

@@ -21,26 +21,27 @@ import rtmidi2
 # from filters import FilterType, Filter, FilterChain
 # from utility import byteToPCM, floatToPCM, pcmToFloat, sosfreqz
 from modules import globalvars as gv
-from modules import displayer
 from modules import audiocontrols
+from modules import displayer
 from modules import buttons
 from modules import systemfunctions
 from modules import setlist
+from modules import loadsamples
 
 ###########################
 # Start Displayer
 # Load MIDI mappings
 # Start the Navigator
 ###########################
-
-gv.setlist = setlist.Setlist()
-gv.displayer = displayer.Displayer()
-gv.ac = audiocontrols.AudioControls()
-gv.sysfunc = systemfunctions.SystemFunctions()
-bnt = buttons.Buttons()
-
 from modules import sound
-from modules import loadsamples as ls
+print '#### START SETLIST ####'
+gv.setlist = setlist.Setlist()
+print '####  END SETLIST  ####\n'
+gv.ac = audiocontrols.AudioControls()
+gv.displayer = displayer.Displayer()
+gv.sysfunc = systemfunctions.SystemFunctions()
+gv.ls = loadsamples.LoadingSamples()
+bnt = buttons.Buttons()
 from modules import midicallback
 
 if gv.SYSTEM_MODE == 1:
@@ -53,11 +54,11 @@ elif gv.SYSTEM_MODE == 2:
     gv.nav = navigator_sys_2
 
 
-print '#### START SETLIST ####'
-gv.setlist.find_missing_folders()
-gv.setlist.remove_missing_setlist_songs()
-gv.setlist.find_and_add_new_folders()
-print '####  END SETLIST  ####\n'
+
+# gv.setlist.find_missing_folders()
+# gv.setlist.remove_missing_setlist_songs()
+# gv.setlist.find_and_add_new_folders()
+
 
 #########################################
 ##  MIDI IN via SERIAL PORT
@@ -92,10 +93,10 @@ if gv.USE_SERIALPORT_MIDI:
     MidiThread.start()
 
 #########################################
-# LOAD FIRST SOUNDBANK
+# LOAD FIRST SAMPLE-SET/PRESET
 #########################################
 
-ls.LoadSamples()
+gv.ls.LoadSamples()
 
 #########################################
 # MIDI DEVICES DETECTION

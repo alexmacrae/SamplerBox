@@ -32,8 +32,11 @@ class Navigator:
         Navigator.state = state_init
         self.load_state(self.state)
 
-    def load_state(self, which_class):
-        Navigator.state = which_class()
+    def load_state(self, which_class, params=None):
+        if params != None:
+            Navigator.state = which_class(params)
+        else:
+            Navigator.state = which_class()
 
     def get_menu_path_str(self):
 
@@ -56,9 +59,6 @@ class Navigator:
 # ______________________________________________________________________________
 
 
-
-
-
 class PresetNav(Navigator):
     def __init__(self):
 
@@ -71,21 +71,21 @@ class PresetNav(Navigator):
         gv.preset += 1
         gv.displayer.LCD_SYS.reset_after_timeout()
         gv.currvoice = 1
-        if (gv.preset >= gv.NUM_FOLDERS):
+        if gv.preset >= len(gv.samples_indices):
             gv.preset = 0
         gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE  # need to set if interrupted by utils left/right
         gv.displayer.disp_change('preset')
-        ls.LoadSamples()
+        gv.ls.LoadSamples()
 
     def left(self):
         gv.preset -= 1
         gv.displayer.LCD_SYS.reset_after_timeout()
         gv.currvoice = 1
-        if (gv.preset < 0):
-            gv.preset = gv.NUM_FOLDERS - 1
+        if gv.preset < 0:
+            gv.preset = len(gv.samples_indices) - 1
         gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE  # need to set if interrupted by utils left/right
         gv.displayer.disp_change('preset')
-        ls.LoadSamples()
+        gv.ls.LoadSamples()
 
     def enter(self):
         self.load_state(MenuNav)
@@ -155,14 +155,16 @@ class MenuNav(Navigator):
         if self.menu_pointer > 0:
             self.menu_pointer -= 1
             self.menu_coords[-1] = self.menu_pointer
-            gv.displayer.disp_change(self.get_menu().get(self.menu_pointer).get('name').center(gv.LCD_COLS, ' '), line=1, timeout=0)
+            gv.displayer.disp_change(self.get_menu().get(self.menu_pointer).get('name').center(gv.LCD_COLS, ' '),
+                                     line=1, timeout=0)
 
     def right(self):
 
         if self.menu_pointer < len(self.get_menu()) - 1:
             self.menu_pointer += 1
             self.menu_coords[-1] = self.menu_pointer
-            gv.displayer.disp_change((self.get_menu().get(self.menu_pointer).get('name')).center(gv.LCD_COLS, ' '), line=1, timeout=0)
+            gv.displayer.disp_change((self.get_menu().get(self.menu_pointer).get('name')).center(gv.LCD_COLS, ' '),
+                                     line=1, timeout=0)
 
     def enter(self):
         global function_to_map, function_nice_name
@@ -201,28 +203,31 @@ class MenuNav(Navigator):
 
 class SelectSong(Navigator):
     def __init__(self, next_state):
-        self.setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
         self.next_state = next_state
+        self.preset = gv.preset
         self.display()
 
     def display(self):
+
+        line_2 = '[%s] %s' % (str(self.preset + 1), str(gv.SETLIST_LIST[gv.samples_indices[self.preset]]))
+
         gv.displayer.disp_change('Select song'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-        gv.displayer.disp_change((str(gv.preset + 1) + " " + str(self.setlist_list[gv.preset])).center(gv.LCD_COLS, ' '), line=2)
+        gv.displayer.disp_change(line_2.ljust(gv.LCD_COLS, ' '), line=2)
 
     # next song
     def right(self):
-        if (gv.preset < len(self.setlist_list) - 1):
-            gv.preset += 1
-        self.display()
+        if (self.preset < len(gv.SETLIST_LIST) - 1):
+            self.preset += 1
+            self.display()
 
     # previous song
     def left(self):
-        if (gv.preset > 0):
-            gv.preset -= 1
-        self.display()
+        if (self.preset > 0):
+            self.preset -= 1
+            self.display()
 
     def enter(self):
-        self.load_state(self.next_state)
+        self.load_state(self.next_state, self.preset)
 
     def cancel(self):
         self.load_state(MenuNav)
@@ -231,36 +236,64 @@ class SelectSong(Navigator):
 # ______________________________________________________________________________
 
 class MoveSong(Navigator):
-    def __init__(self):
-        self.setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
+    def __init__(self, preset):
+
         self.prev_state = SelectSong
+        self.setlist_list = gv.SETLIST_LIST[:]
+        self.samples_indices = gv.samples_indices[:]
+        self.orig_samples_indices = gv.samples_indices[:]
+        self.starting_preset = preset
+        self.preset = preset
         self.display()
 
     def display(self):
-        gv.displayer.disp_change('Moving song'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-        gv.displayer.disp_change((str(gv.preset + 1) + " " + str(self.setlist_list[gv.preset])).center(gv.LCD_COLS, ' '), line=2)
+        line_1 = 'Moving from [%d]' % (self.starting_preset + 1)
+        line_2 = '[%s] %s' % (str(self.preset + 1), str(gv.SETLIST_LIST[gv.samples_indices[self.starting_preset]]))
+
+        gv.displayer.disp_change(line_1.ljust(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change(line_2.ljust(gv.LCD_COLS, ' '), line=2)
 
     # Move song up the setlist
     def left(self):
-        if (gv.preset > 0):
-            self.setlist_list[gv.preset], \
-            self.setlist_list[gv.preset - 1] = self.setlist_list[gv.preset - 1], self.setlist_list[gv.preset]
-            gv.preset -= 1
-            # write_setlist(self.setlist_list)
+        if (self.preset > 0):
+            self.setlist_list[self.preset], \
+            self.setlist_list[self.preset - 1] = self.setlist_list[self.preset - 1], self.setlist_list[self.preset]
+
+            self.samples_indices[self.preset], \
+            self.samples_indices[self.preset - 1] = \
+                self.samples_indices[self.preset - 1], self.samples_indices[self.preset]
+
+            self.preset -= 1
         self.display()
 
     # Move song down the setlist
     def right(self):
-        if (gv.preset < len(self.setlist_list) - 1):
-            self.setlist_list[gv.preset], \
-            self.setlist_list[gv.preset + 1] = self.setlist_list[gv.preset + 1], self.setlist_list[gv.preset]
-            gv.preset += 1
-            # write_setlist(self.setlist_list)
+        if (self.preset < len(self.setlist_list) - 1):
+            self.setlist_list[self.preset], \
+            self.setlist_list[self.preset + 1] = \
+                self.setlist_list[self.preset + 1], self.setlist_list[self.preset]
+
+            self.samples_indices[self.preset], \
+            self.samples_indices[self.preset + 1] = \
+                self.samples_indices[self.preset + 1], self.samples_indices[self.preset]
+
+            self.preset += 1
         self.display()
 
     def enter(self):
+        # Stay on the same preset/sample-set as before the setlist rearrangement
+        if self.starting_preset == gv.preset:
+            gv.preset = self.preset
+        elif self.preset == gv.preset:
+            if self.starting_preset > self.preset:
+                gv.preset += 1
+            elif self.starting_preset < self.preset:
+                gv.preset -= 1
+        gv.ls.all_presets_loaded = False
+        gv.samples_indices = self.samples_indices
         gv.setlist.write_setlist(self.setlist_list)
-        Navigator.state = self.prev_state(MoveSong)
+        gv.ls.LoadSamples()
+        self.cancel()
 
     def cancel(self):
         Navigator.state = self.prev_state(MoveSong)
@@ -307,11 +340,11 @@ class DeleteSong(Navigator):
         gv.displayer.disp_change('WARNING: will crash if we delete all songs'.center(gv.LCD_COLS, ' '), line=2)
 
     def enter(self):
-        print self.setlist_list
-        del self.setlist_list[gv.preset]
+        print gv.SETLIST_LIST
+        del gv.SETLIST_LIST[gv.samples_indices[gv.preset]]
         gv.setlist.write_setlist(self.setlist_list)
-        print self.setlist_list
-        if gv.preset != 0:
+        # TODO: need to reset sample_indices and update SETLIST_LIST
+        if gv.preset > 0:
             gv.preset -= 1
 
         self.load_state(self.prev_state)
@@ -508,7 +541,8 @@ class MidiChannelConfig(Navigator):
 
     def display(self):
         gv.displayer.disp_change('MIDI Channel'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-        gv.displayer.disp_change((str(self.MIDI_CHANNEL) + ' [1-16](0=ALL)').center(gv.LCD_COLS, ' '), line=2, timeout=0)
+        gv.displayer.disp_change((str(self.MIDI_CHANNEL) + ' [1-16](0=ALL)').center(gv.LCD_COLS, ' '), line=2,
+                                 timeout=0)
 
     def left(self):
         self.MIDI_CHANNEL = max(self.MIDI_CHANNEL - 1, 0)
@@ -541,7 +575,8 @@ class ChannelsConfig(Navigator):
 
     def display(self):
         gv.displayer.disp_change('Audio Channels'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-        gv.displayer.disp_change(('[' + str(self.CHANNELS) + ']' + ' (1,2,4,6,8)').center(gv.LCD_COLS, ' '), line=2, timeout=0)
+        gv.displayer.disp_change(('[' + str(self.CHANNELS) + ']' + ' (1,2,4,6,8)').center(gv.LCD_COLS, ' '), line=2,
+                                 timeout=0)
 
     def left(self):
         if self.i > 0:
@@ -696,7 +731,7 @@ def clamp(n, minn, maxn):
 
 
 class EditDefinition(Navigator):
-    def __init__(self):
+    def __init__(self, preset):
 
         self.in_a_mode = False
         self.mode = 0
@@ -705,9 +740,8 @@ class EditDefinition(Navigator):
         self.i = 0
         self.selected_keyword_value = None
 
-        self.setlist_list = open(gv.SETLIST_FILE_PATH).read().splitlines()
         self.prev_state = SelectSong
-        self.song_name = self.setlist_list[int(gv.preset)]
+        self.song_name = gv.SETLIST_LIST[gv.samples_indices[preset]]
         self.dp = definitionparser.DefinitionParser(self.song_name)
         self.keywords_dict = self.dp.keywords_dict
         self.keywords_defaults_dict = self.dp.keywords_defaults_dict

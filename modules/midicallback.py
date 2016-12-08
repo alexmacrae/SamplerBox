@@ -151,6 +151,7 @@ def MidiCallback(src, message, time_stamp):
         if messagetype == 9:  # Note on
 
             midinote += gv.globaltranspose
+            actual_preset = gv.samples_indices[gv.preset]
 
             try:
                 # scale the selected sample based on velocity, the volume will be kept,
@@ -183,10 +184,9 @@ def MidiCallback(src, message, time_stamp):
                                     # print "clean note " + str(playnote)
                                     m.fadeout(50)
                                 gv.playingnotes[playnote] = []  # housekeeping
-
                         # Start David Hilowitz
                         # Get the list of available samples for this note and velocity
-                        notesamples = gv.samples[gv.preset][playnote, velocity, gv.currvoice]
+                        notesamples = gv.samples[actual_preset][playnote, velocity, gv.currvoice]
                         # Choose a sample from the list
                         sample = random.choice(notesamples)
                         # If we have no value for lastplayedseq, set it to 0
@@ -196,14 +196,12 @@ def MidiCallback(src, message, time_stamp):
                             while sample.seq == gv.lastplayedseq[playnote]:
                                 sample = random.choice(notesamples)
                         # End David Hilowitz
-
                         gv.triggernotes[playnote] = midinote  # we are last playing this one
                         # print "start note " + str(playnote)
                         gv.playingnotes.setdefault(playnote, []).append(
                             sample.play(playnote, velmixer))
 
                         gv.lastplayedseq[playnote] = sample.seq  # David Hilowitz
-
 
             except:
                 raise exceptions.NoteOnError, 'Couldn\'t play note'

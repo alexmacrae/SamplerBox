@@ -4,15 +4,20 @@ from os import listdir
 
 lastbuttontime = 0
 buttfunc = 0
-button_functions = ["", "Volume", "Midichannel", "Transpose", "RenewUSB/MidMute", "Play Chord:"]
+button_functions = ["", "Volume", "Midichannel", "Transpose", "RenewUSB/MidMute", "PlayChord:"]
 button_disp = ["", "V", "M", "T", "S", "C"]  # take care, these values are used below for testing
-number_of_folders = len(listdir(gv.SAMPLES_DIR))
+number_of_folders = len(gv.SETLIST_LIST)
 
 
 def Button_display():
-    function_value = ["", " %d%%" % (gv.global_volume),
-                      " %d" % (gv.MIDI_CHANNEL), " %+d" % (gv.globaltranspose),
-                      "", " %s" % (gv.CHORD_NAMES[gv.current_chord])]
+    function_value = [
+        "",
+        " %d%%" % (gv.global_volume),
+        " %d" % (gv.MIDI_CHANNEL),
+        " %+d" % (gv.globaltranspose),
+        "",
+        " %s" % (gv.ac.autochorder.CHORD_NAMES[gv.ac.autochorder.current_chord])
+    ]
     gv.displayer.disp_change(str_override=button_functions[buttfunc] + function_value[buttfunc])
 
 
@@ -22,7 +27,8 @@ def up():
     if buttfunc == 0:
         gv.preset += 1
         if gv.preset > number_of_folders - 1: gv.preset = 0
-        ls.LoadSamples()
+        gv.ls.LoadSamples()
+        Button_display()
     elif buttfunc == 1:
         gv.global_volume += 5
         if gv.global_volume > 100: gv.global_volume = 100
@@ -38,10 +44,13 @@ def up():
         Button_display()
     elif buttfunc == 4:
         gv.basename = "None"
-        ls.LoadSamples()
+        gv.ls.LoadSamples()
     elif buttfunc == 5:
-        gv.current_chord += 1
-        if gv.current_chord >= len(gv.CHORD_NAMES): gv.current_chord = 0
+        if gv.ac.autochorder.current_chord < len(gv.ac.autochorder.CHORD_NAMES) - 1:
+            gv.ac.autochorder.current_chord += 1
+        else:
+            gv.ac.autochorder.current_chord = 0
+        gv.ac.autochorder.current_chord_mode = [gv.ac.autochorder.current_chord] * 12
         Button_display()
 
 
@@ -50,7 +59,8 @@ def down():
     if buttfunc == 0:
         gv.preset -= 1
         if gv.preset < 0: gv.preset = number_of_folders - 1
-        ls.LoadSamples()
+        gv.ls.LoadSamples()
+        Button_display()
     elif buttfunc == 1:
         gv.global_volume -= 5
         if gv.global_volume < 0: gv.global_volume = 0
@@ -72,8 +82,11 @@ def down():
             gv.midi_mute = False
             Button_display()
     elif buttfunc == 5:
-        gv.current_chord -= 1
-        if gv.current_chord < 0: gv.current_chord = len(gv.CHORD_NAMES) - 1
+        if gv.ac.autochorder.current_chord > 0:
+            gv.ac.autochorder.current_chord -= 1
+        else:
+            gv.ac.autochorder.current_chord = len(gv.ac.autochorder.CHORD_NAMES) - 1
+        gv.ac.autochorder.current_chord_mode = [gv.ac.autochorder.current_chord] * 12
         Button_display()
 
 
