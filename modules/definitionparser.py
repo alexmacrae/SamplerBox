@@ -8,6 +8,22 @@ keywords_to_try = (('gv.gain', 'gain'),
                    ('gv.sample_mode', 'mode'),
                    ('gv.velocity_mode', 'velmode'))
 
+keywords_dict = {
+            0: {'%%gain': (0.001, 10.0)},
+            1: {'%%mode': ['keyb', 'once', 'on64', 'loop', 'loo2']},
+            2: {'%%velmode': ['sample', 'accurate']},
+            3: {'%%release': (0, 100)},
+            4: {'%%transpose': (-48, 48)},
+            5: {'%%pitchbend': (0, 12)}
+}
+keywords_defaults_dict = {
+            '%%gain': 1.0,
+            '%%mode': gv.SAMPLE_MODE_DEFAULT.lower(),
+            '%%velmode': gv.VELOCITY_MODE_DEFAULT.lower(),
+            '%%release': gv.FADEOUTLENGTH_DEFAULT,
+            '%%transpose': 0,
+            '%%pitchbend': gv.PITCHRANGE_DEFAULT,
+        }
 
 def get_patterns_from_file(definitionfname, keywords_dict):
     existing_patterns = {}
@@ -38,29 +54,20 @@ class DefinitionParser:
         self.new_patterns = {}
         self.combined_patterns = {}
 
-        self.keywords_dict = {
-            0: {'%%gain': (-10, 10)},
-            1: {'%%mode': ['keyb', 'once', 'on64', 'loop', 'loo2']},
-            2: {'%%velmode': ['sample', 'accurate']},
-            3: {'%%release': (0, 100)},
-            4: {'%%transpose': (-48, 48)},
-            5: {'%%pitchbend': (0, 12)}
-        }
+        self.keywords_dict = keywords_dict
 
-        self.keywords_defaults_dict = {
-            '%%gain': 1,
-            '%%mode': 0,
-            '%%velmode': gv.VELOCITY_MODE_DEFAULT.lower(),
-            '%%release': 3,
-            '%%transpose': 0,
-            '%%pitchbend': 2,
-        }
+        self.keywords_defaults_dict = keywords_defaults_dict
 
         self.existing_patterns = get_patterns_from_file(self.definitionfname, self.keywords_dict)
 
         print '##### Existing definition.txt patterns #####'
         print self.existing_patterns
         print '############################################', '\n'
+
+    ############################################
+    # COMPARE EXISTING
+    # And overwrite settings with newer value(s)
+    ############################################
 
     def compare_existing_patterns(self):
         print self.new_patterns, '<<<<<<<<<<<<<<<<<<<<<<<'
@@ -73,6 +80,10 @@ class DefinitionParser:
 
         self.combined_patterns = self.new_patterns.copy()
         self.combined_patterns.update(self.existing_patterns)  # merge self.new_patterns and existing_patters dicts
+
+    #################
+    # SET NEW KEYWORD
+    #################
 
     def set_new_keyword(self, keyword, value):
         keyword = keyword.lower()
@@ -99,6 +110,10 @@ class DefinitionParser:
                             print 'ERROR: Value (%d) is out of range for %s. Min=%d, Max=%d' % (
                                 value, keyword, minn, maxn)  # debug
 
+    #######################
+    # WRITE DEFINITION FILE
+    #######################
+
     def write_definition_file(self):
         definitionfname = os.path.join(self.dirname, "definition.txt")
         f = open(definitionfname, 'w')
@@ -114,21 +129,3 @@ class DefinitionParser:
                 print line.strip('\n')  # debug
         f.close()
 
-# dp = DefinitionParser('WAIDH')
-# print dp.basename,'<<<<<<<'
-
-# print '##### New patterns #####'
-# dp.set_new_keyword('%%mode', 'once')
-# dp.set_new_keyword('%%release', 100)
-# dp.set_new_keyword('%%release', 101)
-# dp.set_new_keyword('%%gain', 5)
-# dp.set_new_keyword('%%velmode', 'accurate')
-# print '########################', '\n'
-
-# print '##### Write new patterns #####'
-# dp.compare_existing_patterns()
-# print '##############################', '\n'
-
-# print '##### Write to definition.txt #####'
-# dp.write_definition_file()
-# print '###################################', '\n'

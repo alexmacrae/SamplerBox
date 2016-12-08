@@ -135,18 +135,16 @@ def AudioCallback(outdata, frame_count, time_info, status):
     b = samplerbox_audio.mixaudiobuffers(gv.playingsounds, rmlist, frame_count,
                                          gv.FADEOUT, gv.FADEOUTLENGTH, gv.SPEED,
                                          gv.PITCHBEND, gv.PITCHSTEPS)
-
-    if gv.USE_FREEVERB and gv.IS_DEBIAN:
-        b_verb = b
-        gv.ac.reverb.freeverbprocess(b_verb.ctypes.data_as(gv.ac.reverb.c_float_p),
-                                     b.ctypes.data_as(gv.ac.reverb.c_float_p), frame_count)
+    # if gv.USE_FREEVERB and gv.IS_DEBIAN:
+    #     b_verb = b
+    #     gv.ac.reverb.freeverbprocess(b_verb.ctypes.data_as(gv.ac.reverb.c_float_p),
+    #                                  b.ctypes.data_as(gv.ac.reverb.c_float_p), frame_count)
 
     for e in rmlist:
         try:
             gv.playingsounds.remove(e)
         except:
             pass
-
     b *= (gv.global_volume * gv.volumeCC)
     outdata[:] = b.reshape(outdata.shape)
 
@@ -248,11 +246,11 @@ def start_alsa_stream():
             break
         except:
             pass
-    if i > 0:
-        gv.displayer.disp_change('Invalid mixerdev', line=2, timeout=0)
-        print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
-        print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
-        print(sounddevice.query_devices())
+        if i > 0:
+            gv.displayer.disp_change('Invalid mixerdev', line=2, timeout=0)
+            print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
+            print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
+            print(sounddevice.query_devices())
 
 
     def getvolume():
@@ -286,7 +284,7 @@ def get_all_audio_devices():
 
 
 """
-Select a device by name. On startup try AUDIO_DEVICE_NAME specified in the config.rst.ini.
+Select a device by name. On startup try AUDIO_DEVICE_NAME specified in the config.ini.
 If no match is found, use the default AUDIO_DEVICE_ID.
 In SYSTEM_MODE=1 we can change the device via the menu.
 """

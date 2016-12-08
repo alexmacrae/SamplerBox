@@ -124,7 +124,7 @@ MIDIMAPS_FILE_PATH = 'midimaps.pkl'
 
 SONG_FOLDERS_LIST = os.listdir(SAMPLES_DIR)
 SETLIST_FILE_PATH = 'setlist/setlist.txt'
-SETLIST_LIST = open(SETLIST_FILE_PATH).read().splitlines()
+SETLIST_LIST = None #open(SETLIST_FILE_PATH).read().splitlines()
 NUM_FOLDERS = len(os.walk(SAMPLES_DIR).next()[1])
 
 # Disable Freeverb when not on Pi
@@ -133,6 +133,7 @@ if not IS_DEBIAN:
 
 # ADMINISTRATION SAMPLER
 samples = {}
+samples_indices = []
 playingnotes = {}
 lastplayedseq = {}
 sustainplayingnotes = []
@@ -159,6 +160,7 @@ displayer = None
 sysfunc = None
 ac = None
 setlist = None
+ls = None
 
 # add to selection of samples, not to Velocity Volume
 VelocitySelectionOffset = 0
@@ -169,31 +171,36 @@ VelocitySelectionOffset = 0
 
 # Constants
 
+
+
 PLAYLIVE = "Keyb"  # reacts on "keyboard" interaction
 PLAYBACK = "Once"  # ignores loop markers and note-off ("just play the sample")
 PLAYSTOP = "On64"  # ignores loop markers with note-off by note+64 ("just play the sample with option to stop")
 PLAYLOOP = "Loop"  # recognize loop markers, note-off by note+64 ("just play the loop with option to stop")
 PLAYLO2X = "Loo2"  # recognize loop markers, note-off by same note ("just play the loop with option to stop")
+SAMPLE_MODE_DEFAULT = PLAYLIVE
+
 VELSAMPLE = "Sample"  # velocity equals sampled value, requires multiple samples to get differentation
 VELACCURATE = "Accurate"  # velocity as played, allows for multiple (normalized!) samples for timbre
-VELOCITY_MODE_DEFAULT = VELACCURATE  # we need a default: original samplerbox
+VELOCITY_MODE_DEFAULT = VELACCURATE
 
-sample_mode = PLAYLIVE  # we need a default: original samplerbox
+sample_mode = SAMPLE_MODE_DEFAULT
 velocity_mode = VELOCITY_MODE_DEFAULT
 # global_volume used in favour
 # volume_alsa = 87  # the startup (alsa=output) volume (0-100), change with function buttons
 volumeCC = 1.0  # assumed value of the volumeknob controller before first use, max=1.0 (the knob can only decrease).
-PRESET_BASE = 0  # Does the programchange / sample set start at 0 (MIDI style) or 1 (human style)
 preset = 0 + PRESET_BASE  # the default patch to load
 voices = []
 currvoice = 1
 midi_mute = False
 gain = 1  # the input volume correction, change per set in definition.txt
 
-PITCHRANGE = 12  # default range of the pitchwheel in semitones (12 is an octave, max=24)
+
+
+PITCHRANGE_DEFAULT = 12  # default range of the pitchwheel in semitones (max=12. Higher than 12 produces inaccurate pitching)
 PITCHBITS = 7  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
 PITCHBEND = 0
-pitchnotes = PITCHRANGE * 2
+pitchnotes = PITCHRANGE_DEFAULT * 2
 PITCHSTEPS = 2 ** PITCHBITS
 pitchneutral = PITCHSTEPS / 2
 pitchdiv = 2 ** (14 - PITCHBITS)

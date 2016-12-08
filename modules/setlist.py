@@ -1,93 +1,109 @@
 import globalvars as gv
 
 class Setlist:
-    
     def __init__(self):
-        pass
+
+        if gv.SYSTEM_MODE == 1:
+
+            self.find_missing_folders()
+            self.remove_missing_setlist_songs()
+            self.find_and_add_new_folders()
+            self.update()
+
+        elif gv.SYSTEM_MODE == 2:
+
+            # Sort the song folder list alphanumerically
+            gv.SONG_FOLDERS_LIST = sorted(gv.SONG_FOLDERS_LIST, key=lambda item: (int(item.partition(' ')[0])
+                                                                      if item[0].isdigit() else float('inf'), item))
+            gv.SETLIST_LIST = gv.SONG_FOLDERS_LIST
+
+        for i in xrange(len(gv.SETLIST_LIST)):
+            gv.samples_indices.append(i)
+
 
     def write_setlist(self, list_to_write):
-        print('-= WRITING NEW SETLIST =-')
+        print('##### SETLIST: Writing to setlist #####')
         setlist = open(gv.SETLIST_FILE_PATH, "w")
         list_to_write = list(filter(None, list_to_write))  # remove empty strings / empty lines
         for song in list_to_write:
             setlist.write(song + '\n')
         setlist.close()
-        self.update_live_setlist()
+        # Let's keep SETLIST_LIST the same as before any rearrangements. We let the samples_indices find the name
+        # self.update()
 
-    def update_live_setlist(self):
+    def update(self):
         gv.SETLIST_LIST = open(gv.SETLIST_FILE_PATH).read().splitlines()
-    
+
+
     def find_missing_folders(self):
         # Check to see if the song name in the setlist matches the name of a folder.
         # If it doesn't, mark it by prepending an *asterix and rewrite the setlist file.
-    
+
         songs_in_setlist = open(gv.SETLIST_FILE_PATH).read().splitlines()
         songs_in_setlist = list(filter(None, songs_in_setlist))  # remove empty strings / empty lines
-        changes = False
+        changes_in_dir = False
         k = 0
         for song_name in songs_in_setlist:
             i = 0
             for song_folder_name in gv.SONG_FOLDERS_LIST:
-    
+
                 if (song_name == song_folder_name):
-                    # print(song_name + ' was found')
+                    # print song_name + ' was found'
                     break
                 elif (song_name.replace('* ', '') == song_folder_name):
-                    # print(song_name + ' was found - previous lost')
+                    # print song_name + ' was found - previous lost'
                     songs_in_setlist[k] = song_name.replace('* ', '')
-                    # break
+                    continue
                 else:
                     if (i == len(gv.SONG_FOLDERS_LIST) - 1):
-                        print(song_name + ' WAS NOT FOUND. ')
+                        print  '##### SETLIST: Folder for [%s] was not found #####\n' % song_name
                         songs_in_setlist[k] = '* ' + song_name.replace('* ', '')
-                        changes = True
+                        changes_in_dir = True
                         break
-    
+
                 i += 1
             k += 1
-    
-        if (changes):
+
+        if (changes_in_dir):
             self.write_setlist(songs_in_setlist)
         else:
-            print('-= No missing folders detected =-\n')
-    
-    
+            print('##### SETLIST: No missing folders detected #####\n')
+
     def find_and_add_new_folders(self):
         # Check for new song folders and add them to the end of the setlist
-    
+
         songs_in_setlist = open(gv.SETLIST_FILE_PATH).read().splitlines()
         songs_in_setlist = list(filter(None, songs_in_setlist))  # remove empty strings / empty lines
-        changes = False
-    
+        changes_in_dir = False
+
         if (set(songs_in_setlist).intersection(gv.SONG_FOLDERS_LIST) != len(gv.SONG_FOLDERS_LIST) and len(
                 songs_in_setlist) != 0):
-    
+
             for song_folder_name in gv.SONG_FOLDERS_LIST:
                 i = 0
                 for song_name in songs_in_setlist:
                     if (song_folder_name == song_name):
                         break
                     elif (i == len(songs_in_setlist) - 1):
-                        print (song_folder_name + ' - NEW FOLDER')
-                        changes = True
+                        print '##### SETLIST: New setlist entry for [%s] #####\n' % song_folder_name
+                        changes_in_dir = True
                         songs_in_setlist.append(song_folder_name)
                         break
-    
+
                     i += 1
         elif (len(songs_in_setlist) == 0):
             songs_in_setlist = gv.SONG_FOLDERS_LIST
-            changes = True
-            print ('Setlist empty - adding all foldings')
-    
-        # print(songs_in_setlist)
-        if (changes):
+            changes_in_dir = True
+            print '##### SETLIST: Is empty -> adding all foldings #####\n'
+
+        if (changes_in_dir):
             self.write_setlist(songs_in_setlist)
         else:
-            print('-= No new folders found =-\n')
-    
+            print('##### SETLIST: No new folders found -> do nothing #####\n')
+
     # ______________________________________________________________________________
-    
-    
+
+
     def remove_missing_setlist_songs(self):
         songs_in_setlist = open(gv.SETLIST_FILE_PATH).read().splitlines()
         i = 0
@@ -96,5 +112,3 @@ class Setlist:
                 del songs_in_setlist[i]
                 self.write_setlist(songs_in_setlist)
             i += 1
-
-
