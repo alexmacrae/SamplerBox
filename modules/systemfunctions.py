@@ -7,7 +7,6 @@ class SystemFunctions:
     def __init__(self):
         pass
 
-
     def restart(self):
 
         gv.displayer.menu_mode = gv.displayer.DISP_UTILS_MODE
@@ -30,14 +29,14 @@ class SystemFunctions:
         # os.system('sudo killall python && sudo python ' + str(os.getcwd()) + '/samplerbox.py')
         os.system('systemctl stop samplerbox && sudo python ' + str(os.getcwd()) + '/samplerbox.py')
 
-
     def shutdown(self):
-        gv.displayer.disp_change(str_override='Good bye!', line=1, timeout=1)
-        gv.displayer.disp_change(str_override='Good bye!', line=2, timeout=1)
-        gv.displayer.disp_change(str_override='Good bye!', line=3, timeout=1)
-        gv.displayer.disp_change(str_override='Good bye!', line=4, timeout=1)
-        sleep(0.02)
+        gv.nav.text_scroller.stop()
+        shutdown_message = 'GOOD BYE!'.center(gv.LCD_COLS, ' ')
+        for i in xrange(gv.LCD_ROWS):
+            gv.displayer.disp_change(str_override=shutdown_message, line=(i+1), timeout=1, is_priority=True)
+        sleep(0.2)
         sound.close_stream()
+
         if gv.IS_DEBIAN:
             import RPi.GPIO as GPIO
             GPIO.cleanup()

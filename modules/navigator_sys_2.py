@@ -32,7 +32,7 @@ def up():
     elif buttfunc == 1:
         gv.global_volume += 5
         if gv.global_volume > 100: gv.global_volume = 100
-        gv.ac.MasterVolume().setvolume(gv.global_volume * 1.27)
+        gv.ac.master_volume().setvolume(gv.global_volume * 1.27)
         Button_display()
     elif buttfunc == 2:
         gv.MIDI_CHANNEL += 1
@@ -64,7 +64,7 @@ def down():
     elif buttfunc == 1:
         gv.global_volume -= 5
         if gv.global_volume < 0: gv.global_volume = 0
-        gv.ac.MasterVolume().setvolume(gv.global_volume * 1.27)
+        gv.ac.master_volume.setvolume(gv.global_volume * 1.27)
         Button_display()
     elif buttfunc == 2:
         gv.MIDI_CHANNEL -= 1

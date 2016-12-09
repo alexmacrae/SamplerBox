@@ -8,12 +8,9 @@
 
 import threading
 import time
-
 import configparser
-
 import configparser_samplerbox as cs
 import globalvars as gv
-import loadsamples as ls
 import menudict
 
 
@@ -25,11 +22,12 @@ class Navigator:
     state = None
     menu_coords = [0]
     menu_pointer = 0
-    function = None
     config = configparser.ConfigParser()
+    text_scroller = None
 
     def __init__(self, state_init):
         Navigator.state = state_init
+        Navigator.text_scroller = TextScroller()
         self.load_state(self.state)
 
     def load_state(self, which_class, params=None):
@@ -136,35 +134,113 @@ class UtilsView(PresetNav):
 
 # ______________________________________________________________________________
 
+class TextScroller:
+
+    def __init__(self):
+
+        self.init_sleep = 1.5
+        self.line = 0
+        self.num_cols = gv.LCD_COLS
+        self.delay = 0.2
+        self.change_triggered = False
+        self.s_first_run = ''
+        self.s_all_others = ''
+        self.s = ''
+        self.is_looping = False
+        self.string_loop_thread = threading.Thread(target=self.loop_thread)
+        self.string_loop_thread.daemon = True
+        self.string_loop_thread.start()
+
+    def set_string(self, string, line=2, delay=0.2):
+        self.change_triggered = True
+        self.line = line
+        self.delay = delay
+        padding = ' ' * self.num_cols
+        self.s_first_run = string + padding  # First string fills the screen
+        self.s_all_others = padding + self.s_first_run  # Second onwards comes in from the right
+        self.s = self.s_first_run
+        self.is_looping = True
+
+    def stop(self):
+        self.change_triggered = True
+        self.is_looping = False
+
+    def loop_thread(self):
+        while True:
+            if self.is_looping:
+                for i in range(len(self.s) - self.num_cols + 1):
+                    if self.change_triggered:
+                        self.change_triggered = False
+                        break
+                    framebuffer = self.s[i:i + self.num_cols]
+                    gv.displayer.disp_change(framebuffer, line=self.line, timeout=0)
+                    if i == 0:
+                        time.sleep(self.init_sleep)
+                    else:
+                        time.sleep(self.delay)
+            else:
+                time.sleep(0.05)
+
+
+# ______________________________________________________________________________
+
 function_to_map = None
 function_nice_name = None
-
 
 class MenuNav(Navigator):
     def __init__(self):
 
         self.menu_pointer = self.menu_coords[-1]
         gv.displayer.menu_mode = gv.displayer.DISP_MENU_MODE
-        gv.displayer.disp_change(changed_var=self.get_menu_path_str().center(gv.LCD_COLS, ' '), line=1, timeout=0)
-        gv.displayer.disp_change(changed_var='-' * 20, line=2, timeout=0)
+        self.display()
+        # title = self.get_menu_path_str().upper().center(gv.LCD_COLS, ' ')
+        # gv.displayer.disp_change(changed_var=title, line=1, timeout=0)
+        # gv.displayer.disp_change(changed_var='-' * 20, line=2, timeout=0)
+        # gv.displayer.disp_change(changed_var='', line=3, timeout=0)
+        # gv.displayer.disp_change(changed_var='', line=4, timeout=0)
+
+    def display(self):
+
+        menu_dict_item = self.get_menu().get(self.menu_pointer)
+        title = menu_dict_item.get('name').center(gv.LCD_COLS, ' ').upper()
+
+        gv.displayer.disp_change(title, line=1, timeout=0)
+
+        desc = ''
+        if menu_dict_item.has_key('desc'):
+
+            desc = menu_dict_item.get('desc')
+
+            if len(desc) > gv.LCD_COLS: # make it scroll
+                Navigator.text_scroller.set_string(string=desc)
+            else:
+                Navigator.text_scroller.stop()
+                gv.displayer.disp_change(changed_var=desc.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+        else:
+            Navigator.text_scroller.stop()
+            gv.displayer.disp_change(changed_var='', line=2, timeout=0)
+
         gv.displayer.disp_change(changed_var='', line=3, timeout=0)
         gv.displayer.disp_change(changed_var='', line=4, timeout=0)
 
-    def left(self):
+    def kill_thread(self):
+        global do_string_loop
+        do_string_loop = False
 
+
+    def left(self):
+        self.kill_thread()
         if self.menu_pointer > 0:
             self.menu_pointer -= 1
             self.menu_coords[-1] = self.menu_pointer
-            gv.displayer.disp_change(self.get_menu().get(self.menu_pointer).get('name').center(gv.LCD_COLS, ' '),
-                                     line=1, timeout=0)
+            self.display()
 
     def right(self):
-
+        self.kill_thread()
         if self.menu_pointer < len(self.get_menu()) - 1:
             self.menu_pointer += 1
             self.menu_coords[-1] = self.menu_pointer
-            gv.displayer.disp_change((self.get_menu().get(self.menu_pointer).get('name')).center(gv.LCD_COLS, ' '),
-                                     line=1, timeout=0)
+            self.display()
 
     def enter(self):
         global function_to_map, function_nice_name
@@ -205,13 +281,14 @@ class SelectSong(Navigator):
     def __init__(self, next_state):
         self.next_state = next_state
         self.preset = gv.preset
+        Navigator.text_scroller.stop()
         self.display()
 
     def display(self):
 
         line_2 = '[%s] %s' % (str(self.preset + 1), str(gv.SETLIST_LIST[gv.samples_indices[self.preset]]))
 
-        gv.displayer.disp_change('Select song'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change('SELECT SONG'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
         gv.displayer.disp_change(line_2.ljust(gv.LCD_COLS, ' '), line=2)
 
     # next song
@@ -247,7 +324,7 @@ class MoveSong(Navigator):
         self.display()
 
     def display(self):
-        line_1 = 'Moving from [%d]' % (self.starting_preset + 1)
+        line_1 = 'MOVING FROM [%d]' % (self.starting_preset + 1)
         line_2 = '[%s] %s' % (str(self.preset + 1), str(gv.SETLIST_LIST[gv.samples_indices[self.starting_preset]]))
 
         gv.displayer.disp_change(line_1.ljust(gv.LCD_COLS, ' '), line=1, timeout=0)
@@ -304,8 +381,8 @@ class MoveSong(Navigator):
 class SetlistRemoveMissing(Navigator):
     def __init__(self):
 
-        gv.displayer.disp_change('Remove'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-        gv.displayer.disp_change('missing songs?'.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+        gv.displayer.disp_change('REMOVE'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change('MISSING SONGS?'.center(gv.LCD_COLS, ' '), line=2, timeout=0)
 
     def enter(self):
 
@@ -366,8 +443,8 @@ class MidiLearn(Navigator):
         self.function_nice_name = function_nice_name
         self.learnedMidiMessage = None
         self.learnedMidiDevice = None
-        gv.displayer.disp_change('Learning', line=1, timeout=0)
-        gv.displayer.disp_change('Select a control', line=2)
+        gv.displayer.disp_change('LEARNING'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change('Select a control'.center(gv.LCD_COLS, ' '), line=2)
 
     def sendControlToMap(self, learnedMidiMessage, learnedMidiDevice):
         self.learnedMidiMessage = learnedMidiMessage
@@ -511,7 +588,7 @@ class MaxPolyphonyConfig(Navigator):
         self.display()
 
     def display(self):
-        gv.displayer.disp_change('Max polyphony'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change('MAX POLYPHONY'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
         gv.displayer.disp_change((str(self.MAX_POLYPHONY) + ' [1-128]').center(gv.LCD_COLS, ' '), line=2, timeout=0)
 
     def left(self):
@@ -540,7 +617,7 @@ class MidiChannelConfig(Navigator):
         self.display()
 
     def display(self):
-        gv.displayer.disp_change('MIDI Channel'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change('MIDI CHANNEL'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
         gv.displayer.disp_change((str(self.MIDI_CHANNEL) + ' [1-16](0=ALL)').center(gv.LCD_COLS, ' '), line=2,
                                  timeout=0)
 
@@ -574,7 +651,7 @@ class ChannelsConfig(Navigator):
         self.display()
 
     def display(self):
-        gv.displayer.disp_change('Audio Channels'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change('AUDIO CHANNELS'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
         gv.displayer.disp_change(('[' + str(self.CHANNELS) + ']' + ' (1,2,4,6,8)').center(gv.LCD_COLS, ' '), line=2,
                                  timeout=0)
 
@@ -615,7 +692,7 @@ class BufferSizeConfig(Navigator):
         self.display()
 
     def display(self):
-        gv.displayer.disp_change('Buffer size'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change('BUFFER SIZE'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
         gv.displayer.disp_change(str(self.BUFFERSIZE).center(gv.LCD_COLS, ' '), line=2, timeout=0)
 
     def left(self):
@@ -655,7 +732,7 @@ class SampleRateConfig(Navigator):
         self.display()
 
     def display(self):
-        gv.displayer.disp_change('Sample rate'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change('SAMPLE RATE'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
         gv.displayer.disp_change(str(self.SAMPLERATE).center(gv.LCD_COLS, ' '), line=2, timeout=0)
 
     def left(self):
@@ -690,7 +767,7 @@ class MasterVolumeConfig(Navigator):
         self.display()
 
     def display(self):
-        gv.displayer.disp_change('Master volume'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change('MASTER VOLUME'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
         gv.displayer.disp_change(str(gv.global_volume).center(gv.LCD_COLS, ' '), line=2, timeout=0)
 
     def left(self):
@@ -888,7 +965,7 @@ class ChordMode(Navigator):
 
     def display(self):
         if gv.ac.autochorder.chord_set_index == 1 or gv.ac.autochorder.chord_set_index == 2:
-            first_line = 'Mode [Key:%s]' % gv.NOTES[gv.ac.autochorder.current_key_index].capitalize()
+            first_line = 'Mode [Key:%s]' % gv.NOTES[gv.ac.autochorder.current_key_index].upper()
         else:
             first_line = 'Mode'
         chord_mode_name = self.AVAILABLE_CHORD_SETS[gv.ac.autochorder.chord_set_index][0]
@@ -920,7 +997,7 @@ class ChordKey(Navigator):
         self.display()
 
     def display(self):
-        key_name = gv.NOTES[gv.ac.autochorder.current_key_index].capitalize()
+        key_name = gv.NOTES[gv.ac.autochorder.current_key_index].upper()
         gv.displayer.disp_change('Key'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
         gv.displayer.disp_change(key_name.center(gv.LCD_COLS, ' '), line=2, timeout=0)
 
