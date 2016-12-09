@@ -14,6 +14,16 @@ import psutil
 import os
 
 
+def display_preset_with_voices(preset_string):
+    preset_string_list = list(preset_string[:gv.LCD_COLS])
+    if len(gv.voices) > 1:
+        buttons = list(unichr(4) * 4)
+        buttons[gv.currvoice - 1] = unichr(1)
+        for i in xrange(4):
+            str_index = 4-i
+            preset_string_list[-str_index] = buttons[i]
+    return ''.join(preset_string_list)
+
 class Displayer:
     DISP_PRESET_MODE = 'preset'
     DISP_UTILS_MODE = 'utils'
@@ -37,6 +47,8 @@ class Displayer:
         elif gv.SYSTEM_MODE == 2:
             import HD44780_sys_2
             self.LCD_SYS = HD44780_sys_2
+
+
 
     def disp_change(self, changed_var=[], str_override='', line=1, is_priority=False, timeout=0):
         # if changed_var was a string, convert to a list.
@@ -71,10 +83,18 @@ class Displayer:
 
                     if self.menu_mode == self.DISP_PRESET_MODE:
 
-                        if 'preset' in changed_var:
+                        if str_override:
+                            self.LCD_SYS.display_called = True
+                            self.LCD_SYS.display(str_override.center(gv.LCD_COLS, ' '), line=line,
+                                                 is_priority=is_priority,
+                                                 timeout_custom=timeout)
+                            return
+
+                        if 'preset' in changed_var or 'voice' in changed_var:
 
                             preset_name = gv.SETLIST_LIST[gv.samples_indices[gv.preset]]
-                            preset_line_1 = str(gv.preset - gv.PRESET_BASE + 1) + unichr(2) + preset_name
+                            preset_num_name = str(gv.preset - gv.PRESET_BASE + 1) + ' ' + preset_name
+                            preset_line_1 = preset_num_name
 
                             self.LCD_SYS.display(preset_line_1, line=1, is_priority=True, timeout_custom=timeout)
 
@@ -85,7 +105,8 @@ class Displayer:
                                 next_preset = 0
 
                             preset_name = gv.SETLIST_LIST[gv.samples_indices[next_preset]]
-                            preset_line_2 = str(next_preset - gv.PRESET_BASE + 1) + unichr(2) + preset_name
+                            preset_num_name = str(next_preset - gv.PRESET_BASE + 1) + ' ' + preset_name
+                            preset_line_2 = display_preset_with_voices(preset_num_name)
 
                             self.LCD_SYS.display(preset_line_2, line=2, is_priority=True, timeout_custom=timeout)
                             self.LCD_SYS.display('', 3, is_priority=True, timeout_custom=timeout)
@@ -95,21 +116,20 @@ class Displayer:
 
                         if 'volume' in changed_var:
                             i = int(gv.global_volume_percent / 100.0 * (gv.LCD_COLS - 1)) + 1
-                            vol_line = 'Volume'.center(gv.LCD_COLS, ' ')
+                            vol_line = 'Volume'.upper().center(gv.LCD_COLS, ' ')
                             self.LCD_SYS.display(vol_line, line=3, is_priority=False, timeout_custom=2)
                             self.LCD_SYS.display((unichr(1) * i), line=4, is_priority=False, timeout_custom=2)
                         elif 'loading' in changed_var:
-                            loading_line = 'Loading'.center(gv.LCD_COLS, ' ')
+                            loading_line = 'Loading'.upper().center(gv.LCD_COLS, ' ')
                             self.LCD_SYS.display(loading_line, line=3, is_priority=False, timeout_custom=timeout)
                             self.LCD_SYS.display(unichr(1) * int(gv.percent_loaded * (gv.LCD_COLS / 100.0) + 1),
                                                  4, is_priority=False, timeout_custom=timeout)
                         elif 'effect' in changed_var:
-                            effect_line = changed_var[1].title().center(gv.LCD_COLS, ' ')
+                            effect_line = changed_var[1].upper().center(gv.LCD_COLS, ' ')
                             self.LCD_SYS.display(effect_line, line=3, is_priority=False, timeout_custom=2)
                             self.LCD_SYS.display(unichr(1) * int(gv.percent_effect * (gv.LCD_COLS / 100.0) + 1),
                                                  4, is_priority=False, timeout_custom=2)
-                        elif 'voice' in changed_var:
-                            self.LCD_SYS.display('', timeout_custom=0)
+
 
                     if self.menu_mode == self.DISP_UTILS_MODE:
                         if 'util' in changed_var:
@@ -143,10 +163,7 @@ class Displayer:
                             return
                         self.LCD_SYS.display(changed_var[0], line=line, is_priority=True, timeout_custom=timeout)
 
-                    if str_override:
-                        self.LCD_SYS.display_called = True
-                        self.LCD_SYS.display(str_override.center(gv.LCD_COLS, ' '), line=line, is_priority=is_priority,
-                                             timeout_custom=timeout)
+
 
             #######################
             # SYSTEM MODE 2 by Hans

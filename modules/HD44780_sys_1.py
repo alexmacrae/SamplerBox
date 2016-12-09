@@ -63,16 +63,6 @@ if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
         temp_display = False
 
 
-    def make_voice_buttons():
-        button_str = ''
-        for v in gv.voices:
-            if (v == gv.currvoice):
-                button_str += unichr(3)
-            else:
-                button_str += unichr(4)
-        return button_str
-
-
     def lcd_main():
         global timeout_length, timeout_start, display_called, temp_display
         
@@ -109,7 +99,7 @@ if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
                         lcd_string(STRING_4, 4)
 
                 elif gv.displayer.menu_mode == gv.displayer.DISP_PRESET_MODE:
-                    lcd_string(STRING_1_PRIORITY[:gv.LCD_COLS - 4] + make_voice_buttons(), 1)
+                    lcd_string(STRING_1_PRIORITY, 1)
                     lcd_string(STRING_2_PRIORITY, 2)
                     if gv.USE_HD44780_20x4_LCD:
                         lcd_string(STRING_3_PRIORITY, 3)

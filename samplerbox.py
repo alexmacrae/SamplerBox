@@ -37,8 +37,8 @@ from modules import sound
 print '#### START SETLIST ####'
 gv.setlist = setlist.Setlist()
 print '####  END SETLIST  ####\n'
-gv.ac = audiocontrols.AudioControls()
 gv.displayer = displayer.Displayer()
+gv.ac = audiocontrols.AudioControls()
 gv.sysfunc = systemfunctions.SystemFunctions()
 gv.ls = loadsamples.LoadingSamples()
 bnt = buttons.Buttons()
