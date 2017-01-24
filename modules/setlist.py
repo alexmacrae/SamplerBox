@@ -1,4 +1,5 @@
 import globalvars as gv
+from os.path import isdir
 
 class Setlist:
     def __init__(self):
@@ -24,6 +25,8 @@ class Setlist:
     def write_setlist(self, list_to_write):
         print('##### SETLIST: Writing to setlist #####')
         setlist = open(gv.SETLIST_FILE_PATH, "w")
+
+
         list_to_write = list(filter(None, list_to_write))  # remove empty strings / empty lines
         for song in list_to_write:
             setlist.write(song + '\n')
@@ -76,21 +79,25 @@ class Setlist:
         songs_in_setlist = list(filter(None, songs_in_setlist))  # remove empty strings / empty lines
         changes_in_dir = False
 
+
+
         if (set(songs_in_setlist).intersection(gv.SONG_FOLDERS_LIST) != len(gv.SONG_FOLDERS_LIST) and len(
                 songs_in_setlist) != 0):
 
             for song_folder_name in gv.SONG_FOLDERS_LIST:
                 i = 0
-                for song_name in songs_in_setlist:
-                    if (song_folder_name == song_name):
-                        break
-                    elif (i == len(songs_in_setlist) - 1):
-                        print '##### SETLIST: New setlist entry for [%s] #####\n' % song_folder_name
-                        changes_in_dir = True
-                        songs_in_setlist.append(song_folder_name)
-                        break
-
-                    i += 1
+                if isdir(gv.SAMPLES_DIR +'/'+ song_folder_name): # check if entry is a folder
+                    for song_name in songs_in_setlist:
+                        if (song_folder_name == song_name):
+                            break
+                        elif (i == len(songs_in_setlist) - 1):
+                            print '##### SETLIST: New setlist entry for [%s] #####\n' % song_folder_name
+                            changes_in_dir = True
+                            songs_in_setlist.append(song_folder_name)
+                            break
+                        i += 1
+                else:
+                    print '##### SETLIST: [%s] is not a folder. Skipping. #####\n' % song_folder_name
         elif (len(songs_in_setlist) == 0):
             songs_in_setlist = gv.SONG_FOLDERS_LIST
             changes_in_dir = True
