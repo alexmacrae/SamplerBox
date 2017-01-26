@@ -92,12 +92,13 @@ class PlayingSound:
 
 
 class Sound:
-    def __init__(self, filename, midinote, velocity, seq):
+    def __init__(self, filename, midinote, velocity, seq, channel):
         wf = waveread(filename)
         self.fname = filename
         self.midinote = midinote
         self.velocity = velocity
         self.seq = seq
+        self.channel = channel
 
         if wf.getloops():
             self.loop = wf.getloops()[0][0]

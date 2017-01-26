@@ -24,7 +24,12 @@ class AudioControls(object):
         gv.playingsounds = []
         gv.playingnotes = {}
         gv.sustainplayingnotes = []
-        gv.triggernotes = [128] * 128  # fill with unplayable note
+        gv.triggernotes = {}
+
+        for channel in xrange(16):
+            gv.triggernotes[channel + 1] = [128] * 128  # fill with unplayable note
+            gv.playingnotes[channel +1 ] = {}
+
 
 
 class MasterVolume:

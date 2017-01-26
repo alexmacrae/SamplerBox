@@ -24,7 +24,8 @@ def MidiCallback(src, message, time_stamp):
     src = src[:src.rfind(" "):]  # remove the port number from the end
 
     messagetype = message[0] >> 4
-    messagechannel = (message[0] & 15) + 1
+    midichannel = (message[0] & 15) + 1
+
     note = message[1] if len(message) > 1 else None
     midinote = note
     velocity = message[2] if len(message) > 2 else None
@@ -134,7 +135,8 @@ def MidiCallback(src, message, time_stamp):
     # Do default MIDI functions
     ######################
 
-    if (messagechannel == gv.MIDI_CHANNEL or gv.MIDI_CHANNEL <= 0) and (gv.midi_mute == False):
+    #if (midichannel == gv.MIDI_CHANNEL or gv.MIDI_CHANNEL <= 0) and (gv.midi_mute == False):
+    if gv.midi_mute == False:
 
         if messagetype == 9:  # is a note-off hidden in this note-on ?
             if velocity == 0:  # midi protocol, next elif's are SB's special modes
@@ -178,15 +180,15 @@ def MidiCallback(src, message, time_stamp):
                             if m.note == playnote:
                                 m.fadeout(50)
                                 # print 'clean sustain ' + str(playnote)
-                        if gv.triggernotes[playnote] < 128:  # cleanup in case of retrigger
-                            if playnote in gv.playingnotes:  # occurs in once/loops modes and chords)
-                                for m in gv.playingnotes[playnote]:
+                        if gv.triggernotes[midichannel][playnote] < 128:  # cleanup in case of retrigger
+                            if playnote in gv.playingnotes[midichannel]:  # occurs in once/loops modes and chords)
+                                for m in gv.playingnotes[midichannel][playnote]:
                                     # print "clean note " + str(playnote)
                                     m.fadeout(50)
-                                gv.playingnotes[playnote] = []  # housekeeping
+                                gv.playingnotes[midichannel][playnote] = []  # housekeeping
                         # Start David Hilowitz
                         # Get the list of available samples for this note and velocity
-                        notesamples = gv.samples[actual_preset][playnote, velocity, gv.currvoice]
+                        notesamples = gv.samples[actual_preset][playnote, velocity, gv.currvoice, midichannel]
                         # Choose a sample from the list
                         sample = random.choice(notesamples)
                         # If we have no value for lastplayedseq, set it to 0
@@ -196,28 +198,27 @@ def MidiCallback(src, message, time_stamp):
                             while sample.seq == gv.lastplayedseq[playnote]:
                                 sample = random.choice(notesamples)
                         # End David Hilowitz
-                        gv.triggernotes[playnote] = midinote  # we are last playing this one
+                        gv.triggernotes[midichannel][playnote] = midinote  # we are last playing this one
                         # print "start note " + str(playnote)
-                        gv.playingnotes.setdefault(playnote, []).append(
+                        gv.playingnotes[midichannel].setdefault(playnote, []).append(
                             sample.play(playnote, velmixer))
-
                         gv.lastplayedseq[playnote] = sample.seq  # David Hilowitz
 
             except:
                 raise exceptions.NoteOnError, 'Couldn\'t play note'
                 pass
 
-
-
+            
+            
         elif messagetype == 8:  # Note off
             midinote += gv.globaltranspose
             if noteoff == True:
 
                 if gv.SYSTEM_MODE > 0:
                     for playnote in xrange(128):
-                        if gv.triggernotes[playnote] == midinote:  # did we make this one play ?
-                            if playnote in gv.playingnotes:
-                                for m in gv.playingnotes[playnote]:
+                        if gv.triggernotes[midichannel][playnote] == midinote:  # did we make this one play ?
+                            if playnote in gv.playingnotes[midichannel]:
+                                for m in gv.playingnotes[midichannel][playnote]:
                                     if gv.sustain:
                                         # print 'Sustain note ' + str(playnote)   # debug
                                         gv.sustainplayingnotes.append(m)
@@ -225,8 +226,8 @@ def MidiCallback(src, message, time_stamp):
                                         # print "stop note " + str(playnote)
                                         m.fadeout(50)
                                 # gv.playingnotes[playnote] = []
-                                gv.playingnotes.pop(playnote)
-                            gv.triggernotes[playnote] = 128  # housekeeping
+                                gv.playingnotes[midichannel].pop(playnote)
+                            gv.triggernotes[midichannel][playnote] = 128  # housekeeping
 
 
 
