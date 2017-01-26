@@ -113,7 +113,11 @@ time.sleep(0.5)
 
 try:
     while True:
-        if not gv.playingnotes: # only check when there are no sounds
+        no_playing_sounds = False
+        for channel in xrange(16):
+            if not gv.playingnotes[channel+1]:
+                no_playing_sounds = True
+        if no_playing_sounds: # only check when there are no sounds
             curr_ports = rtmidi2.get_in_ports()
             if (len(prev_ports) != len(curr_ports)):
                 print '\n==== START GETTING MIDI DEVICES ===='

@@ -137,7 +137,10 @@ samples_indices = []
 playingnotes = {}
 lastplayedseq = {}
 sustainplayingnotes = []
-triggernotes = [128] * 128
+triggernotes = {}
+for channel in xrange(16):
+    triggernotes[channel + 1] = [128] * 128
+    playingnotes[channel + 1] = {}
 sustain = False
 playingsounds = []
 globaltranspose = 0
@@ -149,6 +152,9 @@ if USE_HD44780_16x2_LCD:
     LCD_ROWS = 2
 elif USE_HD44780_20x4_LCD:
     LCD_COLS = 20
+    LCD_ROWS = 4
+else:
+    LCD_COLS = 50
     LCD_ROWS = 4
 
 ####################
