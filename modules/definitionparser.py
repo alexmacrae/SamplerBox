@@ -3,7 +3,7 @@ from modules import globalvars as gv
 
 keywords_to_try = (('gv.gain', 'gain'),
                    ('gv.globaltranspose', 'transpose'),
-                   ('gv.FADEOUTLENGTH', 'release'),
+                   ('gv.PRERELEASE', 'release'),
                    ('gv.pitchnotes', 'pitchbend'),
                    ('gv.sample_mode', 'mode'),
                    ('gv.velocity_mode', 'velmode'))
@@ -12,7 +12,7 @@ keywords_dict = {
             0: {'%%gain': (0.001, 10.0)},
             1: {'%%mode': ['keyb', 'once', 'on64', 'loop', 'loo2']},
             2: {'%%velmode': ['sample', 'accurate']},
-            3: {'%%release': (0, 100)},
+            3: {'%%release': (0, 127)},
             4: {'%%transpose': (-48, 48)},
             5: {'%%pitchbend': (0, 12)}
 }
@@ -20,7 +20,7 @@ keywords_defaults_dict = {
             '%%gain': 1.0,
             '%%mode': gv.SAMPLE_MODE_DEFAULT.lower(),
             '%%velmode': gv.VELOCITY_MODE_DEFAULT.lower(),
-            '%%release': gv.FADEOUTLENGTH_DEFAULT,
+            '%%release': gv.PRERELEASE,
             '%%transpose': 0,
             '%%pitchbend': gv.PITCHRANGE_DEFAULT,
         }
