@@ -20,6 +20,7 @@ MIDI_CHANNEL = int(cp.get_option_by_name('MIDI_CHANNEL'))
 CHANNELS = int(cp.get_option_by_name('CHANNELS'))
 BUFFERSIZE = int(cp.get_option_by_name('BUFFERSIZE'))
 SAMPLERATE = int(cp.get_option_by_name('SAMPLERATE'))
+BOXRELEASE = int(cp.get_option_by_name('BOXRELEASE'))
 RAM_LIMIT_PERCENTAGE = int(cp.get_option_by_name('RAM_LIMIT_PERCENTAGE'))
 global_volume = int(cp.get_option_by_name('GLOBAL_VOLUME'))
 global_volume_percent = int((float(global_volume) / 100.0) * 100)
@@ -141,6 +142,8 @@ triggernotes = {}
 for channel in xrange(16):
     triggernotes[channel + 1] = [128] * 128
     playingnotes[channel + 1] = {}
+fillnotes = {}
+fillnote = 'Y' # by default we will fill/generate missing notes
 sustain = False
 playingsounds = []
 globaltranspose = 0
@@ -201,12 +204,16 @@ currvoice = 1
 midi_mute = False
 gain = 1  # the input volume correction, change per set in definition.txt
 
+###################
+# PITCH
+###################
 
-
+PRERELEASE = BOXRELEASE
 PITCHRANGE_DEFAULT = 12  # default range of the pitchwheel in semitones (max=12. Higher than 12 produces inaccurate pitching)
+PITCHRANGE_DEFAULT *= 2     # actually it is 12 up and 12 down
 PITCHBITS = 7  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
 PITCHBEND = 0
-pitchnotes = PITCHRANGE_DEFAULT * 2
+pitchnotes = PITCHRANGE_DEFAULT
 PITCHSTEPS = 2 ** PITCHBITS
 pitchneutral = PITCHSTEPS / 2
 pitchdiv = 2 ** (14 - PITCHBITS)
@@ -217,12 +224,14 @@ msleep = lambda x: time.sleep(x / 1000.0)
 ###################
 # FADE / RELEASE / SPEED
 ###################
-FADEOUTLENGTH_DEFAULT = 30000
-FADEOUTLENGTH = FADEOUTLENGTH_DEFAULT
-FADEOUT = numpy.linspace(1., 0., FADEOUTLENGTH)  # by default, float64
+
+FADEOUTLENGTH = 640*1000  # a large table gives reasonable results (640 up to 2 sec)
+FADEOUT = numpy.linspace(1., 0., FADEOUTLENGTH)     # by default, float64
 FADEOUT = numpy.power(FADEOUT, 6)
 FADEOUT = numpy.append(FADEOUT, numpy.zeros(FADEOUTLENGTH, numpy.float32)).astype(numpy.float32)
-SPEED = numpy.power(2, numpy.arange(-48.0 * PITCHSTEPS, 48.0 * PITCHSTEPS) / (12 * PITCHSTEPS)).astype(numpy.float32)
+SPEEDRANGE = 48
+SPEED = numpy.power(2, numpy.arange(-1.0*SPEEDRANGE*PITCHSTEPS, 1.0*SPEEDRANGE*PITCHSTEPS)/(12*PITCHSTEPS)).astype(numpy.float32)
+
 
 ###################
 # BACKING TRACK VARS

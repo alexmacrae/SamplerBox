@@ -267,3 +267,9 @@ def MidiCallback(src, message, time_stamp):
             # "All sounds off" or "all notes off"
             elif CCnum == 120 or CCnum == 123:
                 gv.ac.all_notes_off()
+
+            elif CCnum == 72:  # Sound controller 3 = release time
+                gv.PRERELEASE = CCval
+
+            elif CCnum == 82:        # Pitch bend sensitivity (my controller cannot send RPN)
+                gv.pitchnotes = (24*CCval+100)/127

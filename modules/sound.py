@@ -11,6 +11,7 @@ import globalvars as gv
 import time
 import exceptions
 
+
 ############################################################
 # SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE              #
 # TO READ CUE MARKERS & LOOP MARKERS if applicable in mode #
@@ -82,7 +83,13 @@ class PlayingSound:
         self.timestamp = timestamp
 
     def fadeout(self, i):
-        self.isfadeout = True
+        if self.isfadeout:
+            try:
+                gv.playingsounds.remove(self)
+            except:
+                pass
+        else:
+            self.isfadeout = True
 
     def stop(self):
         try:
@@ -92,13 +99,14 @@ class PlayingSound:
 
 
 class Sound:
-    def __init__(self, filename, midinote, velocity, seq, channel):
+    def __init__(self, filename, midinote, velocity, seq, channel, release):
         wf = waveread(filename)
         self.fname = filename
         self.midinote = midinote
         self.velocity = velocity
         self.seq = seq
         self.channel = channel
+        self.release = release
 
         if wf.getloops():
             self.loop = wf.getloops()[0][0]
@@ -133,9 +141,13 @@ def AudioCallback(outdata, frame_count, time_info, status):
     rmlist = []
     gv.playingsounds = gv.playingsounds[-gv.MAX_POLYPHONY:]
 
-    b = samplerbox_audio.mixaudiobuffers(gv.playingsounds, rmlist, frame_count,
-                                         gv.FADEOUT, gv.FADEOUTLENGTH, gv.SPEED,
-                                         gv.PITCHBEND, gv.PITCHSTEPS)
+    # b = samplerbox_audio.mixaudiobuffers(gv.playingsounds, rmlist, frame_count,
+    #                                      gv.FADEOUT, gv.FADEOUTLENGTH, gv.SPEED,
+    #                                      gv.PITCHBEND, gv.PITCHSTEPS)
+
+    b = samplerbox_audio.mixaudiobuffers(gv.playingsounds, rmlist, frame_count, gv.FADEOUT, gv.FADEOUTLENGTH,
+                                         gv.PRERELEASE, gv.SPEED, gv.SPEEDRANGE, gv.PITCHBEND, gv.PITCHSTEPS)
+
     # if gv.USE_FREEVERB and gv.IS_DEBIAN:
     #     b_verb = b
     #     gv.ac.reverb.freeverbprocess(b_verb.ctypes.data_as(gv.ac.reverb.c_float_p),
@@ -218,6 +230,7 @@ print sounddevice.query_devices()  # all available audio devices
 
 sd = None
 
+
 def start_stream():
     global sd
     try:
@@ -236,6 +249,7 @@ def start_stream():
         print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
         # exit(1)
 
+
 def start_alsa_stream():
     # print alsaaudio.mixers() #show available mixer controls
     for i in range(0, 4):
@@ -253,17 +267,16 @@ def start_alsa_stream():
             print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
             print(sounddevice.query_devices())
 
-
     def getvolume():
         vol = amix.getvolume()
         gv.global_volume = int(vol[0])
-
 
     def setvolume(volume):
         amix.setvolume(int(volume))
 
     setvolume(gv.global_volume)
     getvolume()
+
 
 def close_stream():
     global sd
@@ -289,6 +302,8 @@ Select a device by name. On startup try AUDIO_DEVICE_NAME specified in the confi
 If no match is found, use the default AUDIO_DEVICE_ID.
 In SYSTEM_MODE=1 we can change the device via the menu.
 """
+
+
 def set_audio_device(device_name):
     i = 0
     try:
@@ -306,12 +321,12 @@ def set_audio_device(device_name):
     else:
         start_stream()
 
+
 set_audio_device(gv.AUDIO_DEVICE_NAME)
 
 if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
     import alsaaudio
+
     start_alsa_stream()
 
 print '\n#### END OF AUDIO DEVICES ####\n'
-
-
