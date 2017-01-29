@@ -3,6 +3,7 @@
 ###########################
 
 import globalvars as gv
+import sys
 
 if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
 
@@ -65,11 +66,10 @@ if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
 
     def lcd_main():
         global timeout_length, timeout_start, display_called, temp_display
-        
+
         if gv.USE_HD44780_20x4_LCD and gv.IS_DEBIAN:
             global lcd
             lcd.clear()
-
 
         if gv.USE_HD44780_16x2_LCD:
             lcd_string("WELCOME TO".center(gv.LCD_COLS, ' '), 1)
@@ -83,6 +83,7 @@ if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
         time.sleep(1)
 
         timeout_start = time.time()
+        print_message = ''
 
         while True:
             if display_called:
@@ -94,30 +95,44 @@ if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
                 if temp_display or gv.displayer.menu_mode == gv.displayer.DISP_UTILS_MODE:
                     lcd_string(STRING_1, 1)
                     lcd_string(STRING_2, 2)
+                    print_message = "\r%s || %s" % (STRING_1[:gv.LCD_COLS], STRING_2[:gv.LCD_COLS])
+
                     if gv.USE_HD44780_20x4_LCD:
                         lcd_string(STRING_3, 3)
                         lcd_string(STRING_4, 4)
+                        print_message = "\r%s || %s || %s" % (print_message,
+                                                              STRING_3[:gv.LCD_COLS], STRING_4[:gv.LCD_COLS])
 
                 elif gv.displayer.menu_mode == gv.displayer.DISP_PRESET_MODE:
                     lcd_string(STRING_1_PRIORITY, 1)
                     lcd_string(STRING_2_PRIORITY, 2)
+                    print_message = "\r%s || %s" % (STRING_1_PRIORITY[:gv.LCD_COLS], STRING_2_PRIORITY[:gv.LCD_COLS])
                     if gv.USE_HD44780_20x4_LCD:
                         lcd_string(STRING_3_PRIORITY, 3)
                         lcd_string(STRING_4_PRIORITY, 4)
+                        print_message = "\r%s || %s || %s" % (print_message, STRING_3_PRIORITY[:gv.LCD_COLS],
+                                                              STRING_4_PRIORITY[:gv.LCD_COLS])
                 elif gv.displayer.menu_mode == gv.displayer.DISP_MENU_MODE:
                     lcd_string(STRING_1_PRIORITY, 1)
                     lcd_string(STRING_2_PRIORITY, 2)
+                    print_message = "\r%s || %s" % (STRING_1_PRIORITY[:gv.LCD_COLS], STRING_2_PRIORITY[:gv.LCD_COLS])
                     if gv.USE_HD44780_20x4_LCD:
                         lcd_string(STRING_3_PRIORITY, 3)
                         lcd_string(STRING_4_PRIORITY, 4)
+                        print_message = "\r%s || %s || %s" % (print_message, STRING_3_PRIORITY[:gv.LCD_COLS],
+                                                              STRING_4_PRIORITY[:gv.LCD_COLS])
+
+                if gv.PRINT_LCD_MESSAGES:
+                    sys.stdout.write(print_message)
+                    sys.stdout.flush()
 
             time.sleep(thread_sleep)
 
 
     def lcd_string(message, line):
 
-        if gv.PRINT_LCD_MESSAGES:
-            print '{line ' + str(line) + '} -->  ' + message[:gv.LCD_COLS]
+        # if gv.PRINT_LCD_MESSAGES:
+        #     print '{line ' + str(line) + '} -->  ' + message[:gv.LCD_COLS]
 
         message = message.ljust(gv.LCD_COLS, " ")
 

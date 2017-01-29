@@ -20,7 +20,7 @@ keywords_defaults_dict = {
             '%%gain': 1.0,
             '%%mode': gv.SAMPLE_MODE_DEFAULT.lower(),
             '%%velmode': gv.VELOCITY_MODE_DEFAULT.lower(),
-            '%%release': gv.PRERELEASE,
+            '%%release': gv.BOXRELEASE,
             '%%transpose': 0,
             '%%pitchbend': gv.PITCHRANGE_DEFAULT,
         }
