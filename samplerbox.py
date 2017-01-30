@@ -98,13 +98,6 @@ if gv.USE_SERIALPORT_MIDI:
 
 gv.ls.LoadSamples()
 
-#############
-# START GUI #
-#############
-
-import modules.gui as gui
-gui.rootWindow.mainloop()
-
 ##########################
 # MIDI DEVICES DETECTION #
 # MAIN LOOP              #
@@ -118,30 +111,46 @@ first_loop = True
 
 time.sleep(0.5)
 
+
 try:
-    while True:
-        no_playing_sounds = False
-        for channel in xrange(16):
-            if not gv.playingnotes[channel+1]:
-                no_playing_sounds = True
-        if no_playing_sounds: # only check when there are no sounds
-            curr_ports = rtmidi2.get_in_ports()
-            if (len(prev_ports) != len(curr_ports)):
-                print '\n==== START GETTING MIDI DEVICES ===='
-                midi_in.close_ports()
-                prev_ports = []
-                for port in curr_ports:
-                    if port not in prev_ports and 'Midi Through' not in port and (len(prev_ports) != len(curr_ports) and 'LoopBe Internal' not in port):
-                        midi_in.open_ports(port)
-                        midi_in.callback = midicallback.MidiCallback
-                        if first_loop:
-                            print 'Opened MIDI port: ' + port
-                        else:
-                            print 'Reopening MIDI port: ' + port
-                print '====  END GETTING MIDI DEVICES  ====\n'
-            prev_ports = curr_ports
-            first_loop = False
-        time.sleep(0.2)
+    def midi_devices_loop():
+        global prev_ports, first_loop
+        while True:
+            no_playing_sounds = False
+            for channel in xrange(16):
+                if not gv.playingnotes[channel+1]:
+                    no_playing_sounds = True
+            if no_playing_sounds: # only check when there are no sounds
+                curr_ports = rtmidi2.get_in_ports()
+                if (len(prev_ports) != len(curr_ports)):
+                    print '\n==== START GETTING MIDI DEVICES ===='
+                    midi_in.close_ports()
+                    prev_ports = []
+                    for port in curr_ports:
+                        if port not in prev_ports and 'Midi Through' not in port and (len(prev_ports) != len(curr_ports) and 'LoopBe Internal' not in port):
+                            midi_in.open_ports(port)
+                            midi_in.callback = midicallback.MidiCallback
+                            if first_loop:
+                                print 'Opened MIDI port: ' + port
+                            else:
+                                print 'Reopening MIDI port: ' + port
+                    print '====  END GETTING MIDI DEVICES  ====\n'
+                prev_ports = curr_ports
+                first_loop = False
+            time.sleep(0.2)
+
+    # MIDI device detection is threaded because Tkinter's loop is now the main loop
+    LoadingInterrupt = False
+    LoadingThread = threading.Thread(target=midi_devices_loop)
+    LoadingThread.daemon = True
+    LoadingThread.start()
+
+    #############
+    # START GUI #
+    #############
+    import modules.gui as gui
+    gui.rootWindow.mainloop() # this is the main loop
+
 
 except KeyboardInterrupt:
     print "\nstopped by ctrl-c\n"
