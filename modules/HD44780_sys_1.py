@@ -4,6 +4,8 @@
 
 import globalvars as gv
 import sys
+if gv.PRINT_LCD_MESSAGES:
+    import gui
 
 if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
 
@@ -125,6 +127,10 @@ if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
                 if gv.PRINT_LCD_MESSAGES:
                     sys.stdout.write(print_message)
                     sys.stdout.flush()
+                    gui_message = print_message.replace('\r', '')
+                    gui_message = gui_message.replace(' || ', '\r')
+                    gui.output['text'] = gui_message
+
 
             time.sleep(thread_sleep)
 
