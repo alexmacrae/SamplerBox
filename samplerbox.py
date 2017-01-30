@@ -92,16 +92,23 @@ if gv.USE_SERIALPORT_MIDI:
     MidiThread.daemon = True
     MidiThread.start()
 
-#########################################
-# LOAD FIRST SAMPLE-SET/PRESET
-#########################################
+################################
+# LOAD FIRST SAMPLE-SET/PRESET #
+################################
 
 gv.ls.LoadSamples()
 
-#########################################
-# MIDI DEVICES DETECTION
-# MAIN LOOP
-#########################################
+#############
+# START GUI #
+#############
+
+import modules.gui as gui
+gui.rootWindow.mainloop()
+
+##########################
+# MIDI DEVICES DETECTION #
+# MAIN LOOP              #
+##########################
 
 midi_in = rtmidi2.MidiInMulti()
 
