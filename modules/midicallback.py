@@ -152,94 +152,23 @@ def MidiCallback(src, message, time_stamp):
 
         if messagetype == 9:  # Note on
 
-            midinote += gv.globaltranspose
-            actual_preset = gv.samples_indices[gv.preset]
+            gv.ac.noteon(midinote=midinote, midichannel=midichannel, velocity=velocity)
 
-            try:
-                # scale the selected sample based on velocity, the volume will be kept,
-                # this will normally make the sound brighter (by Erik)
-
-                # TODO: make VelocitySelectionOffset a system setting effectively adjusting the sensitivity of a device
-
-                select_velocity = (velocity * (127 - gv.VelocitySelectionOffset) / 127) \
-                                  + gv.VelocitySelectionOffset
-
-                if gv.velocity_mode == gv.VELSAMPLE:
-                    velmixer = 127 * gv.gain
-                else:
-                    velmixer = velocity * gv.gain
-
-                if gv.SYSTEM_MODE > 0:
-
-                    note_index = midinote % 12 - gv.ac.autochorder.current_key_index
-                    chord_index = gv.ac.autochorder.current_chord_mode[note_index]
-
-                    for n in range(len(gv.ac.autochorder.CHORD_NOTES[chord_index])):
-                        playnote = midinote + gv.ac.autochorder.CHORD_NOTES[chord_index][n]
-                        for m in gv.sustainplayingnotes:  # safeguard polyphony; don't sustain double notes
-                            if m.note == playnote:
-                                m.fadeout(50)
-                                # print 'clean sustain ' + str(playnote)
-                        if gv.triggernotes[midichannel][playnote] < 128:  # cleanup in case of retrigger
-                            if playnote in gv.playingnotes[midichannel]:  # occurs in once/loops modes and chords)
-                                for m in gv.playingnotes[midichannel][playnote]:
-                                    # print "clean note " + str(playnote)
-                                    m.fadeout(50)
-                                gv.playingnotes[midichannel][playnote] = []  # housekeeping
-                        # Start David Hilowitz
-                        # Get the list of available samples for this note and velocity
-                        notesamples = gv.samples[actual_preset][playnote, velocity, gv.currvoice, midichannel]
-                        # Choose a sample from the list
-                        sample = random.choice(notesamples)
-                        # If we have no value for lastplayedseq, set it to 0
-                        gv.lastplayedseq.setdefault(playnote, 0)
-                        # If we have more than 2 samples to work with, reject duplicates
-                        if len(notesamples) >= 3:
-                            while sample.seq == gv.lastplayedseq[playnote]:
-                                sample = random.choice(notesamples)
-                        # End David Hilowitz
-                        gv.triggernotes[midichannel][playnote] = midinote  # we are last playing this one
-                        # print "start note " + str(playnote)
-                        gv.playingnotes[midichannel].setdefault(playnote, []).append(
-                            sample.play(playnote, velmixer))
-                        gv.lastplayedseq[playnote] = sample.seq  # David Hilowitz
-
-            except:
-                raise exceptions.NoteOnError, 'Couldn\'t play note'
-                pass
-
-            
-            
         elif messagetype == 8:  # Note off
-            midinote += gv.globaltranspose
-            if noteoff == True:
 
-                if gv.SYSTEM_MODE > 0:
-                    for playnote in xrange(128):
-                        if gv.triggernotes[midichannel][playnote] == midinote:  # did we make this one play ?
-                            if playnote in gv.playingnotes[midichannel]:
-                                for m in gv.playingnotes[midichannel][playnote]:
-                                    if gv.sustain:
-                                        # print 'Sustain note ' + str(playnote)   # debug
-                                        gv.sustainplayingnotes.append(m)
-                                    else:
-                                        # print "stop note " + str(playnote)
-                                        m.fadeout(50)
-                                # gv.playingnotes[playnote] = []
-                                gv.playingnotes[midichannel].pop(playnote)
-                            gv.triggernotes[midichannel][playnote] = 128  # housekeeping
-
+            gv.ac.noteoff(midinote=midinote, midichannel=midichannel)
 
 
         elif messagetype == 12:  # Program change
             # print 'Program change ' + str(note)
             if gv.preset != note:
                 gv.preset = note
-                loadsamples.LoadSamples()
+                gv.ls.LoadSamples()
 
         elif messagetype == 14:  # Pitch Bend
 
-            gv.ac.pitchbend.set_pitch(velocity, note)
+            if 'microKEY-61' not in src: # Removed pitch temporarily for Alex's modified microKEY
+                gv.ac.pitchbend.set_pitch(velocity, note)
 
         elif messagetype == 11:  # control change (CC, sometimes called Continuous Controllers)
             CCnum = note
@@ -261,7 +190,7 @@ def MidiCallback(src, message, time_stamp):
 
             # general purpose 81 used for chords
             elif CCnum == 81:
-                if CCval < len(gv.CHORD_NOTES):
+                if CCval < len(gv.autochorder.CHORD_NOTES):
                     gv.ac.autochorder.change()
 
             # "All sounds off" or "all notes off"

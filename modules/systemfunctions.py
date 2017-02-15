@@ -29,13 +29,16 @@ class SystemFunctions:
         # os.system('sudo killall python && sudo python ' + str(os.getcwd()) + '/samplerbox.py')
         os.system('systemctl stop samplerbox && sudo python ' + str(os.getcwd()) + '/samplerbox.py')
 
-    def shutdown(self):
+    def shutdown(self, log_file=None):
         gv.nav.text_scroller.stop()
         shutdown_message = 'GOOD BYE!'.center(gv.LCD_COLS, ' ')
         for i in xrange(gv.LCD_ROWS):
             gv.displayer.disp_change(str_override=shutdown_message, line=(i+1), timeout=1, is_priority=True)
         sleep(0.2)
         sound.close_stream()
+
+        if log_file:
+            log_file.close()
 
         if gv.IS_DEBIAN:
             import RPi.GPIO as GPIO

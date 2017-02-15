@@ -466,7 +466,7 @@ class LoadingSamples:
                                 m = last_low
                             else:
                                 m = next_high
-                            print "Note %d will be generated from %d" % (midinote, m)
+                            # print "Note %d will be generated from %d" % (midinote, m)
                             for velocity in xrange(128):
                                 self.pause_if_playingsounds()
                                 gv.samples[self.preset_current_loading][midinote, velocity, voice, gv.MIDI_CHANNEL] = \
@@ -481,6 +481,8 @@ class LoadingSamples:
             gv.samples[self.preset_current_loading]['loaded'] = True  # flag this preset's dict item as loaded
 
         print '++++++++++ LOADED: [%d] %s' % (self.preset_current_loading, current_basename)  # debug
+
+        gv.displayer.disp_change('') # Force the display to update
 
         self.is_all_presets_loaded()
         is_memory_too_high_bool = self.is_memory_too_high()[0]

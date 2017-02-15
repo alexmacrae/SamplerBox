@@ -5,6 +5,8 @@
 import globalvars as gv
 import time
 import threading
+import gui
+import sys
 
 if gv.IS_DEBIAN:
     thread_sleep = 0.1
@@ -60,8 +62,6 @@ if (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD) and gv.SYSTEM_MODE == 2:
 
             time.sleep(thread_sleep)
 
-
-
     def lcd_string(message, line):
 
         message = message.center(gv.LCD_COLS, " ")
@@ -89,7 +89,15 @@ if (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD) and gv.SYSTEM_MODE == 2:
             s2 = s2 + ' ' * gv.LCD_COLS
 
         if gv.PRINT_LCD_MESSAGES:
-            print "display: %s \\ %s" % (s1[:gv.LCD_COLS], s2[:gv.LCD_COLS])
+            message = "%s || %s" % (s1[:gv.LCD_COLS], s2[:gv.LCD_COLS])
+            # print "display: %s \\ %s" % (s1[:gv.LCD_COLS], s2[:gv.LCD_COLS])
+            sys.stdout.write(message)
+            sys.stdout.flush()
+            gui_message = message.replace('\r', '')
+            gui_message = gui_message.replace(' || ', '\r')
+            if gv.use_gui: gv.gui.output['text'] = gui_message
+
+
         # lcd.message(s1 + " "*8 + "\n" + s2 + " "*15)
         # if gv.IS_DEBIAN:
         #     lcd.message(s1 + "\n" + s2)

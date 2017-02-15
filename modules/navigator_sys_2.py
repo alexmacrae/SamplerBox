@@ -18,6 +18,7 @@ def Button_display():
         "",
         " %s" % (gv.ac.autochorder.CHORD_NAMES[gv.ac.autochorder.current_chord])
     ]
+    print button_functions[buttfunc] + function_value[buttfunc]
     gv.displayer.disp_change(str_override=button_functions[buttfunc] + function_value[buttfunc])
 
 
