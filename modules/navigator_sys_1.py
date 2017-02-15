@@ -88,6 +88,7 @@ class PresetNav(Navigator):
     def enter(self):
         self.load_state(MenuNav)
 
+
     def cancel(self):  # can remove empty class methods
         self.load_state(UtilsView)
 
@@ -206,7 +207,6 @@ class MenuNav(Navigator):
 
         gv.displayer.disp_change(title, line=1, timeout=0)
 
-        desc = ''
         if menu_dict_item.has_key('desc'):
 
             desc = menu_dict_item.get('desc')

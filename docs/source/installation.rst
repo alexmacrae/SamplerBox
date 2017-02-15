@@ -13,20 +13,21 @@ Installation
 
 3. Log into RPi (pi:raspberry) and install the required dependencies (Python-related packages and audio libraries)::
 
-    sudo apt-get update ; sudo apt-get -y install python-dev python-numpy cython python-smbus portaudio19-dev python-pip python-configparser python-psutil python-scipy git libffi-dev
+    sudo apt-get update ; sudo apt-get -y install python-dev python-numpy cython python-smbus portaudio19-dev python-pip python-configparser python-psutil python-scipy git libffi-dev python-tk
     git clone http://people.csail.mit.edu/hubert/git/pyaudio.git ; cd pyaudio ; sudo python setup.py install ; cd ..
     git clone https://github.com/gesellkammer/rtmidi2 ; cd rtmidi2 ; sudo python setup.py install ; cd ..
     git clone https://github.com/dbrgn/RPLCD ; cd RPLCD ; sudo python setup.py install ; cd ..
     git clone https://gitorious.org/pyosc/devel.git ; cd devel ; sudo python setup.py install ; cd ..
     pip install cffi --user
-    pip install sounddevice
-
+    pip install libportaudio2
+    pip install sounddevice --user
+    pip install RPi
 
 4. Download and build SamplerBox from the RPi command-line::
 
     git clone https://github.com/alexmacrae/SamplerBox.git ;
-    cd SamplerBox ; sudo python setup.py build_ext --inplace
-    sudo chmod -x SamplerBox/samplerbox.sh
+    cd SamplerBox ; sudo python setup.py build_ext --inplace; cd ..
+    sudo chmod -x SamplerBox/sb.sh
 
 
 5. Configure RPi to auto-run SamplerBox on startup

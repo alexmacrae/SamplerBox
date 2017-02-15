@@ -4,6 +4,7 @@ import ctypes
 from os.path import dirname, abspath
 from filters import FilterType, Filter, FilterChain
 from collections import OrderedDict
+import random
 import sys
 
 
@@ -30,6 +31,68 @@ class AudioControls(object):
             gv.triggernotes[channel + 1] = [128] * 128  # fill with unplayable note
             gv.playingnotes[channel +1 ] = {}
 
+    def noteon(self, midinote, midichannel, velocity):
+
+        midinote += gv.globaltranspose
+        actual_preset = gv.samples_indices[gv.preset]
+
+        if gv.velocity_mode == gv.VELSAMPLE:
+            velmixer = 127 * gv.gain
+        else:
+            velmixer = velocity * gv.gain
+
+        if gv.SYSTEM_MODE > 0:
+
+            note_index = midinote % 12 - gv.ac.autochorder.current_key_index
+            chord_index = gv.ac.autochorder.current_chord_mode[note_index]
+
+            for n in range(len(gv.ac.autochorder.CHORD_NOTES[chord_index])):
+                playnote = midinote + gv.ac.autochorder.CHORD_NOTES[chord_index][n]
+                for m in gv.sustainplayingnotes:  # safeguard polyphony; don't sustain double notes
+                    if m.note == playnote:
+                        m.fadeout(50)
+                        # print 'clean sustain ' + str(playnote)
+                if gv.triggernotes[midichannel][playnote] < 128:  # cleanup in case of retrigger
+                    if playnote in gv.playingnotes[midichannel]:  # occurs in once/loops modes and chords)
+                        for m in gv.playingnotes[midichannel][playnote]:
+                            # print "clean note " + str(playnote)
+                            m.fadeout(50)
+                        gv.playingnotes[midichannel][playnote] = []  # housekeeping
+                # Start David Hilowitz
+                # Get the list of available samples for this note and velocity
+                notesamples = gv.samples[actual_preset][playnote, velocity, gv.currvoice, midichannel]
+                # Choose a sample from the list
+                sample = random.choice(notesamples)
+                # If we have no value for lastplayedseq, set it to 0
+                gv.lastplayedseq.setdefault(playnote, 0)
+                # If we have more than 2 samples to work with, reject duplicates
+                if len(notesamples) >= 3:
+                    while sample.seq == gv.lastplayedseq[playnote]:
+                        sample = random.choice(notesamples)
+                # End David Hilowitz
+                gv.triggernotes[midichannel][playnote] = midinote  # we are last playing this one
+                # print "start note " + str(playnote)
+                gv.playingnotes[midichannel].setdefault(playnote, []).append(
+                    sample.play(playnote, velmixer))
+                gv.lastplayedseq[playnote] = sample.seq  # David Hilowitz
+
+    def noteoff(self, midinote, midichannel):
+
+        midinote += gv.globaltranspose
+        if gv.SYSTEM_MODE > 0:
+            for playnote in xrange(128):
+                if gv.triggernotes[midichannel][playnote] == midinote:  # did we make this one play ?
+                    if playnote in gv.playingnotes[midichannel]:
+                        for m in gv.playingnotes[midichannel][playnote]:
+                            if gv.sustain:
+                                # print 'Sustain note ' + str(playnote)   # debug
+                                gv.sustainplayingnotes.append(m)
+                            else:
+                                # print "stop note " + str(playnote)
+                                m.fadeout(50)
+                        # gv.playingnotes[playnote] = []
+                        gv.playingnotes[midichannel].pop(playnote)
+                    gv.triggernotes[midichannel][playnote] = 128  # housekeeping
 
 
 class MasterVolume:

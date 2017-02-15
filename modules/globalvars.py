@@ -2,11 +2,12 @@ import platform
 import os
 import numpy
 import re
+CONFIG_PRINT = True
 import configparser_samplerbox as cp
 import time
 
 IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian'  # Determine if running on RPi (True / False)
-CONFIG_PRINT = True
+
 
 ####################
 # IMPORT CONFIG.INI
@@ -168,8 +169,12 @@ nav = None
 displayer = None
 sysfunc = None
 ac = None
+autochorder = None
 setlist = None
 ls = None
+gui = None
+
+use_gui = True
 
 # add to selection of samples, not to Velocity Volume
 VelocitySelectionOffset = 0
@@ -179,8 +184,6 @@ VelocitySelectionOffset = 0
 ###################
 
 # Constants
-
-
 
 PLAYLIVE = "Keyb"  # reacts on "keyboard" interaction
 PLAYBACK = "Once"  # ignores loop markers and note-off ("just play the sample")

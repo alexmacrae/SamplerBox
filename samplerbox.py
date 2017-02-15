@@ -8,6 +8,13 @@
 #  samplerbox2.py:  Main file
 #
 
+# TODO: if we're compiling a dist, bundled files such as config.ini can't be found, ie relative paths are affected
+
+# import os, sys
+# if 'Python' in  os.path.dirname(sys.executable):
+#     env_basename = os.path.dirname(sys.executable)
+# else:
+#     env_basename = ''
 
 #########################################
 # IMPORT
@@ -28,17 +35,30 @@ from modules import systemfunctions
 from modules import setlist
 from modules import loadsamples
 
-###########################
-# Start Displayer
-# Load MIDI mappings
-# Start the Navigator
-###########################
-from modules import sound
+###########
+# Logging #
+###########
+
+# TODO: not quite there yet
+
+# import sys
+# log_file = open("console.log", 'w')
+log_file = None
+# sys.stdout = log_file
+
+#######################
+# Start Displayer     #
+# Load MIDI mappings  #
+# Start the Navigator #
+# Start the GUI       #
+#######################
 print '#### START SETLIST ####'
 gv.setlist = setlist.Setlist()
 print '####  END SETLIST  ####\n'
-gv.displayer = displayer.Displayer()
+
 gv.ac = audiocontrols.AudioControls()
+gv.autochorder = audiocontrols.AutoChorder()
+gv.displayer = displayer.Displayer()
 gv.sysfunc = systemfunctions.SystemFunctions()
 gv.ls = loadsamples.LoadingSamples()
 bnt = buttons.Buttons()
@@ -53,12 +73,8 @@ elif gv.SYSTEM_MODE == 2:
     from modules import navigator_sys_2
     gv.nav = navigator_sys_2
 
-
-
-# gv.setlist.find_missing_folders()
-# gv.setlist.remove_missing_setlist_songs()
-# gv.setlist.find_and_add_new_folders()
-
+import modules.gui as gui
+if gv.use_gui and not gv.IS_DEBIAN: gv.gui = gui.SamplerBoxGUI() # Start the GUI
 
 #########################################
 ##  MIDI IN via SERIAL PORT
@@ -70,7 +86,6 @@ if gv.USE_SERIALPORT_MIDI:
     import serial
 
     ser = serial.Serial('/dev/ttyAMA0', baudrate=38400)  # see hack in /boot/cmline.txt : 38400 is 31250 baud for MIDI!
-
 
     def MidiSerialCallback():
         message = [0, 0, 0]
@@ -86,7 +101,6 @@ if gv.USE_SERIALPORT_MIDI:
                     message[2] = 0
                     i = 3
             midicallback.MidiCallback(src='', message=message, time_stamp=None)
-
 
     MidiThread = threading.Thread(target=MidiSerialCallback)
     MidiThread.daemon = True
@@ -110,7 +124,6 @@ prev_ports = []
 first_loop = True
 
 time.sleep(0.5)
-
 
 try:
     def midi_devices_loop():
@@ -139,22 +152,27 @@ try:
                 first_loop = False
             time.sleep(0.2)
 
-    # MIDI device detection is threaded because Tkinter's loop is now the main loop
-    LoadingInterrupt = False
-    LoadingThread = threading.Thread(target=midi_devices_loop)
-    LoadingThread.daemon = True
-    LoadingThread.start()
+    if gv.use_gui and not gv.IS_DEBIAN:
+        # MIDI device detection is threaded because Tkinter's loop is now the main loop
+        LoadingInterrupt = False
+        LoadingThread = threading.Thread(target=midi_devices_loop)
+        LoadingThread.daemon = True
+        LoadingThread.start()
 
-    #############
-    # START GUI #
-    #############
-    import modules.gui as gui
-    gui.rootWindow.mainloop() # this is the main loop
+        #########################
+        # START GUI / MAIN LOOP #
+        #########################
 
+        if not gv.IS_DEBIAN:
+            gv.gui.start_gui_loop()  # this is the main loop
+
+    else:
+        midi_devices_loop() # this is the main loop
 
 except KeyboardInterrupt:
     print "\nstopped by ctrl-c\n"
 except:
     print "\nstopped by Other Error"
 finally:
-    gv.sysfunc.shutdown()
+    gv.sysfunc.shutdown(log_file)
+

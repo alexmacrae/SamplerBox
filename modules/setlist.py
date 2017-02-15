@@ -1,5 +1,14 @@
 import globalvars as gv
 from os.path import isdir
+import re
+
+
+# Alphanumeric sorting
+_nsre = re.compile('([0-9]+)')
+def natural_sort_key(s):
+    return [int(text) if text.isdigit() else text.lower()
+            for text in re.split(_nsre, s)]
+
 
 class Setlist:
     def __init__(self):
@@ -14,8 +23,7 @@ class Setlist:
         elif gv.SYSTEM_MODE == 2:
 
             # Sort the song folder list alphanumerically
-            gv.SONG_FOLDERS_LIST = sorted(gv.SONG_FOLDERS_LIST, key=lambda item: (int(item.partition(' ')[0])
-                                                                      if item[0].isdigit() else float('inf'), item))
+            gv.SONG_FOLDERS_LIST.sort(key=natural_sort_key)
             gv.SETLIST_LIST = gv.SONG_FOLDERS_LIST
 
         for i in xrange(len(gv.SETLIST_LIST)):
@@ -26,7 +34,6 @@ class Setlist:
         print('##### SETLIST: Writing to setlist #####')
         setlist = open(gv.SETLIST_FILE_PATH, "w")
 
-
         list_to_write = list(filter(None, list_to_write))  # remove empty strings / empty lines
         for song in list_to_write:
             setlist.write(song + '\n')
@@ -36,7 +43,6 @@ class Setlist:
 
     def update(self):
         gv.SETLIST_LIST = open(gv.SETLIST_FILE_PATH).read().splitlines()
-
 
     def find_missing_folders(self):
         # Check to see if the song name in the setlist matches the name of a folder.
@@ -79,14 +85,12 @@ class Setlist:
         songs_in_setlist = list(filter(None, songs_in_setlist))  # remove empty strings / empty lines
         changes_in_dir = False
 
-
-
         if (set(songs_in_setlist).intersection(gv.SONG_FOLDERS_LIST) != len(gv.SONG_FOLDERS_LIST) and len(
                 songs_in_setlist) != 0):
 
             for song_folder_name in gv.SONG_FOLDERS_LIST:
                 i = 0
-                if isdir(gv.SAMPLES_DIR +'/'+ song_folder_name): # check if entry is a folder
+                if isdir(gv.SAMPLES_DIR + '/' + song_folder_name):  # check if entry is a folder
                     for song_name in songs_in_setlist:
                         if (song_folder_name == song_name):
                             break

@@ -4,14 +4,26 @@
 """
 import configparser
 import os
-import globalvars as gv
+import sys
+from os import path
 
-CONFIG_FILE_PATH = "/media/config.ini"
-if not os.path.exists(CONFIG_FILE_PATH):
-    CONFIG_FILE_PATH = "/boot/config.ini"
+print_config = False
+
+
+if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
+    import globalvars as gv
+    print_config = gv.CONFIG_PRINT
+    CONFIG_FILE_PATH = "/media/config.ini"
     if not os.path.exists(CONFIG_FILE_PATH):
-        CONFIG_FILE_PATH = "./config.ini"
+        CONFIG_FILE_PATH = "/boot/config.ini"
+        if not os.path.exists(CONFIG_FILE_PATH):
+            CONFIG_FILE_PATH = "./config.ini"
+else:
+    CONFIG_FILE_PATH = "../config.ini"
+    print_config = True
 
+# CONFIG_FILE_PATH = "./config.ini"
+# print_config = True
 
 
 config = configparser.ConfigParser(allow_no_value=True)
@@ -26,6 +38,7 @@ def get_option_by_name(option_name):
 
         for section in config.sections():
             for name, value in config.items(section):
+
                 if name.upper() == option_name:
                     value_in_config = value
                     if str(value_in_config).lower() == 'true':
@@ -34,7 +47,7 @@ def get_option_by_name(option_name):
                         value_in_config = False
 
     if value_in_config != None:
-        if gv.CONFIG_PRINT: print option_name, ' = ', value_in_config
+        if print_config: print option_name, ' = ', value_in_config
         return value_in_config
 
     else:
