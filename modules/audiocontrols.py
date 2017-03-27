@@ -154,17 +154,17 @@ class Voice:
             gv.displayer.disp_change(changed_var='voice')
 
     def voice2(self, vel):
-        if vel > 0:
+        if vel > 0 and len(gv.voices) >= 2:
             gv.currvoice = 2
             gv.displayer.disp_change(changed_var='voice')
 
     def voice3(self, vel):
-        if vel > 0:
+        if vel > 0 and len(gv.voices) >= 3:
             gv.currvoice = 3
             gv.displayer.disp_change(changed_var='voice')
 
     def voice4(self, vel):
-        if vel > 0:
+        if vel > 0 and len(gv.voices) >= 4:
             gv.currvoice = 4
             gv.displayer.disp_change(changed_var='voice')
 
