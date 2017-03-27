@@ -397,6 +397,7 @@ class LoadingSamples:
                                         # print "sample: %s, note: %d, voice: %d, channel: %d" %(fname, midinote, voice, channel)
                         except:
                             print "Error in definition file, skipping line %s." % (i + 1)
+                            print "Line %d contents: %s" % (i, pattern)
 
             # If no definition.txt file found in folder, look for numbered files (eg 64.wav, 65.wav etc)
             else:

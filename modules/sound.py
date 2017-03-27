@@ -10,7 +10,8 @@ import sounddevice
 import globalvars as gv
 import time
 import exceptions
-
+if gv.IS_DEBIAN and gv.USE_ALSA_MIXER:
+    import alsaaudio
 
 ############################################################
 # SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE              #
@@ -231,52 +232,64 @@ print sounddevice.query_devices()  # all available audio devices
 sd = None
 
 
-def start_stream():
+def start_stream(latency='low'):
     global sd
     try:
-        # print sounddevice.query_devices()
-        # print gv.AUDIO_DEVICE_ID
         sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, samplerate=gv.SAMPLERATE,
-                                      channels=gv.CHANNELS, dtype='int16', latency='low',
+                                      channels=gv.CHANNELS, dtype='int16', latency=latency,
                                       callback=AudioCallback)
         sd.start()
 
         print '>>>>> Opened audio device #%i (latency: %ims)' % (gv.AUDIO_DEVICE_ID, sd.latency * 1000)
     except:
-        gv.displayer.disp_change('Invalid audio device', line=2, timeout=0)
+        # gv.displayer.disp_change('Invalid audio device', line=2, timeout=0)
         print 'Available devices:'
         print(sounddevice.query_devices())
         print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
         # exit(1)
 
 
+#############
+# alsaaudio #
+#############
+
+amix = None
+def getvolume():
+    global amix
+    vol = amix.getvolume()
+    gv.global_volume = int(vol[0])
+
+def setvolume(volume):
+    global amix
+    amix.setvolume(int(volume))
+
 def start_alsa_stream():
-    # print alsaaudio.mixers() #show available mixer controls
+    global amix
+    print 'MIXERS: %s' % alsaaudio.mixers() #show available mixer controls
     for i in range(0, 4):
         try:
-            amix = alsaaudio.Mixer(cardindex=gv.MIXER_CARD_ID + i, control=gv.MIXER_CONTROL)
-            gv.MIXER_CARD_ID += i  # save the found value
+            # amix = alsaaudio.Mixer(cardindex=gv.MIXER_CARD_ID + i, control=gv.MIXER_CONTROL)
+            amix = alsaaudio.Mixer(cardindex=i, control=gv.MIXER_CONTROL)
+            gv.MIXER_CARD_ID = i  # save the found value
             i = 0  # indicate OK
             print 'Opened Alsamixer: card id "%i", control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
             break
         except:
-            pass
-        if i > 0:
-            gv.displayer.disp_change('Invalid mixerdev', line=2, timeout=0)
-            print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
-            print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
-            print(sounddevice.query_devices())
+            # pass
+            if i >= 0:
+                # gv.displayer.disp_change('Invalid mixerdev', line=2, timeout=0)
+                # print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
+                print 'Invalid mixer card id "%i" or control "%s"' % (i, gv.MIXER_CONTROL)
+                print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
 
-    def getvolume():
-        vol = amix.getvolume()
-        gv.global_volume = int(vol[0])
 
-    def setvolume(volume):
-        amix.setvolume(int(volume))
 
     setvolume(gv.global_volume)
     getvolume()
 
+#################
+# End alsaaudio #
+#################
 
 def close_stream():
     global sd
@@ -305,28 +318,43 @@ In SYSTEM_MODE=1 we can change the device via the menu.
 
 
 def set_audio_device(device_name):
-    i = 0
+
+    device_found = False
     try:
-        for d in sounddevice.query_devices():
-            if device_name in d['name'] and d['max_output_channels'] > 0:
-                gv.AUDIO_DEVICE_ID = i
-                print '\n>>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
-                break
-            i += 1
+        def iterate_devices(device_name):
+            i = 0
+            global device_found
+            for d in sounddevice.query_devices():
+                if device_name in d['name'] and d['max_output_channels'] > 0:
+                    gv.AUDIO_DEVICE_ID = i
+                    print '\n>>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
+                    device_found = True
+                    break
+                i += 1
+
+        iterate_devices(device_name)
+
+        # Default to the Raspberry Pi onboard audio if device in config is not found
+        if device_found is not True and gv.IS_DEBIAN:
+            device_name = 'bcm2835'
+            iterate_devices(device_name)
+
     except:
         pass
     close_stream()
+
     if 'bcm2835' in device_name:
         start_alsa_stream()
+        # start_stream('high')
     else:
         start_stream()
+
 
 
 set_audio_device(gv.AUDIO_DEVICE_NAME)
 
 if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:
-    import alsaaudio
-
     start_alsa_stream()
+
 
 print '\n#### END OF AUDIO DEVICES ####\n'
