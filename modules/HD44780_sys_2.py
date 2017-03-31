@@ -95,7 +95,7 @@ if (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD) and gv.SYSTEM_MODE == 2:
             sys.stdout.flush()
             gui_message = message.replace('\r', '')
             gui_message = gui_message.replace(' || ', '\r')
-            if gv.use_gui: gv.gui.output['text'] = gui_message
+            if gv.USE_GUI: gv.gui.output['text'] = gui_message
 
 
         # lcd.message(s1 + " "*8 + "\n" + s2 + " "*15)

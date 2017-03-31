@@ -174,6 +174,7 @@ autochorder = None
 setlist = None
 ls = None
 gui = None
+sound = None
 
 # add to selection of samples, not to Velocity Volume
 VelocitySelectionOffset = 0

@@ -1,11 +1,11 @@
-#  SamplerBox2
+#  SamplerBox
 #
 #  author:          Joseph Ernest (twitter: @JosephErnest, mail: contact@samplerbox.org)
 #  contributor:     Alex MacRae (alex.finlay.macrae@gmail.com)
 #  url:             http://www.samplerbox.org/
 #  license:         Creative Commons ShareAlike 3.0 (http://creativecommons.org/licenses/by-sa/3.0/)
 #
-#  samplerbox2.py:  Main file
+#  samplerbox.py:  Main file
 #
 
 # TODO: if we're compiling a dist, bundled files such as config.ini can't be found, ie relative paths are affected
@@ -28,12 +28,13 @@ import rtmidi2
 # from filters import FilterType, Filter, FilterChain
 # from utility import byteToPCM, floatToPCM, pcmToFloat, sosfreqz
 from modules import globalvars as gv
-from modules import audiocontrols
 from modules import displayer
+from modules import audiocontrols
 from modules import buttons
 from modules import systemfunctions
 from modules import setlist
 from modules import loadsamples
+from modules import sound
 
 ###########
 # Logging #
@@ -56,13 +57,7 @@ print '#### START SETLIST ####'
 gv.setlist = setlist.Setlist()
 print '####  END SETLIST  ####\n'
 
-gv.ac = audiocontrols.AudioControls()
-gv.autochorder = audiocontrols.AutoChorder()
 gv.displayer = displayer.Displayer()
-gv.sysfunc = systemfunctions.SystemFunctions()
-gv.ls = loadsamples.LoadingSamples()
-bnt = buttons.Buttons()
-from modules import midicallback
 
 if gv.SYSTEM_MODE == 1:
     from modules import midimaps
@@ -72,6 +67,16 @@ if gv.SYSTEM_MODE == 1:
 elif gv.SYSTEM_MODE == 2:
     from modules import navigator_sys_2
     gv.nav = navigator_sys_2
+
+gv.sound = sound.StartSound()
+gv.ac = audiocontrols.AudioControls()
+gv.autochorder = audiocontrols.AutoChorder()
+gv.sysfunc = systemfunctions.SystemFunctions()
+gv.ls = loadsamples.LoadingSamples()
+bnt = buttons.Buttons()
+from modules import midicallback
+
+
 
 import modules.gui as gui
 if gv.USE_GUI and not gv.IS_DEBIAN: gv.gui = gui.SamplerBoxGUI() # Start the GUI

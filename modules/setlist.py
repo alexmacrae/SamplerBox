@@ -31,7 +31,7 @@ class Setlist:
 
 
     def write_setlist(self, list_to_write):
-        print('##### SETLIST: Writing to setlist #####')
+        print('>>>> SETLIST: Writing to setlist')
         setlist = open(gv.SETLIST_FILE_PATH, "w")
 
         list_to_write = list(filter(None, list_to_write))  # remove empty strings / empty lines
@@ -65,7 +65,7 @@ class Setlist:
                     continue
                 else:
                     if (i == len(gv.SONG_FOLDERS_LIST) - 1):
-                        print  '##### SETLIST: Folder for [%s] was not found #####\n' % song_name
+                        print  '>>>> SETLIST: Folder for [%s] was not found\n' % song_name
                         songs_in_setlist[k] = '* ' + song_name.replace('* ', '')
                         changes_in_dir = True
                         break
@@ -76,7 +76,7 @@ class Setlist:
         if (changes_in_dir):
             self.write_setlist(songs_in_setlist)
         else:
-            print('##### SETLIST: No missing folders detected #####\n')
+            print('>>>> SETLIST: No missing folders detected\n')
 
     def find_and_add_new_folders(self):
         # Check for new song folders and add them to the end of the setlist
@@ -95,22 +95,22 @@ class Setlist:
                         if (song_folder_name == song_name):
                             break
                         elif (i == len(songs_in_setlist) - 1):
-                            print '##### SETLIST: New setlist entry for [%s] #####\n' % song_folder_name
+                            print '>>>> SETLIST: New setlist entry for [%s]\n' % song_folder_name
                             changes_in_dir = True
                             songs_in_setlist.append(song_folder_name)
                             break
                         i += 1
                 else:
-                    print '##### SETLIST: [%s] is not a folder. Skipping. #####\n' % song_folder_name
+                    print '>>>> SETLIST: [%s] is not a folder. Skipping.\n' % song_folder_name
         elif (len(songs_in_setlist) == 0):
             songs_in_setlist = gv.SONG_FOLDERS_LIST
             changes_in_dir = True
-            print '##### SETLIST: Is empty -> adding all foldings #####\n'
+            print '>>>> SETLIST: Is empty -> adding all foldings\n'
 
         if (changes_in_dir):
             self.write_setlist(songs_in_setlist)
         else:
-            print('##### SETLIST: No new folders found -> do nothing #####\n')
+            print('>>>> SETLIST: No new folders found -> do nothing\n')
 
     # ______________________________________________________________________________
 
