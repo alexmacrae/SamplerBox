@@ -231,7 +231,6 @@ print sounddevice.query_devices()  # all available audio devices
 
 sd = None
 
-
 def start_stream(latency='low'):
     global sd
     try:
@@ -265,7 +264,7 @@ def setvolume(volume):
 
 def start_alsa_stream():
     global amix
-    print 'MIXERS: %s' % alsaaudio.mixers() #show available mixer controls
+    # print 'MIXERS: %s' % alsaaudio.mixers() #show available mixer controls
     for i in range(0, 4):
         try:
             # amix = alsaaudio.Mixer(cardindex=gv.MIXER_CARD_ID + i, control=gv.MIXER_CONTROL)
@@ -344,8 +343,8 @@ def set_audio_device(device_name):
     close_stream()
 
     if 'bcm2835' in device_name:
-        start_alsa_stream()
-        # start_stream('high')
+        #start_alsa_stream()
+        start_stream('low')
     else:
         start_stream()
 

@@ -38,6 +38,7 @@ USE_FREEVERB = cp.get_option_by_name('USE_FREEVERB')
 USE_TONECONTROL = cp.get_option_by_name('USE_TONECONTROL')
 USE_SERIALPORT_MIDI = cp.get_option_by_name('USE_SERIALPORT_MIDI')
 USE_I2C_7SEGMENTDISPLAY = cp.get_option_by_name('USE_I2C_7SEGMENTDISPLAY')
+USE_GUI = cp.get_option_by_name('USE_GUI')
 PRINT_LCD_MESSAGES = cp.get_option_by_name('PRINT_LCD_MESSAGES')
 PRINT_MIDI_MESSAGES = cp.get_option_by_name('PRINT_MIDI_MESSAGES')
 AUDIO_DEVICE_ID = int(cp.get_option_by_name('AUDIO_DEVICE_ID'))
@@ -173,8 +174,6 @@ autochorder = None
 setlist = None
 ls = None
 gui = None
-
-use_gui = True
 
 # add to selection of samples, not to Velocity Volume
 VelocitySelectionOffset = 0

@@ -74,7 +74,7 @@ elif gv.SYSTEM_MODE == 2:
     gv.nav = navigator_sys_2
 
 import modules.gui as gui
-if gv.use_gui and not gv.IS_DEBIAN: gv.gui = gui.SamplerBoxGUI() # Start the GUI
+if gv.USE_GUI and not gv.IS_DEBIAN: gv.gui = gui.SamplerBoxGUI() # Start the GUI
 
 #########################################
 ##  MIDI IN via SERIAL PORT
@@ -152,7 +152,7 @@ try:
                 first_loop = False
             time.sleep(0.2)
 
-    if gv.use_gui and not gv.IS_DEBIAN:
+    if gv.USE_GUI and not gv.IS_DEBIAN:
         # MIDI device detection is threaded because Tkinter's loop is now the main loop
         LoadingInterrupt = False
         LoadingThread = threading.Thread(target=midi_devices_loop)

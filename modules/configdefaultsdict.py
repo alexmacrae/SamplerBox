@@ -4,7 +4,7 @@ configdefaults = {
     'CHANNELS': {'type': 'options', 'options': ['2', '4'], 'default': 0},
     'BUFFERSIZE': {'type': 'options',
                    'options': ['16', '32', '64', '128', '256', '512', '1024', '2048'], 'default': 3},
-    'SAMPLERATE': {'type': 'options', 'options': ['44100', '48000', '96000'], 'default': 44100},
+    'SAMPLERATE': {'type': 'options', 'options': ['44100', '48000', '96000'], 'default': 0},
     'GLOBAL_VOLUME': {'type': 'range', 'min': 0, 'max': 100, 'default': 100},
     'USE_BUTTONS': {'type': 'boolean', 'default': 'True'},
     'USE_HD44780_16X2_LCD': {'type': 'boolean', 'default': 'True'},
@@ -19,6 +19,7 @@ configdefaults = {
     'SYSTEM_MODE': {'type': 'options', 'options': ['1', '2'], 'default': 0},
     'RAM_LIMIT_PERCENTAGE': {'type': 'range', 'min': 1, 'max': 95, 'default': 40},
     'BOXRELEASE': {'type': 'range', 'min': 1, 'max': 128, 'default': 30},
+    'USE_GUI': {'type': 'boolean', 'default': 'False'},
 
     'PRINT_MIDI_MESSAGES': {'type': 'boolean', 'default': 'True'},
     'PRINT_LCD_MESSAGES': {'type': 'boolean', 'default': 'True'},
