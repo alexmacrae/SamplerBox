@@ -1,7 +1,5 @@
 import globalvars as gv
 from time import sleep
-import sound
-
 
 class SystemFunctions:
     def __init__(self):
@@ -35,7 +33,7 @@ class SystemFunctions:
         for i in xrange(gv.LCD_ROWS):
             gv.displayer.disp_change(str_override=shutdown_message, line=(i+1), timeout=1, is_priority=True)
         sleep(0.2)
-        sound.close_stream()
+        gv.sound.close_stream()
 
         if log_file:
             log_file.close()
