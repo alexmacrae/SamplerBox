@@ -15,11 +15,26 @@ def noteoff(messagetype, note, vel):
     pass
 
 
-#########################################
-# MIDI CALLBACK
-#########################################
+########################
+# Button navigation    #
+# Determined by config #
+########################
+
+enter = gv.BUTTON_ENTER_MIDI
+left = gv.BUTTON_LEFT_MIDI
+right = gv.BUTTON_RIGHT_MIDI
+cancel = gv.BUTTON_CANCEL_MIDI
+
+up = gv.BUTTON_UP_MIDI
+down = gv.BUTTON_DOWN_MIDI
+func = gv.BUTTON_FUNC_MIDI
+
+#################
+# MIDI CALLBACK #
+#################
 
 def MidiCallback(src, message, time_stamp):
+    global enter, left, right, cancel, up, down, func
     midimaps = gv.midimaps
     src = src[:src.rfind(" "):]  # remove the port number from the end
 
@@ -37,17 +52,12 @@ def MidiCallback(src, message, time_stamp):
     if gv.PRINT_MIDI_MESSAGES:
         print '%d, %d, <%s>' % (message[0], note, src)
 
-    # special keys from Kurzweil
-    # if len(message) == 1 and message[0] == 250:  # playbutton Kurzweil
-    #     StartTrack()
-    #
-    # if len(message) == 1 and message[0] == 252: # stopbutton Kurzweil
-    #     StopTrack()
+    ##########################################
+    # MIDI Learning                          #
+    # Send messages when learningMode is set #
+    ##########################################
 
-    ######################
-    # MIDI Learning
-    # Send messages when learningMode is set
-    ######################
+    messageKey = mk = (message[0], message[1])
 
     if gv.SYSTEM_MODE == 1:
 
@@ -62,18 +72,41 @@ def MidiCallback(src, message, time_stamp):
                 gv.nav.state.sendControlToMap(message, src)
                 return  # don't continue from here
 
-        ######################
-        # Check if MIDI Mapped
-        ######################
+        ########################
+        # Check if MIDI Mapped #
+        ########################
         try:
-            messageKey = (message[0], message[1])
-            if midimaps.get(src).has_key(messageKey):
-                # remap note to a function
+
+            # Check for MIDI map match from the config.ini
+
+            if mk[0] == enter[0] and mk[1] == enter[1] and velocity > 0: # Enter button
+                if len(enter) == 2 or len(enter) == 3 and enter[2] in src:
+                    gv.nav.state.enter()
+                    return
+            elif mk[0] == left[0] and mk[1] == left[1] and velocity > 0: # Left button
+                if len(left) == 2 or len(left) == 3 and left[2] in src:
+                    gv.nav.state.left()
+                    return
+            elif mk[0] == right[0] and mk[1] == right[1] and velocity > 0: # Right button
+                if len(right) == 2 or len(right) == 3 and right[2] in src:
+                    gv.nav.state.right()
+                    return
+            elif mk[0] == cancel[0] and mk[1] == cancel[1] and velocity > 0: # Cancel button
+                if len(cancel) == 2 or len(cancel) == 3 and cancel[2] in src:
+                    gv.nav.state.cancel()
+                    return
+
+            # Now check for MIDI mappings that the user may have defined from within the menu system
+
+            elif midimaps.get(src).has_key(messageKey):
+
+                # Remap note/control to a function
+
                 if midimaps.get(src).get(messageKey).has_key('fn'):
 
                     try:
                         # Runs method from class. ie ac.master_volume.setvolume(velocity).
-                        # No doubt there's a better way to do this
+                        # TODO: there must be a more elegant way to do this ;)
                         fn = midimaps.get(src).get(messageKey).get('fn')
                         if (fn.split('.')[-1] == 'set_pitch'):
                             eval(fn)(velocity, note)
@@ -94,48 +127,33 @@ def MidiCallback(src, message, time_stamp):
             # print "MIDI message isn't mapped, or it is and it failed" # debug
             pass
 
-    ######################
-    # Button navigation
-    # Determined by config
-    ######################
-
-    enter = gv.BUTTON_ENTER_MIDI
-    left = gv.BUTTON_LEFT_MIDI
-    right = gv.BUTTON_RIGHT_MIDI
-    cancel = gv.BUTTON_CANCEL_MIDI
-
-    up = gv.BUTTON_UP_MIDI
-    down = gv.BUTTON_DOWN_MIDI
-    func = gv.BUTTON_FUNC_MIDI
-
-    if gv.SYSTEM_MODE == 1:
-        if message[0] == enter[0] and note == enter[1] and velocity > 0 and enter[2] in src:  # Enter arrow button
-            gv.nav.state.enter()
-
-        elif message[0] == left[0] and note == left[1] and velocity > 0 and left[2] in src:  # Left arrow button
-            gv.nav.state.left()
-
-        elif message[0] == right[0] and note == right[1] and velocity > 0 and right[2] in src:  # Right arrow button
-            gv.nav.state.right()
-
-        elif message[0] == cancel[0] and note == cancel[1] and velocity > 0 and cancel[2] in src:  # Cancel button
-            gv.nav.state.cancel()
-
     elif gv.SYSTEM_MODE == 2:
-        if message[0] == up[0] and note == up[1] and velocity > 0 and up[2] in src:  # Enter arrow button
-            gv.nav.up()
 
-        elif message[0] == down[0] and note == down[1] and velocity > 0 and down[2] in src:  # Left arrow button
-            gv.nav.down()
+        try:
+            # Up / next preset
+            if mk[0] == up[0] and mk[1] == up[1] and velocity > 0:
+                if len(up) == 2 or len(up) == 3 and up[2] in src:
+                    gv.nav.up()
+                    return
+            # Down / previous preset
+            elif mk[0] == down[0] and mk[1] == down[1]  and velocity > 0:
+                if len(down) == 2 or len(down) == 3 and down[2] in src:
+                    gv.nav.down()
+                    return
+            # Function button
+            elif mk[0] == func[0] and mk[1] == func[1]  and velocity > 0:
+                if len(func) == 2 or len(func) == 3 and func[2] in src:
+                    gv.nav.func()
+                    return
+        except:
+            # print 'MIDI error: menu navigation MIDI settings not set correctly in config.ini'
+            pass
 
-        elif message[0] == func[0] and note == func[1] and velocity > 0 and func[2] in src:  # Right arrow button
-            gv.nav.func()
+    ##############################
+    # Do default MIDI operations #
+    ##############################
 
-    ######################
-    # Do default MIDI functions
-    ######################
-
-    #if (midichannel == gv.MIDI_CHANNEL or gv.MIDI_CHANNEL <= 0) and (gv.midi_mute == False):
+    # if (midichannel == gv.MIDI_CHANNEL or gv.MIDI_CHANNEL <= 0) and (gv.midi_mute == False):
     if gv.midi_mute == False:
 
         if messagetype == 9:  # is a note-off hidden in this note-on ?
@@ -167,7 +185,7 @@ def MidiCallback(src, message, time_stamp):
 
         elif messagetype == 14:  # Pitch Bend
 
-            if 'microKEY-61' not in src: # Removed pitch temporarily for Alex's modified microKEY
+            if 'microKEY-61' not in src:  # Removed pitch temporarily for Alex's modified microKEY
                 gv.ac.pitchbend.set_pitch(velocity, note)
 
         elif messagetype == 11:  # control change (CC, sometimes called Continuous Controllers)
@@ -200,5 +218,9 @@ def MidiCallback(src, message, time_stamp):
             elif CCnum == 72:  # Sound controller 3 = release time
                 gv.PRERELEASE = CCval
 
-            elif CCnum == 82:        # Pitch bend sensitivity (my controller cannot send RPN)
-                gv.pitchnotes = (24*CCval+100)/127
+            elif CCnum == 82:  # Pitch bend sensitivity (my controller cannot send RPN)
+                gv.pitchnotes = (24 * CCval + 100) / 127
+
+            # Temporary pitchbend on microKEY-61 modwheel
+            elif CCnum == 1 and 'nanoKONTROL2' in src:
+                gv.ac.pitchbend.set_pitch(velocity + 64, note)

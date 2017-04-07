@@ -4,7 +4,7 @@
 #  url:       https://github.com/alexmacrae/
 #  license:   Creative Commons ShareAlike 3.0 (http://creativecommons.org/licenses/by-sa/3.0/)
 #
-#  samplerbox2.py: Main file
+#  samplerbox.py: Main file
 
 import threading
 import time
@@ -61,9 +61,6 @@ class PresetNav(Navigator):
     def __init__(self):
 
         print '-= Preset world =-'
-        gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE
-        gv.displayer.disp_change(changed_var='preset')
-        # gv.displayer.disp_change('preset') # already called in ActuallyLoad()
 
     def right(self):
         gv.preset += 1
@@ -72,8 +69,8 @@ class PresetNav(Navigator):
         if gv.preset >= len(gv.samples_indices):
             gv.preset = 0
         gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE  # need to set if interrupted by utils left/right
-        gv.displayer.disp_change('preset')
         gv.ls.LoadSamples()
+        gv.displayer.disp_change('preset')
 
     def left(self):
         gv.preset -= 1
@@ -82,8 +79,8 @@ class PresetNav(Navigator):
         if gv.preset < 0:
             gv.preset = len(gv.samples_indices) - 1
         gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE  # need to set if interrupted by utils left/right
-        gv.displayer.disp_change('preset')
         gv.ls.LoadSamples()
+        gv.displayer.disp_change('preset')
 
     def enter(self):
         self.load_state(MenuNav)
@@ -668,11 +665,10 @@ class ChannelsConfig(Navigator):
         self.display()
 
     def enter(self):
-        import sound
         cs.update_config('SAMPLERBOX CONFIG', 'CHANNELS', str(self.CHANNELS))
         gv.CHANNELS = self.CHANNELS
-        sound.close_stream()
-        sound.start_stream()
+        gv.sound.close_stream()
+        gv.sound.start_stream()
         self.load_state(MenuNav)
 
     def cancel(self):
@@ -708,11 +704,10 @@ class BufferSizeConfig(Navigator):
         self.display()
 
     def enter(self):
-        import sound
         cs.update_config('SAMPLERBOX CONFIG', 'BUFFERSIZE', str(self.BUFFERSIZE))
         gv.BUFFERSIZE = self.BUFFERSIZE
-        sound.close_stream()
-        sound.start_stream()
+        gv.sound.close_stream()
+        gv.sound.start_stream()
         self.load_state(MenuNav)
 
     def cancel(self):
@@ -748,11 +743,10 @@ class SampleRateConfig(Navigator):
         self.display()
 
     def enter(self):
-        import sound
         cs.update_config('SAMPLERBOX CONFIG', 'SAMPLERATE', str(self.SAMPLERATE))
         gv.SAMPLERATE = self.SAMPLERATE
-        sound.close_stream()
-        sound.start_stream()
+        gv.sound.close_stream()
+        gv.sound.start_stream()
         self.load_state(MenuNav)
 
     def cancel(self):
@@ -920,8 +914,7 @@ class EditDefinition(Navigator):
 
 class AudioDevice(Navigator):
     def __init__(self):
-        import sound
-        self.all_audio_devices = sound.get_all_audio_devices()
+        self.all_audio_devices = gv.sound.get_all_audio_devices()
         self.i = 0
         self.device_name = str(self.all_audio_devices[self.i].get('name'))
         self.display(False)
@@ -948,8 +941,7 @@ class AudioDevice(Navigator):
             self.display(False)
 
     def enter(self):
-        import sound
-        sound.set_audio_device(self.device_name)
+        gv.sound.set_audio_device(self.device_name)
         cs.update_config('SAMPLERBOX CONFIG', 'AUDIO_DEVICE_NAME', self.device_name)
         self.display(changed=True)
 
@@ -1045,11 +1037,10 @@ class ToggleReverb(Navigator):
         self.display()
 
     def enter(self):
-        import sound
         gv.USE_FREEVERB = self.freeverb_state
         cs.update_config('SAMPLERBOX CONFIG', 'USE_FREEVERB', str(self.freeverb_state))
-        sound.close_stream()
-        sound.start_stream()
+        gv.sound.close_stream()
+        gv.sound.start_stream()
         self.cancel()
 
     def cancel(self):

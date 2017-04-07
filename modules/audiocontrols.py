@@ -5,8 +5,6 @@ from os.path import dirname, abspath
 from filters import FilterType, Filter, FilterChain
 from collections import OrderedDict
 import random
-import sys
-
 
 class AudioControls(object):
     def __init__(self):
@@ -32,49 +30,53 @@ class AudioControls(object):
             gv.playingnotes[channel +1 ] = {}
 
     def noteon(self, midinote, midichannel, velocity):
+        try:
+            midinote += gv.globaltranspose
+            actual_preset = gv.samples_indices[gv.preset]
 
-        midinote += gv.globaltranspose
-        actual_preset = gv.samples_indices[gv.preset]
+            if gv.velocity_mode == gv.VELSAMPLE:
+                velmixer = 127 * gv.gain
+            else:
+                velmixer = velocity * gv.gain
 
-        if gv.velocity_mode == gv.VELSAMPLE:
-            velmixer = 127 * gv.gain
-        else:
-            velmixer = velocity * gv.gain
+            if gv.SYSTEM_MODE > 0:
 
-        if gv.SYSTEM_MODE > 0:
+                note_index = midinote % 12 - gv.ac.autochorder.current_key_index
+                chord_index = gv.ac.autochorder.current_chord_mode[note_index]
 
-            note_index = midinote % 12 - gv.ac.autochorder.current_key_index
-            chord_index = gv.ac.autochorder.current_chord_mode[note_index]
-
-            for n in range(len(gv.ac.autochorder.CHORD_NOTES[chord_index])):
-                playnote = midinote + gv.ac.autochorder.CHORD_NOTES[chord_index][n]
-                for m in gv.sustainplayingnotes:  # safeguard polyphony; don't sustain double notes
-                    if m.note == playnote:
-                        m.fadeout(50)
-                        # print 'clean sustain ' + str(playnote)
-                if gv.triggernotes[midichannel][playnote] < 128:  # cleanup in case of retrigger
-                    if playnote in gv.playingnotes[midichannel]:  # occurs in once/loops modes and chords)
-                        for m in gv.playingnotes[midichannel][playnote]:
-                            # print "clean note " + str(playnote)
+                for n in range(len(gv.ac.autochorder.CHORD_NOTES[chord_index])):
+                    playnote = midinote + gv.ac.autochorder.CHORD_NOTES[chord_index][n]
+                    for m in gv.sustainplayingnotes:  # safeguard polyphony; don't sustain double notes
+                        if m.note == playnote:
                             m.fadeout(50)
-                        gv.playingnotes[midichannel][playnote] = []  # housekeeping
-                # Start David Hilowitz
-                # Get the list of available samples for this note and velocity
-                notesamples = gv.samples[actual_preset][playnote, velocity, gv.currvoice, midichannel]
-                # Choose a sample from the list
-                sample = random.choice(notesamples)
-                # If we have no value for lastplayedseq, set it to 0
-                gv.lastplayedseq.setdefault(playnote, 0)
-                # If we have more than 2 samples to work with, reject duplicates
-                if len(notesamples) >= 3:
-                    while sample.seq == gv.lastplayedseq[playnote]:
-                        sample = random.choice(notesamples)
-                # End David Hilowitz
-                gv.triggernotes[midichannel][playnote] = midinote  # we are last playing this one
-                # print "start note " + str(playnote)
-                gv.playingnotes[midichannel].setdefault(playnote, []).append(
-                    sample.play(playnote, velmixer))
-                gv.lastplayedseq[playnote] = sample.seq  # David Hilowitz
+                            # print 'clean sustain ' + str(playnote)
+                    if gv.triggernotes[midichannel][playnote] < 128:  # cleanup in case of retrigger
+                        if playnote in gv.playingnotes[midichannel]:  # occurs in once/loops modes and chords)
+                            for m in gv.playingnotes[midichannel][playnote]:
+                                # print "clean note " + str(playnote)
+                                m.fadeout(50)
+                            gv.playingnotes[midichannel][playnote] = []  # housekeeping
+                    # Start David Hilowitz
+                    # Get the list of available samples for this note and velocity
+                    notesamples = gv.samples[actual_preset][playnote, velocity, gv.currvoice, midichannel]
+                    # Choose a sample from the list
+                    sample = random.choice(notesamples)
+                    # If we have no value for lastplayedseq, set it to 0
+                    gv.lastplayedseq.setdefault(playnote, 0)
+                    # If we have more than 2 samples to work with, reject duplicates
+                    if len(notesamples) >= 3:
+                        while sample.seq == gv.lastplayedseq[playnote]:
+                            sample = random.choice(notesamples)
+                    # End David Hilowitz
+                    gv.triggernotes[midichannel][playnote] = midinote  # we are last playing this one
+                    # print "start note " + str(playnote)
+                    gv.playingnotes[midichannel].setdefault(playnote, []).append(
+                        sample.play(playnote, velmixer))
+                    gv.lastplayedseq[playnote] = sample.seq  # David Hilowitz
+        except:
+            print 'Note error: check definition'
+            gv.displayer.disp_change(str_override='NOTE ERROR', line=gv.LCD_ROWS-1, timeout=1)
+            gv.displayer.disp_change(str_override='Check definition', line=gv.LCD_ROWS, timeout=1)
 
     def noteoff(self, midinote, midichannel):
 
@@ -99,7 +101,7 @@ class MasterVolume:
     def setvolume(self, vel):
         gv.global_volume_percent = int((float(vel) / 127.0) * 100)
         gv.global_volume = (10.0 ** (-12.0 / 20.0)) * (float(vel) / 127.0)
-        gv.displayer.disp_change('volume')
+        gv.displayer.disp_change(changed_var='volume', timeout=2)
 
 ########################
 # Auto Chorder by Hans #
@@ -107,7 +109,6 @@ class MasterVolume:
 ########################
 
 class AutoChorder(object):
-
 
     CHORD_NAMES = ["", "Maj", "Min", "Augm", "Dim", "Sus2", "Sus4", "Dom7",
                    "Maj7", "Min7", "MiMa7", "hDim7", "Dim7", "Aug7", "AuMa7", "D7S4"]

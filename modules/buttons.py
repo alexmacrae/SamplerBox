@@ -6,8 +6,6 @@ class Buttons():
 
         if gv.USE_BUTTONS and gv.IS_DEBIAN:
 
-            import time
-            import threading
             import RPi.GPIO as GPIO
 
             if gv.SYSTEM_MODE == 1:

@@ -2,7 +2,6 @@ import globalvars as gv
 from os.path import isdir
 import re
 
-
 # Alphanumeric sorting
 _nsre = re.compile('([0-9]+)')
 def natural_sort_key(s):
@@ -11,6 +10,7 @@ def natural_sort_key(s):
 
 
 class Setlist:
+
     def __init__(self):
 
         if gv.SYSTEM_MODE == 1:
@@ -28,7 +28,6 @@ class Setlist:
 
         for i in xrange(len(gv.SETLIST_LIST)):
             gv.samples_indices.append(i)
-
 
     def write_setlist(self, list_to_write):
         print('>>>> SETLIST: Writing to setlist')

@@ -8,7 +8,6 @@ from chunk import Chunk
 import numpy
 import sounddevice
 import globalvars as gv
-import time
 import exceptions
 
 if gv.IS_DEBIAN and gv.USE_ALSA_MIXER:
@@ -247,23 +246,24 @@ class StartSound:
 
         print '\n#### END OF AUDIO DEVICES ####\n'
 
+    ############################
+    # Start sounddevice stream #
+    ############################
+
     def start_stream(self, latency='low'):
 
         try:
-            self.sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, samplerate=gv.SAMPLERATE,
-                                               channels=gv.CHANNELS, dtype='int16', latency=latency,
-                                               callback=AudioCallback)
+            self.sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, latency=latency, samplerate=gv.SAMPLERATE, channels=gv.CHANNELS, dtype='int16', callback=AudioCallback)
             self.sd.start()
-
-            print '>>>>> Opened audio device #%i (latency: %ims)' % (gv.AUDIO_DEVICE_ID, self.sd.latency * 1000)
+            print '>>>> Opened audio device #%i (latency: %ims)' % (gv.AUDIO_DEVICE_ID, self.sd.latency * 1000)
         except:
             gv.displayer.disp_change('Invalid audio device', line=2, timeout=0)
             print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
             # exit(1)
 
-    #############
-    # alsaaudio # buggy
-    #############
+    ##########################
+    # TODO alsaaudio - buggy #
+    ##########################
 
     def getvolume(self):
         vol = self.amix.getvolume()
@@ -305,14 +305,14 @@ class StartSound:
             self.sd.stop()
             self.sd.close()
 
-    # def get_all_audio_devices(self):
-    #     all_output_devices = {}
-    #     i = 0
-    #     for d in sounddevice.query_devices():
-    #         if d['max_output_channels'] > 0:
-    #             all_output_devices[i] = d
-    #             i += 1
-    #     return all_output_devices
+    def get_all_audio_devices(self):
+        all_output_devices = {}
+        i = 0
+        for d in sounddevice.query_devices():
+            if d['max_output_channels'] > 0:
+                all_output_devices[i] = d
+                i += 1
+        return all_output_devices
 
 
     """
@@ -326,41 +326,45 @@ class StartSound:
 
         self.device_found = False
         try:
-            i = 0
-            for d in sounddevice.query_devices():
-                if device_name in d['name'] and d['max_output_channels'] > 0:
-                    gv.AUDIO_DEVICE_ID = i
-                    print '\n>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
-                    self.device_found = True
-                    break
-                i += 1
-
-            if self.device_found is not True and gv.IS_DEBIAN:
-                print ">>>> Device defined in config.ini could not be found. Looking for other connected audio devices."
+            if gv.AUDIO_DEVICE_ID >= 0:
+                print '>>>> Using user-defined AUDIO_DEVICE_ID (%d)' % gv.AUDIO_DEVICE_ID
+                pass
+            else:
                 i = 0
-                for d in sounddevice.query_devices():
-                    print d['name']
-                    if 'bcm2835 ALSA' not in d['name'] and 'sysdefault, ALSA' not in d['name'] \
-                            and 'default, ALSA' not in d['name'] and 'dmix, ALSA' not in d['name'] \
-                            and d['max_output_channels'] > 0:
-                        gv.AUDIO_DEVICE_ID = i
-                        print '\n>>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
-                        self.device_found = True
-                        break
-                    i += 1
-
-            # Default to the Raspberry Pi on-board audio if device in config is not found
-            if self.device_found is not True and gv.IS_DEBIAN:
-                print ">>>> No connected audio devices found. Defaulting to RPi on-board soundcard."
-                i = 0
-                device_name = 'bcm2835'
                 for d in sounddevice.query_devices():
                     if device_name in d['name'] and d['max_output_channels'] > 0:
                         gv.AUDIO_DEVICE_ID = i
-                        print '\n>>>>> Default RPi audio device selected: [%i]: %s\n' % (i, d['name'])
+                        print '\n>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
                         self.device_found = True
                         break
                     i += 1
+
+                if self.device_found is not True and gv.IS_DEBIAN:
+                    print ">>>> Device defined in config.ini could not be found. Looking for other connected audio devices."
+                    i = 0
+                    for d in sounddevice.query_devices():
+                        print d['name']
+                        if 'bcm2835 ALSA' not in d['name'] and 'sysdefault' not in d['name'] \
+                                and 'default' not in d['name'] and 'dmix' not in d['name'] \
+                                and d['max_output_channels'] > 0:
+                            gv.AUDIO_DEVICE_ID = i
+                            print '\n>>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
+                            self.device_found = True
+                            break
+                        i += 1
+
+                # Default to the Raspberry Pi on-board audio if device in config is not found
+                if self.device_found is not True and gv.IS_DEBIAN:
+                    print ">>>> No connected audio devices found. Defaulting to RPi on-board soundcard."
+                    i = 0
+                    device_name = 'bcm2835'
+                    for d in sounddevice.query_devices():
+                        if device_name in d['name'] and d['max_output_channels'] > 0:
+                            gv.AUDIO_DEVICE_ID = i
+                            print '\n>>>>> Default RPi audio device selected: [%i]: %s\n' % (i, d['name'])
+                            self.device_found = True
+                            break
+                        i += 1
 
         except:
             print "There was an error setting the audio device"
@@ -370,6 +374,6 @@ class StartSound:
 
         if 'bcm2835' in device_name:
             # start_alsa_stream()
-            self.start_stream('low')
+            self.start_stream('high') # must be high latency for on-board
         else:
             self.start_stream()

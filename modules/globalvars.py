@@ -2,9 +2,11 @@ import platform
 import os
 import numpy
 import re
-CONFIG_PRINT = True
-import configparser_samplerbox as cp
+import configparser_samplerbox
 import time
+import os
+import sys
+from os import path
 
 IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian'  # Determine if running on RPi (True / False)
 
@@ -13,7 +15,30 @@ IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian'  # Determine if
 # IMPORT CONFIG.INI
 ####################
 
-if CONFIG_PRINT: print '\n#### START CONFIG IMPORT ####\n'
+print '\n#### START CONFIG IMPORT ####\n'
+
+config_exists = True
+
+if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
+    CONFIG_FILE_PATH = "/media/config.ini"
+    if not os.path.exists(CONFIG_FILE_PATH):
+        CONFIG_FILE_PATH = "/boot/config.ini"
+        if not os.path.exists(CONFIG_FILE_PATH):
+            CONFIG_FILE_PATH = "./config.ini"
+            # try:
+            #     file = open(CONFIG_FILE_PATH, 'r') # test if exists
+            # except:
+            #     file = open(CONFIG_FILE_PATH,'w')
+            #     config_exists = False
+            #     print 'Creating empty config.ini'
+            # file.close()
+else:
+    CONFIG_FILE_PATH = "../config.ini"
+
+cp = configparser_samplerbox.Setup(config_file_path=CONFIG_FILE_PATH)
+# If the main config doesn't exist, or if it's empty, build it with default values
+if os.path.isfile(CONFIG_FILE_PATH) == False or os.stat(CONFIG_FILE_PATH).st_size == 0:
+    cp.build_config_from_defaults()
 
 SYSTEM_MODE = int(cp.get_option_by_name('SYSTEM_MODE'))
 MAX_POLYPHONY = int(cp.get_option_by_name('MAX_POLYPHONY'))
@@ -29,7 +54,7 @@ global_volume = 0 if global_volume < 0 else 100 if global_volume > 100 else glob
 global_volume = (10.0 ** (-12.0 / 20.0)) * (float(global_volume) / 100.0)
 SAMPLES_DIR = str(cp.get_option_by_name('SAMPLES_DIR'))
 if not os.path.isdir(SAMPLES_DIR):
-    print 'WARNING: The directory', SAMPLES_DIR, 'was not found. Using default: ./media'
+    print '>>>> WARNING: The directory', SAMPLES_DIR, 'was not found. Using default: ./media'
     SAMPLES_DIR = './media'
 USE_BUTTONS = cp.get_option_by_name('USE_BUTTONS')
 USE_HD44780_16x2_LCD = cp.get_option_by_name('USE_HD44780_16x2_LCD')
@@ -64,6 +89,7 @@ USE_ALSA_MIXER = cp.get_option_by_name('USE_ALSA_MIXER')
 
 NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
 
+#########################################
 
 def button_assign(midi_str):
     button_assign_list = []
@@ -82,7 +108,10 @@ def button_assign(midi_str):
     else:
         midi_value = midi_str.replace(' ', '')
         midi_value = midi_value[0:midi_value.find('<')].split(',')
-        button_assign_list.extend([int(midi_value[0]), int(midi_value[1])])
+        try:
+            button_assign_list.extend([int(midi_value[0]), int(midi_value[1])])
+        except:
+            print 'MIDI navigation assignment error: %s is invalid' % midi_value
     # For if a device was specified
     if '<' in midi_str:
         midi_device = re.split('[<>]+', midi_str)[1]
@@ -110,7 +139,7 @@ BUTTON_UP_GPIO = int(cp.get_option_by_name('BUTTON_UP_GPIO'))
 BUTTON_DOWN_GPIO = int(cp.get_option_by_name('BUTTON_DOWN_GPIO'))
 BUTTON_FUNC_GPIO = int(cp.get_option_by_name('BUTTON_FUNC_GPIO'))
 
-if CONFIG_PRINT: print '\n#### END CONFIG IMPORT ####\n'
+print '\n#### END CONFIG IMPORT ####\n'
 
 VERSION1 = " -=SAMPLER-BOX=- "
 VERSION2 = "V2.0.1 15-06-2016"

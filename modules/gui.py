@@ -5,6 +5,7 @@ from functools import partial
 import sounddevice
 from time import sleep
 import audiocontrols
+import globalvars as gv
 
 
 class SamplerBoxGUI():
@@ -40,11 +41,6 @@ class SamplerBoxGUI():
 
 
         from PIL import ImageTk
-
-
-
-
-
 
         # Make some buttons
         if self.is_main:
@@ -279,20 +275,14 @@ def get_sound_devices():
 
     return acceptable_sound_devices
 
-
-
-ac = audiocontrols.AudioControls()
+# ac = audiocontrols.AudioControls()
 
 def test_some_notes():
 
     notes = [60, 64, 67, 72]
     for note in notes:
-        ac.noteon(note, midichannel=1, velocity=127)
+        gv.ac.noteon(note, midichannel=1, velocity=127)
         sleep(0.2)
-
-
-
-
 
 
 if __name__ == "__main__":

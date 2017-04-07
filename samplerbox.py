@@ -35,6 +35,7 @@ from modules import systemfunctions
 from modules import setlist
 from modules import loadsamples
 from modules import sound
+from modules import midimaps
 
 ###########
 # Logging #
@@ -59,24 +60,14 @@ print '####  END SETLIST  ####\n'
 
 gv.displayer = displayer.Displayer()
 
-if gv.SYSTEM_MODE == 1:
-    from modules import midimaps
-    from modules import navigator_sys_1
-    gv.midimaps = midimaps.MidiMapping().maps
-    gv.nav = navigator_sys_1.Navigator(navigator_sys_1.PresetNav)
-elif gv.SYSTEM_MODE == 2:
-    from modules import navigator_sys_2
-    gv.nav = navigator_sys_2
-
-gv.sound = sound.StartSound()
-gv.ac = audiocontrols.AudioControls()
+gv.midimaps = midimaps.MidiMapping().maps
 gv.autochorder = audiocontrols.AutoChorder()
+gv.ac = audiocontrols.AudioControls()
+gv.sound = sound.StartSound()
 gv.sysfunc = systemfunctions.SystemFunctions()
 gv.ls = loadsamples.LoadingSamples()
 bnt = buttons.Buttons()
 from modules import midicallback
-
-
 
 import modules.gui as gui
 if gv.USE_GUI and not gv.IS_DEBIAN: gv.gui = gui.SamplerBoxGUI() # Start the GUI
@@ -175,9 +166,12 @@ try:
         midi_devices_loop() # this is the main loop
 
 except KeyboardInterrupt:
-    print "\nstopped by ctrl-c\n"
+    print "\nStopped by CTRL-C\n"
+    gv.sysfunc.shutdown(log_file)
 except:
-    print "\nstopped by Other Error"
+    print "\nStopped by other error\n"
+    gv.sysfunc.shutdown(log_file)
 finally:
+    print "\nFinal stop\n"
     gv.sysfunc.shutdown(log_file)
 

@@ -1,13 +1,10 @@
 import globalvars as gv
-import loadsamples as ls
-from os import listdir
 
 lastbuttontime = 0
 buttfunc = 0
 button_functions = ["", "Volume", "Midichannel", "Transpose", "RenewUSB/MidMute", "PlayChord:"]
 button_disp = ["", "V", "M", "T", "S", "C"]  # take care, these values are used below for testing
 number_of_folders = len(gv.SETLIST_LIST)
-
 
 def Button_display():
     function_value = [
@@ -18,7 +15,7 @@ def Button_display():
         "",
         " %s" % (gv.ac.autochorder.CHORD_NAMES[gv.ac.autochorder.current_chord])
     ]
-    print button_functions[buttfunc] + function_value[buttfunc]
+    # print button_functions[buttfunc] + function_value[buttfunc]
     gv.displayer.disp_change(str_override=button_functions[buttfunc] + function_value[buttfunc])
 
 
