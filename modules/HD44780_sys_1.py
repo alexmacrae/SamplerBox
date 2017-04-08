@@ -50,9 +50,15 @@ class LCD_SYS_1:
                 import RPi.GPIO as GPIO
                 from RPLCD import CharLCD
 
+                # Initialize GPIO
+                GPIO.setmode(GPIO.BCM)
+                GPIO.cleanup()
+
                 self.lcd = CharLCD(pin_rs=gv.GPIO_LCD_RS, pin_rw=None, pin_e=gv.GPIO_LCD_E,
                               pins_data=[gv.GPIO_LCD_D4, gv.GPIO_LCD_D5, gv.GPIO_LCD_D6, gv.GPIO_LCD_D7],
                               numbering_mode=GPIO.BCM, cols=gv.LCD_COLS, rows=gv.LCD_ROWS)
+
+                self.lcd.clear()
 
                 # Write custom codes to the LCD
                 self.lcd.create_char(1, lcdcc.block)
@@ -103,7 +109,6 @@ class LCD_SYS_1:
                     self.lcd_string(self.STRING_1, 1)
                     self.lcd_string(self.STRING_2, 2)
                     print_message = "\r%s || %s" % (self.STRING_1[:gv.LCD_COLS], self.STRING_2[:gv.LCD_COLS])
-
                     if gv.USE_HD44780_20x4_LCD:
                         self.lcd_string(self.STRING_3, 3)
                         self.lcd_string(self.STRING_4, 4)
@@ -113,7 +118,7 @@ class LCD_SYS_1:
                 elif gv.displayer.menu_mode == gv.displayer.DISP_PRESET_MODE:
                     self.lcd_string(self.STRING_1_PRIORITY, 1)
                     self.lcd_string(self.STRING_2_PRIORITY, 2)
-                    self.print_message = "\r%s || %s" % (self.STRING_1_PRIORITY[:gv.LCD_COLS], self.STRING_2_PRIORITY[:gv.LCD_COLS])
+                    print_message = "\r%s || %s" % (self.STRING_1_PRIORITY[:gv.LCD_COLS], self.STRING_2_PRIORITY[:gv.LCD_COLS])
                     if gv.USE_HD44780_20x4_LCD:
                         self.lcd_string(self.STRING_3_PRIORITY, 3)
                         self.lcd_string(self.STRING_4_PRIORITY, 4)
@@ -145,7 +150,6 @@ class LCD_SYS_1:
         #     print '{line ' + str(line) + '} -->  ' + message[:gv.LCD_COLS]
 
         message = message.ljust(gv.LCD_COLS, " ")
-
         if (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD) and gv.IS_DEBIAN:
             self.lcd._set_cursor_pos((line - 1, 0))
             self.lcd.write_string(message[:gv.LCD_COLS])
@@ -191,4 +195,5 @@ class LCD_SYS_1:
         self.display_called = True
 
 
-
+    def cleanup(self):
+        self.lcd.close()

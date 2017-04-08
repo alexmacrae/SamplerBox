@@ -17,11 +17,12 @@ class SystemFunctions:
             gv.displayer.disp_change(str_override='SamplerBox', line=3, is_priority=True)
             gv.displayer.disp_change(str_override=' ', line=4, is_priority=True)
 
-        sleep(0.15)
+        sleep(0.2)
 
         if gv.IS_DEBIAN:
             import RPi.GPIO as GPIO
             print 'Cleaning up GPIO'
+            GPIO.setmode(GPIO.BCM)
             GPIO.cleanup()
 
         import os
@@ -34,8 +35,8 @@ class SystemFunctions:
         shutdown_message = 'GOOD BYE!'.center(gv.LCD_COLS, ' ')
         for i in xrange(gv.LCD_ROWS):
             gv.displayer.disp_change(str_override=shutdown_message, line=(i+1), timeout=1, is_priority=True)
-        sleep(0.1)
-        gv.sound.close_stream()
+        sleep(0.2)
+        # gv.sound.close_stream()
 
         if log_file:
             log_file.close()
@@ -43,7 +44,7 @@ class SystemFunctions:
         if gv.IS_DEBIAN:
             import RPi.GPIO as GPIO
             print 'Cleaning up GPIO'
-            # TODO: There seems to be a complication with RPLCD. Let's find a better way to cleanup GPIO.
+            GPIO.setmode(GPIO.BCM)
             GPIO.cleanup()
 
         exit()

@@ -271,31 +271,42 @@ class PitchBend:
         gv.PITCHBEND = (((128 * vel + note) / gv.pitchdiv) - gv.pitchneutral) * (gv.pitchnotes * 2)
 
 class Sustain:
+
+    def sustain_on(self):
+        gv.sustain = True
+
+    def sustain_off(self):
+        for n in gv.sustainplayingnotes:
+            n.fadeout(50)
+        gv.sustainplayingnotes = []
+        gv.sustain = False
+
     def set_sustain(self, message, src, messagetype):
+
         CCnum = message[1]
         CCval = message[2]
-        # NB: the microKEY conditionals are unique to Alex's modded keyboard. Remove in future.
+
         if gv.sample_mode == gv.PLAYLIVE:
-            if (CCval < 64) \
-                    or (("microKEY" in src)
-                        and (messagetype == 14)
+            # NB: the microKEY conditionals are unique to Alex's modded keyboard. Remove in future.
+            if ("microKEY" in src):
+                if ((messagetype == 14)
                         and (CCnum == 64 or CCnum == 0)
-                        and (CCval >= 28)) \
-                            and (gv.sustain == True):  # sustain pedal off
-                for n in gv.sustainplayingnotes:
-                    n.fadeout(50)
-                gv.sustainplayingnotes = []
-                gv.sustain = False
-            elif (CCval >= 64) \
-                    or (("microKEY" in src)
-                        and (messagetype == 14)
+                        and (CCval <= 2)) \
+                        and (gv.sustain == True):  # sustain pedal off
+                    self.sustain_off()
+                elif ((messagetype == 14)
                         and (CCnum == 64 or CCnum == 0)
-                        and (CCval <= 25)) \
-                            and (gv.sustain == False):  # sustain pedal on
-                gv.sustain = True
+                        and (CCval >= 3)) \
+                        and (gv.sustain == False):  # sustain pedal on
+                    self.sustain_on()
+            else:
+                if CCval < 64:
+                    self.sustain_off()
+                elif CCval >= 64:
+                    self.sustain_on()
 
 
-###################
+            ###################
 # TONE CONTROL
 # by Erik
 ###################

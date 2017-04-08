@@ -15,7 +15,6 @@ import os
 
 
 class Displayer:
-
     def __init__(self):
 
         self.DISP_PRESET_MODE = 'preset'
@@ -33,19 +32,6 @@ class Displayer:
         self.LCD_SYS = None
 
         self.voices_display_blocks = True
-
-        if gv.SYSTEM_MODE == 1:
-            from modules import HD44780_sys_1
-            from modules import navigator_sys_1
-            self.LCD_SYS = HD44780_sys_1.LCD_SYS_1()
-            gv.nav = navigator_sys_1.Navigator(navigator_sys_1.PresetNav)
-        elif gv.SYSTEM_MODE == 2:
-            from modules import HD44780_sys_2
-            from modules import navigator_sys_2
-            self.LCD_SYS = HD44780_sys_2.LCD_SYS_2()
-            gv.nav = navigator_sys_2
-
-
 
     def display_preset_with_voices(self, preset_string):
         preset_string = preset_string + ' ' * gv.LCD_COLS  # fill with space chars
@@ -65,6 +51,7 @@ class Displayer:
         return ''.join(preset_string_list)
 
     def disp_change(self, changed_var=[], str_override='', line=1, is_priority=False, timeout=0):
+
         # if changed_var was a string, convert to a list.
         if isinstance(changed_var, str): changed_var = [changed_var]
 
@@ -123,7 +110,10 @@ class Displayer:
 
                             preset_name = gv.SETLIST_LIST[gv.samples_indices[next_preset]]
                             preset_num_name = str(next_preset - gv.PRESET_BASE + 1) + ' ' + preset_name
-                            preset_line_2 = self.display_preset_with_voices(preset_num_name)
+                            if len(gv.samples_indices) == 1: # if there's only 1 sample set
+                                preset_line_2 = ''
+                            else:
+                                preset_line_2 = self.display_preset_with_voices(preset_num_name)
 
                             self.LCD_SYS.display(preset_line_2, line=2, is_priority=True, timeout_custom=timeout)
                             self.LCD_SYS.display('', 3, is_priority=True, timeout_custom=timeout)

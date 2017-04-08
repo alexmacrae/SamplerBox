@@ -10,7 +10,6 @@ from os import path
 
 IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian'  # Determine if running on RPi (True / False)
 
-
 ####################
 # IMPORT CONFIG.INI
 ####################
@@ -21,10 +20,13 @@ config_exists = True
 
 if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
     CONFIG_FILE_PATH = "/media/config.ini"
+    print '>>>> CONFIG: using config.ini found in /media/'
     if not os.path.exists(CONFIG_FILE_PATH):
         CONFIG_FILE_PATH = "/boot/config.ini"
+        print '>>>> CONFIG: using config.ini found in /boot/'
         if not os.path.exists(CONFIG_FILE_PATH):
             CONFIG_FILE_PATH = "./config.ini"
+            print '>>>> CONFIG: using config.ini found in /SamplerBox/'
             # try:
             #     file = open(CONFIG_FILE_PATH, 'r') # test if exists
             # except:
@@ -34,6 +36,7 @@ if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
             # file.close()
 else:
     CONFIG_FILE_PATH = "../config.ini"
+    print '>>>> CONFIG: using config.ini in ../'
 
 cp = configparser_samplerbox.Setup(config_file_path=CONFIG_FILE_PATH)
 # If the main config doesn't exist, or if it's empty, build it with default values
@@ -54,8 +57,11 @@ global_volume = 0 if global_volume < 0 else 100 if global_volume > 100 else glob
 global_volume = (10.0 ** (-12.0 / 20.0)) * (float(global_volume) / 100.0)
 SAMPLES_DIR = str(cp.get_option_by_name('SAMPLES_DIR'))
 if not os.path.isdir(SAMPLES_DIR):
-    print '>>>> WARNING: The directory', SAMPLES_DIR, 'was not found. Using default: ./media'
+    print '>>>> WARNING: dir', SAMPLES_DIR, 'not found. Using default: ./media'
     SAMPLES_DIR = './media'
+    if not os.path.isdir(SAMPLES_DIR):
+        print '>>>> WARNING: dir', SAMPLES_DIR, 'not found. Using default: ../media'
+        SAMPLES_DIR = '../media'
 USE_BUTTONS = cp.get_option_by_name('USE_BUTTONS')
 USE_HD44780_16x2_LCD = cp.get_option_by_name('USE_HD44780_16x2_LCD')
 USE_HD44780_20x4_LCD = cp.get_option_by_name('USE_HD44780_20x4_LCD')
@@ -155,7 +161,11 @@ MIDIMAPS_FILE_PATH = 'midimaps.pkl'
 ###################
 
 SONG_FOLDERS_LIST = os.listdir(SAMPLES_DIR)
-SETLIST_FILE_PATH = 'setlist/setlist.txt'
+if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
+    SETLIST_FILE_PATH = 'setlist/setlist.txt'
+else:
+    SETLIST_FILE_PATH = '../setlist_testing/setlist.txt'
+
 SETLIST_LIST = None #open(SETLIST_FILE_PATH).read().splitlines()
 NUM_FOLDERS = len(os.walk(SAMPLES_DIR).next()[1])
 

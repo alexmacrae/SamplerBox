@@ -61,6 +61,9 @@ class PresetNav(Navigator):
     def __init__(self):
 
         print '-= Preset world =-'
+        gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE
+        gv.displayer.disp_change('preset')
+
 
     def right(self):
         gv.preset += 1
@@ -70,7 +73,7 @@ class PresetNav(Navigator):
             gv.preset = 0
         gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE  # need to set if interrupted by utils left/right
         gv.ls.LoadSamples()
-        gv.displayer.disp_change('preset')
+        # gv.displayer.disp_change('preset') # LoadSamples calls this
 
     def left(self):
         gv.preset -= 1
@@ -80,14 +83,14 @@ class PresetNav(Navigator):
             gv.preset = len(gv.samples_indices) - 1
         gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE  # need to set if interrupted by utils left/right
         gv.ls.LoadSamples()
-        gv.displayer.disp_change('preset')
+        # gv.displayer.disp_change('preset') # LoadSamples calls this
 
     def enter(self):
         self.load_state(MenuNav)
 
-
-    def cancel(self):  # can remove empty class methods
-        self.load_state(UtilsView)
+    def cancel(self):
+        # self.load_state(UtilsView)
+        pass
 
 
 # ______________________________________________________________________________
@@ -328,6 +331,7 @@ class MoveSong(Navigator):
         gv.displayer.disp_change(line_2.ljust(gv.LCD_COLS, ' '), line=2)
 
     # Move song up the setlist
+    # TODO: move to setlist.py class
     def left(self):
         if (self.preset > 0):
             self.setlist_list[self.preset], \
@@ -383,13 +387,7 @@ class SetlistRemoveMissing(Navigator):
 
     def enter(self):
 
-        songs_in_setlist = open(gv.SETLIST_FILE_PATH).read().splitlines()
-        i = 0
-        for song in songs_in_setlist:
-            if ('* ' in song):
-                del songs_in_setlist[i]
-                gv.setlist.write_setlist(songs_in_setlist)
-            i += 1
+        gv.setlist.remove_missing_setlist_songs()
 
         self.load_state(MenuNav)
 
