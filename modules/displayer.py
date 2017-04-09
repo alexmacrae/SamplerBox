@@ -50,7 +50,7 @@ class Displayer:
                 preset_string_list[-5] = v_str
         return ''.join(preset_string_list)
 
-    def disp_change(self, changed_var=[], str_override='', line=1, is_priority=False, timeout=0):
+    def disp_change(self, changed_var=[], str_override='', line=1, is_priority=False, timeout=0, is_error=False):
 
         # if changed_var was a string, convert to a list.
         if isinstance(changed_var, str): changed_var = [changed_var]
@@ -81,6 +81,10 @@ class Displayer:
             if gv.SYSTEM_MODE == 1:
 
                 if gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD:
+
+                    if is_error:
+                        self.LCD_SYS.display(changed_var[0], line=line, is_priority=True, timeout_custom=timeout)
+                        return
 
                     # Determine whether to push some lines (eg loading bars) down 2 rows if using 20x4 display
                     n = 2 if gv.USE_HD44780_20x4_LCD else 0
@@ -146,7 +150,7 @@ class Displayer:
                             cpu = int(psutil.cpu_percent(None) / (gv.LCD_COLS / 2 - 4)) + 1
                             ram = int(float(psutil.virtual_memory().percent) / (gv.LCD_COLS / 2 - 4)) + 1
                             temp = float(os.popen('vcgencmd measure_temp')
-                                         .readline().replace('temp=', '').replace("'C\n", ''))
+                                         .readline().replace('temp=', '').replace("'C\r", ''))
 
                             disk_usage_str = 'DSK' + (unichr(1) * SD_usage_percent)
                             cpu_str = 'CPU' + (unichr(1) * cpu)
@@ -168,6 +172,9 @@ class Displayer:
                         if 'volume' in changed_var or 'loading' in changed_var or 'effect' in changed_var or 'voice' in changed_var:
                             return
                         self.LCD_SYS.display(changed_var[0], line=line, is_priority=True, timeout_custom=timeout)
+
+
+
 
 
 

@@ -9,12 +9,12 @@ keywords_to_try = (('gv.gain', 'gain'),
                    ('gv.velocity_mode', 'velmode'))
 
 keywords_dict = {
-            0: {'%%gain': (0.001, 10.0)},
+            0: {'%%gain': (0.1, 10.0)},
             1: {'%%mode': ['keyb', 'once', 'on64', 'loop', 'loo2']},
             2: {'%%velmode': ['sample', 'accurate']},
             3: {'%%release': (0, 127)},
             4: {'%%transpose': (-48, 48)},
-            5: {'%%pitchbend': (0, 12)}
+            5: {'%%pitchbend': (0, 24)}
 }
 keywords_defaults_dict = {
             '%%gain': 1.0,
@@ -24,25 +24,6 @@ keywords_defaults_dict = {
             '%%transpose': 0,
             '%%pitchbend': gv.PITCHRANGE_DEFAULT,
         }
-
-def get_patterns_from_file(definitionfname, keywords_dict):
-    existing_patterns = {}
-    with open(definitionfname, 'r') as definitionfile:
-        w = 1
-        for i, pattern in enumerate(definitionfile):
-            for k, item in keywords_dict.iteritems():
-                keyword = item.items()[0][0]
-                if keyword in pattern:
-                    print pattern
-                    value = pattern.split('=')[1].strip()
-                    existing_patterns[keyword] = value
-
-            if '%%' not in pattern or '.wav' in pattern:  # get .wav lines
-                existing_patterns['wav_definition_' + str(w)] = pattern.strip('\n')
-                w += 1
-
-    return existing_patterns
-
 
 class DefinitionParser:
     def __init__(self, basename):
@@ -58,11 +39,11 @@ class DefinitionParser:
 
         self.keywords_defaults_dict = keywords_defaults_dict
 
-        self.existing_patterns = get_patterns_from_file(self.definitionfname, self.keywords_dict)
+        self.existing_patterns = self.get_patterns_from_file(self.definitionfname, self.keywords_dict)
 
         print '##### Existing definition.txt patterns #####'
         print self.existing_patterns
-        print '############################################', '\n'
+        print '############################################', '\r'
 
     ############################################
     # COMPARE EXISTING
@@ -70,6 +51,7 @@ class DefinitionParser:
     ############################################
 
     def compare_existing_patterns(self):
+        print '\r#### START COMPARING NEW AND INITAL PATTERNS ####'
         print self.new_patterns, '<<<<<<<<<<<<<<<<<<<<<<<'
         for n, value in self.new_patterns.iteritems():
 
@@ -81,13 +63,15 @@ class DefinitionParser:
         self.combined_patterns = self.new_patterns.copy()
         self.combined_patterns.update(self.existing_patterns)  # merge self.new_patterns and existing_patters dicts
 
+        print '#### END COMPARING NEW AND INITAL PATTERNS ####\r'
+
     #################
     # SET NEW KEYWORD
     #################
 
     def set_new_keyword(self, keyword, value):
         keyword = keyword.lower()
-        print type(value), '##########'
+        print '\r\r#### START SETTING NEW KEYWORDS ####\r'
         for i, item in self.keywords_dict.iteritems():
             for k, v in item.iteritems():
                 print k, v
@@ -110,11 +94,14 @@ class DefinitionParser:
                             print 'ERROR: Value (%d) is out of range for %s. Min=%d, Max=%d' % (
                                 value, keyword, minn, maxn)  # debug
 
-    #######################
-    # WRITE DEFINITION FILE
-    #######################
+        print '\r#### END SETTING NEW KEYWORDS ####\r'
+
+    #########################
+    # WRITE DEFINITION FILE #
+    #########################
 
     def write_definition_file(self):
+        print '\r#### START WRITING definition.txt ####\r'
         definitionfname = os.path.join(self.dirname, "definition.txt")
         f = open(definitionfname, 'w')
         for keyword, value in self.combined_patterns.iteritems():
@@ -128,4 +115,30 @@ class DefinitionParser:
                 f.write(line)
                 print line.strip('\n')  # debug
         f.close()
+        print '\r#### END WRITING definition.txt ####\r'
+
+    ##########################
+    # GET PATTERNS FROM FILE #
+    ##########################
+
+    def get_patterns_from_file(self, definitionfname, keywords_dict):
+        print '#### START GET PATTERNS FROM FILE ####'
+        existing_patterns = {}
+        with open(definitionfname, 'r') as definitionfile:
+            w = 1
+            for i, pattern in enumerate(definitionfile):
+                for k, item in keywords_dict.iteritems():
+                    keyword = item.items()[0][0]
+                    if keyword in pattern:
+                        print pattern
+                        value = pattern.split('=')[1].strip()
+                        existing_patterns[keyword] = value
+
+                if '%%' not in pattern or '.wav' in pattern:  # get .wav lines
+                    existing_patterns['wav_definition_' + str(w)] = pattern.strip('\n')
+                    w += 1
+
+        print '#### END GET PATTERNS FROM FILE ####'
+
+        return existing_patterns
 

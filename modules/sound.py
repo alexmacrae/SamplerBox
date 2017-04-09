@@ -233,7 +233,8 @@ class StartSound:
 
         print '\n#### START OF AUDIO DEVICES ####\n'
         print 'Available devices:'
-        print sounddevice.query_devices()  # all available audio devices
+        self.all_audio_devices = self.get_all_audio_devices()
+        print sounddevice.query_devices()  # all available audio devices (with audio output)
 
         self.sd = None
         self.amix = None
@@ -334,7 +335,7 @@ class StartSound:
                 for d in sounddevice.query_devices():
                     if device_name in d['name'] and d['max_output_channels'] > 0:
                         gv.AUDIO_DEVICE_ID = i
-                        print '\n>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
+                        print '\r>>>> Device selected by name: [%i]: %s\r' % (i, d['name'])
                         self.device_found = True
                         break
                     i += 1
@@ -348,7 +349,7 @@ class StartSound:
                                 and 'default' not in d['name'] and 'dmix' not in d['name'] \
                                 and d['max_output_channels'] > 0:
                             gv.AUDIO_DEVICE_ID = i
-                            print '\n>>>>> Device selected by name: [%i]: %s\n' % (i, d['name'])
+                            print '\r>>>>> Device selected by name: [%i]: %s\r' % (i, d['name'])
                             self.device_found = True
                             break
                         i += 1
@@ -361,7 +362,7 @@ class StartSound:
                     for d in sounddevice.query_devices():
                         if device_name in d['name'] and d['max_output_channels'] > 0:
                             gv.AUDIO_DEVICE_ID = i
-                            print '\n>>>>> Default RPi audio device selected: [%i]: %s\n' % (i, d['name'])
+                            print '\r>>>>> Default RPi audio device selected: [%i]: %s\r' % (i, d['name'])
                             self.device_found = True
                             break
                         i += 1

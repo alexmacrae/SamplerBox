@@ -64,10 +64,10 @@ class LoadingSamples:
 
         if self.preset_current_is_loaded and self.preset_current_loading != gv.samples_indices[gv.preset]:
             if gv.playingsounds:
-                print '########\n-- Initiate pause on sample loading --'
+                print '########\r-- Initiate pause on sample loading --'
                 for i in xrange(999999):
                     if not gv.playingsounds or self.preset_change_triggered:
-                        print 'No more playingsounds (or new preset triggered)\nContinue loading\n########'
+                        print 'No more playingsounds (or new preset triggered)\rContinue loading\r########'
                         self.preset_change_triggered = False
                         return
                     print '// loading paused //'
@@ -194,7 +194,7 @@ class LoadingSamples:
         # This is possible if the total size of all sample-sets are smaller that the percentage of
         # RAM allocated to samples (RAM_LIMIT_PERCENTAGE in config.ini)
         if self.all_presets_loaded:
-            print '\nLOADED NOTHING: all samples have been loaded into memory'
+            print '\rLOADED NOTHING: all samples have been loaded into memory'
             self.set_globals_from_keywords()
             self.set_global_fadeout()
             gv.displayer.disp_change('preset')  # Force the display to update
@@ -204,7 +204,7 @@ class LoadingSamples:
 
         if self.preset_current_loading == gv.samples_indices[gv.preset]:
 
-            print '\nCurrent preset: [%d: %s]' % (
+            print '\rCurrent preset: [%d: %s]' % (
                 self.preset_current_loading, gv.SETLIST_LIST[self.preset_current_loading])  # debug
 
             self.preset_current_is_loaded = False
@@ -523,12 +523,12 @@ class LoadingSamples:
                 self.preset_next_to_load = self.get_next_preset(self.preset_current_loading)
                 if self.preset_next_to_load == gv.preset: return
 
-            print '++ RAM usage is ok (%d%%) \n++ Load next preset' % is_memory_too_high_percentage  # debug
+            print '++ RAM usage is ok (%d%%) \r++ Load next preset' % is_memory_too_high_percentage  # debug
             self.preset_current_loading = self.preset_next_to_load
             self.ActuallyLoad()  # load next preset
 
         else:
-            print '-- RAM usage has reach limit (%d%%) \n-- Stop loading other presets' \
+            print '-- RAM usage has reach limit (%d%%) \r-- Stop loading other presets' \
                   % is_memory_too_high_percentage  # debug
             return
 

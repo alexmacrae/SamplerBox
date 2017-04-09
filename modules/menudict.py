@@ -32,6 +32,7 @@ menu = {
                 }
             }
         },
+        # TODO: Find best way to modify ALSA mixer volume
         3: {
             'name': 'Master volume',
             'desc': 'Modify the system\'s master volume',
