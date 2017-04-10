@@ -25,7 +25,7 @@ def up():
     if buttfunc == 0:
         gv.preset += 1
         if gv.preset > number_of_folders - 1: gv.preset = 0
-        gv.ls.LoadSamples()
+        gv.ls.load_samples()
         Button_display()
     elif buttfunc == 1:
         gv.global_volume += 5
@@ -42,7 +42,7 @@ def up():
         Button_display()
     elif buttfunc == 4:
         gv.basename = "None"
-        gv.ls.LoadSamples()
+        gv.ls.load_samples()
     elif buttfunc == 5:
         if gv.ac.autochorder.current_chord < len(gv.ac.autochorder.CHORD_NAMES) - 1:
             gv.ac.autochorder.current_chord += 1
@@ -57,7 +57,7 @@ def down():
     if buttfunc == 0:
         gv.preset -= 1
         if gv.preset < 0: gv.preset = number_of_folders - 1
-        gv.ls.LoadSamples()
+        gv.ls.load_samples()
         Button_display()
     elif buttfunc == 1:
         gv.global_volume -= 5

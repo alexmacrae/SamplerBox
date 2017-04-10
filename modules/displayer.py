@@ -137,9 +137,9 @@ class Displayer:
                                                  line=2 + n, is_priority=False, timeout_custom=timeout)
                         elif 'effect' in changed_var:
                             effect_line = changed_var[1].upper().center(gv.LCD_COLS, ' ')
-                            self.LCD_SYS.display(effect_line, line=1 + n, is_priority=False, timeout_custom=2)
+                            self.LCD_SYS.display(effect_line, line=1 + n, is_priority=False, timeout_custom=timeout)
                             self.LCD_SYS.display(unichr(1) * int(gv.percent_effect * (gv.LCD_COLS / 100.0) + 1),
-                                                 line=1 + n, is_priority=False, timeout_custom=2)
+                                                 line=2 + n, is_priority=False, timeout_custom=timeout)
 
                     if self.menu_mode == self.DISP_UTILS_MODE:
                         if 'util' in changed_var:

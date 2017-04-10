@@ -1,5 +1,6 @@
 import globalvars as gv
-from time import sleep
+import time
+
 
 class SystemFunctions:
     def __init__(self):
@@ -17,7 +18,7 @@ class SystemFunctions:
             gv.displayer.disp_change(str_override='SamplerBox', line=3, is_priority=True)
             gv.displayer.disp_change(str_override=' ', line=4, is_priority=True)
 
-        sleep(0.2)
+        time.sleep(0.2)
 
         if gv.IS_DEBIAN:
             import RPi.GPIO as GPIO
@@ -31,12 +32,14 @@ class SystemFunctions:
         os.system('systemctl stop samplerbox && sudo python ' + str(os.getcwd()) + '/samplerbox.py')
 
     def shutdown(self, log_file=None):
-        if gv.SYSTEM_MODE == 1: gv.nav.text_scroller.stop() # stop the text scroller in SYS MODE 1
+
+        if gv.SYSTEM_MODE == 1: gv.nav.text_scroller.stop()  # stop the text scroller in SYS MODE 1
         shutdown_message = 'GOOD BYE!'.center(gv.LCD_COLS, ' ')
         for i in xrange(gv.LCD_ROWS):
-            gv.displayer.disp_change(str_override=shutdown_message, line=(i+1), timeout=1, is_priority=True)
-        sleep(0.2)
-        # gv.sound.close_stream()
+            gv.displayer.disp_change(str_override=shutdown_message, line=(i + 1), timeout=1, is_priority=True)
+
+        time.sleep(0.1)
+        gv.sound.close_stream()
 
         if log_file:
             log_file.close()
@@ -46,5 +49,6 @@ class SystemFunctions:
             print 'Cleaning up GPIO'
             GPIO.setmode(GPIO.BCM)
             GPIO.cleanup()
+            time.sleep(0.5)
 
         exit()

@@ -101,7 +101,12 @@ class MasterVolume:
     def setvolume(self, vel):
         gv.global_volume_percent = int((float(vel) / 127.0) * 100)
         gv.global_volume = (10.0 ** (-12.0 / 20.0)) * (float(vel) / 127.0)
+        # Disabling ALSA volume for now - device gets set to 100% and lets sounddevice control volume
+        # if gv.USE_ALSA_MIXER: # if using on-board audio or USB DAC
+        #     gv.sound.set_alsa_volume(gv.global_volume_percent)
+
         gv.displayer.disp_change(changed_var='volume', timeout=2)
+
 
 ########################
 # Auto Chorder by Hans #
@@ -237,12 +242,12 @@ class Reverb:
         def setroomsize(self, val):
             self.fvsetroomsize(val / 127.0)
             gv.percent_effect = int(val / 127.0 * 100)
-            gv.displayer.disp_change(changed_var=['effect', 'roomsize'])
+            gv.displayer.disp_change(changed_var=['effect', 'roomsize'], timeout=2)
 
         def setdamp(self, val):
             self.fvsetdamp(val / 127.0)
             gv.percent_effect = int(val / 127.0 * 100)
-            gv.displayer.disp_change(changed_var=['effect', 'damping'])
+            gv.displayer.disp_change(changed_var=['effect', 'damping'], timeout=2)
 
         def setwet(self, val):
             # Disable Freeverb @ 0. BUG: slight audio hiccup when it kicks back in. Needs a better solution.
@@ -252,17 +257,17 @@ class Reverb:
             #     gv.USE_FREEVERB = True
             self.fvsetwet(val / 127.0)
             gv.percent_effect = int(val / 127.0 * 100)
-            gv.displayer.disp_change(changed_var=['effect', 'wet'])
+            gv.displayer.disp_change(changed_var=['effect', 'wet'], timeout=2)
 
         def setdry(self, val):
             self.fvsetdry(val / 127.0)
             gv.percent_effect = int(val / 127.0 * 100)
-            gv.displayer.disp_change(changed_var=['effect', 'dry'])
+            gv.displayer.disp_change(changed_var=['effect', 'dry'], timeout=2)
 
         def setwidth(self, val):
             self.fvsetwidth(val / 127.0)
             gv.percent_effect = int(val / 127.0 * 100)
-            gv.displayer.disp_change(changed_var=['effect', 'width'])
+            gv.displayer.disp_change(changed_var=['effect', 'width'], timeout=2)
 
 
 class PitchBend:

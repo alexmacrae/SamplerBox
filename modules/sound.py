@@ -9,8 +9,9 @@ import numpy
 import sounddevice
 import globalvars as gv
 import exceptions
-
-if gv.IS_DEBIAN and gv.USE_ALSA_MIXER:
+import sys
+import re
+if gv.IS_DEBIAN:
     import alsaaudio
 
 
@@ -139,7 +140,7 @@ class Sound:
 # AUDIO CALLBACK #
 ##################
 
-def AudioCallback(outdata, frame_count, time_info, status):
+def audio_callback(outdata, frame_count, time_info, status):
     rmlist = []
     gv.playingsounds = gv.playingsounds[-gv.MAX_POLYPHONY:]
 
@@ -150,83 +151,36 @@ def AudioCallback(outdata, frame_count, time_info, status):
     b = samplerbox_audio.mixaudiobuffers(gv.playingsounds, rmlist, frame_count, gv.FADEOUT, gv.FADEOUTLENGTH,
                                          gv.PRERELEASE, gv.SPEED, gv.SPEEDRANGE, gv.PITCHBEND, gv.PITCHSTEPS)
 
-    # if gv.USE_FREEVERB and gv.IS_DEBIAN:
-    #     b_verb = b
-    #     gv.ac.reverb.freeverbprocess(b_verb.ctypes.data_as(gv.ac.reverb.c_float_p),
-    #                                  b.ctypes.data_as(gv.ac.reverb.c_float_p), frame_count)
+    """
+    With the below uncommented, a MIDI volume controller will control ALSA audio only.
+    This is problematic; we want to control ALSA only. Full volume sounddevice might cause distortion.
+    """
+    # if gv.USE_ALSA_MIXER == False: # Use alsamixer's setvolume instead
+    b *= (gv.global_volume * gv.volumeCC)
+
+    if gv.USE_FREEVERB and gv.IS_DEBIAN:
+        b_verb = b
+        gv.ac.reverb.freeverbprocess(b_verb.ctypes.data_as(gv.ac.reverb.c_float_p),
+                                     b.ctypes.data_as(gv.ac.reverb.c_float_p), frame_count)
+
+        # if gv.USE_ALSA_MIXER == False:  # Use alsamixer's setvolume instead
+        b_verb *= (gv.global_volume * gv.volumeCC)
 
     for e in rmlist:
         try:
             gv.playingsounds.remove(e)
         except:
             pass
-    b *= (gv.global_volume * gv.volumeCC)
+
     outdata[:] = b.reshape(outdata.shape)
 
     # if gv.USE_TONECONTROL:
     #     b_tc = numpy.array(gv.ac.tone_control.chain.filter(b))
     #     # b = b_tc
 
-    ########################
-    # Backing tracks       #
-    # 4 channel playback   #
-    # Warning: untested!   #
-    ########################
-
-    # if gv.CHANNELS == 4:  # 4 channel playback
-    #
-    #     # if backingtrack running: add in the audio
-    #     if gv.BackingRunning:
-    #         BackData = gv.BackWav[gv.BackIndex:gv.BackIndex + 2 * frame_count]
-    #         gv.ClickData = gv.ClickWav[gv.ClickIndex:gv.ClickIndex + 2 * frame_count]
-    #         gv.BackIndex += 2 * frame_count
-    #         gv.ClickIndex += 2 * frame_count
-    #         if len(b) != len(BackData) or len(b) != len(gv.ClickData):
-    #             gv.BackingRunning = False
-    #             gv.BackData = None
-    #             gv.BackIndex = 0
-    #             gv.ClickData = None
-    #             gv.ClickIndex = 0
-    #
-    #     if gv.BackingRunning:
-    #         newdata = (gv.backvolume * gv.BackData + b * gv.global_volume)
-    #         gv.Click = gv.ClickData * gv.clickvolume
-    #     else:
-    #         gv.Click = numpy.zeros(frame_count * 2, dtype=numpy.float32)
-    #         newdata = b * gv.global_volume
-    #
-    #     # putting streams in 4 channel audio by magic in numpy reshape
-    #     a1 = newdata.reshape(frame_count, 2)
-    #     a2 = gv.Click.reshape(frame_count, 2)
-    #     ch4 = numpy.hstack((a1, a2)).reshape(1, frame_count * 4)
-    #
-    #     # mute while loading Sample or BackingTrack, otherwise there could be dirty hick-ups
-    #     # if SampleLoading or (BackLoadingPerc > 0 and BackLoadingPerc < 100):
-    #     #     ch4 *= 0
-    #     return (ch4.astype(numpy.int16).tostring(), pyaudio.paContinue)
-    #
-    # else:  # 2 Channel playback
-    #
-    #     # if backingtrack running: add in the audio
-    #     if gv.BackingRunning:
-    #         BackData = gv.BackWav[gv.BackIndex:gv.BackIndex + 2 * frame_count]
-    #         gv.BackIndex += 2 * frame_count
-    #         if len(b) != len(BackData):
-    #             gv.BackingRunning = False
-    #             BackData = None
-    #             BackIndex = 0
-    #
-    #     if gv.BackingRunning:
-    #         newdata = (gv.backvolume * gv.BackData + b * gv.global_volume)
-    #     else:
-    #         newdata = b * gv.global_volume
-    #
-    #     return (newdata.astype(numpy.int16).tostring(), pyaudio.paContinue)
-
-
-#########################################
-# OPEN AUDIO DEVICE
-#########################################
+#####################
+# OPEN AUDIO DEVICE #
+#####################
 
 class StartSound:
     def __init__(self):
@@ -237,13 +191,13 @@ class StartSound:
         print sounddevice.query_devices()  # all available audio devices (with audio output)
 
         self.sd = None
-        self.amix = None
+        self.amixer = None
         self.device_found = False
+        self.mixer_card_index = 0
+        self.mixer_id = 0
+        self.mixer_control = 'PCM'
 
         self.set_audio_device(gv.AUDIO_DEVICE_NAME)
-
-        if gv.USE_ALSA_MIXER and gv.IS_DEBIAN:  # TODO: this is buggy
-            self.start_alsa_stream()
 
         print '\n#### END OF AUDIO DEVICES ####\n'
 
@@ -251,49 +205,71 @@ class StartSound:
     # Start sounddevice stream #
     ############################
 
-    def start_stream(self, latency='low'):
+    def start_sounddevice_stream(self, latency='low'):
 
         try:
-            self.sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, latency=latency, samplerate=gv.SAMPLERATE, channels=gv.CHANNELS, dtype='int16', callback=AudioCallback)
+            self.sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, latency=latency, samplerate=gv.SAMPLERATE, channels=gv.CHANNELS, dtype='int16', callback=audio_callback)
             self.sd.start()
             print '>>>> Opened audio device #%i (latency: %ims)' % (gv.AUDIO_DEVICE_ID, self.sd.latency * 1000)
         except:
             gv.displayer.disp_change('Invalid audio device', line=2, timeout=0)
             print 'Invalid audio device #%i' % gv.AUDIO_DEVICE_ID
-            # exit(1)
 
-    ##########################
-    # TODO alsaaudio - buggy #
-    ##########################
+    ##############
+    # ALSA mixer #
+    ##############
 
-    def getvolume(self):
-        vol = self.amix.getvolume()
+    def get_alsa_volume(self):
+        vol = self.amixer.getvolume()
         gv.global_volume = int(vol[0])
 
-    def setvolume(self, volume):
-        self.amix.setvolume(int(volume))
+    def set_alsa_volume(self, volume):
+        # self.amixer.setvolume(int(volume))
+        self.amixer.setvolume(100) # Just set it to 100% and let sounddevice control volume
 
-    def start_alsa_stream(self):
+    def start_alsa_mixer(self):
+        self.amixer = alsaaudio.Mixer(id=self.mixer_id, cardindex=self.mixer_card_index, control=self.mixer_control)
+        self.set_alsa_volume(gv.global_volume_percent)
 
+    def is_alsa_device(self, device_name):
         # print 'MIXERS: %s' % alsaaudio.mixers() #show available mixer controls
-        for i in range(0, 4):
-            try:
-                # amix = alsaaudio.Mixer(cardindex=gv.MIXER_CARD_ID + i, control=gv.MIXER_CONTROL)
-                self.amix = alsaaudio.Mixer(cardindex=i, control=gv.MIXER_CONTROL)
-                gv.MIXER_CARD_ID = i  # save the found value
-                i = 0  # indicate OK
-                print 'Opened Alsamixer: card id "%i", control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
-                break
-            except:
-                # pass
-                if i >= 0:
+
+        if gv.IS_DEBIAN == False:
+            return
+
+        if device_name == 'bcm2835':
+            mixer_card_index = 0
+        else:
+            mixer_card_index = re.search('\(hw:(.*),', device_name) # get x from (hw:x,y) in device name
+            mixer_card_index = int(mixer_card_index.group(1))
+
+        available_mixer_types = alsaaudio.mixers() # returns a list of available mixer types. Usually only "PCM"
+
+        for mixer_control in available_mixer_types:
+            print '>>>> Trying mixer control "%s"' % mixer_control
+            for mixer_id in range(0, 6):
+                try:
+                    amixer = alsaaudio.Mixer(id=mixer_id, cardindex=mixer_card_index, control=mixer_control)
+                    print amixer.cardname()
+                    del amixer # No use for amixer in this method. Create instance in start_alsa_mixer()
+                    gv.USE_ALSA_MIXER = True
+                    self.mixer_id = mixer_id
+                    self.mixer_card_index = mixer_card_index  # save the found value
+                    self.mixer_control = mixer_control
+                    print '>>>> Found ALSA device: card id "%i", control "%s"' % (self.mixer_card_index, mixer_control)
+
+                    return True
+
+                except Exception as e:
                     # gv.displayer.disp_change('Invalid mixerdev', line=2, timeout=0)
                     # print 'Invalid mixer card id "%i" or control "%s"' % (gv.MIXER_CARD_ID, gv.MIXER_CONTROL)
-                    print 'Invalid mixer card id "%i" or control "%s"' % (i, gv.MIXER_CONTROL)
-                    print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
+                    print 'Invalid mixer card id "%i" or control "%s"' % (mixer_card_index, mixer_control)
+                    # print 'Available devices (mixer card id is "x" in "(hw:x,y)" of device #%i):' % gv.AUDIO_DEVICE_ID
+                    # print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e), e)
 
-        self.setvolume(gv.global_volume)
-        self.getvolume()
+        print '>>>> This is not an ALSA compatible device'
+        gv.USE_ALSA_MIXER = False
+        return False
 
     #################
     # End alsaaudio #
@@ -314,7 +290,6 @@ class StartSound:
                 all_output_devices[i] = d
                 i += 1
         return all_output_devices
-
 
     """
     Select a device by name. On startup try AUDIO_DEVICE_NAME specified in the config.ini.
@@ -373,8 +348,14 @@ class StartSound:
 
         self.close_stream()  # close the audio stream in case it's open so we can start a new one
 
-        if 'bcm2835' in device_name:
-            # start_alsa_stream()
-            self.start_stream('high') # must be high latency for on-board
+        # if 'bcm2835' in device_name:
+        #     self.start_sounddevice_stream('high') # must be high latency for on-board
+        #     self.start_alsa_mixer()
+
+        if self.is_alsa_device(device_name):
+            latency = 'low'
+            if 'bcm2835' in device_name: latency = 'high'
+            self.start_sounddevice_stream(latency)
+            self.start_alsa_mixer()
         else:
-            self.start_stream()
+            self.start_sounddevice_stream()

@@ -51,17 +51,21 @@ BUFFERSIZE = int(cp.get_option_by_name('BUFFERSIZE'))
 SAMPLERATE = int(cp.get_option_by_name('SAMPLERATE'))
 BOXRELEASE = int(cp.get_option_by_name('BOXRELEASE'))
 RAM_LIMIT_PERCENTAGE = int(cp.get_option_by_name('RAM_LIMIT_PERCENTAGE'))
-global_volume = int(cp.get_option_by_name('GLOBAL_VOLUME'))
+# global_volume = int(cp.get_option_by_name('GLOBAL_VOLUME'))
+global_volume = 100  # ignore config.ini value and set to max
 global_volume_percent = int((float(global_volume) / 100.0) * 100)
 global_volume = 0 if global_volume < 0 else 100 if global_volume > 100 else global_volume
 global_volume = (10.0 ** (-12.0 / 20.0)) * (float(global_volume) / 100.0)
 SAMPLES_DIR = str(cp.get_option_by_name('SAMPLES_DIR'))
 if not os.path.isdir(SAMPLES_DIR):
-    print '>>>> WARNING: dir', SAMPLES_DIR, 'not found. Using default: ./media'
-    SAMPLES_DIR = './media'
+    print '>>>> WARNING: dir', SAMPLES_DIR, 'not found. Using USB drive: /media'
+    SAMPLES_DIR = '/media/SampleSets'
     if not os.path.isdir(SAMPLES_DIR):
-        print '>>>> WARNING: dir', SAMPLES_DIR, 'not found. Using default: ../media'
-        SAMPLES_DIR = '../media'
+        print '>>>> WARNING: dir', SAMPLES_DIR, 'not found. Using SD card dir: ./media'
+        SAMPLES_DIR = './media'
+        if not os.path.isdir(SAMPLES_DIR):
+            print '>>>> WARNING: dir', SAMPLES_DIR, 'not found. Using default: ../media'
+            SAMPLES_DIR = '../media'
 USE_BUTTONS = cp.get_option_by_name('USE_BUTTONS')
 USE_HD44780_16x2_LCD = cp.get_option_by_name('USE_HD44780_16x2_LCD')
 USE_HD44780_20x4_LCD = cp.get_option_by_name('USE_HD44780_20x4_LCD')
@@ -86,14 +90,11 @@ GPIO_7SEG = int(cp.get_option_by_name('GPIO_7SEG'))
 #########################################
 # by Hans
 
-# (config.ini) change this number to start checking with other card index, default=0
-MIXER_CARD_ID = int(cp.get_option_by_name('MIXER_CARD_ID'))
-# (config.ini) change this name according soundcard, default="PCM"
-MIXER_CONTROL = str(cp.get_option_by_name('MIXER_CONTROL'))
-# (config.ini) Set to True to use to use the alsa mixer (via pyalsaaudio)
-USE_ALSA_MIXER = cp.get_option_by_name('USE_ALSA_MIXER')
+# Auto detected in sound.py
+MIXER_CARD_ID, MIXER_CONTROL, USE_ALSA_MIXER = None, None, None
 
 NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
+
 
 #########################################
 
@@ -161,12 +162,20 @@ MIDIMAPS_FILE_PATH = 'midimaps.pkl'
 ###################
 
 SONG_FOLDERS_LIST = os.listdir(SAMPLES_DIR)
-if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
-    SETLIST_FILE_PATH = 'setlist/setlist.txt'
-else:
-    SETLIST_FILE_PATH = '../setlist_testing/setlist.txt'
 
-SETLIST_LIST = None #open(SETLIST_FILE_PATH).read().splitlines()
+if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
+    if SAMPLES_DIR == '/media/SampleSets':
+        SETLIST_FILE_PATH = '/media/setlist.txt'  # When using USB stick
+        if not os.path.exists(SETLIST_FILE_PATH):
+            print '>>>> SETLIST: %s does not exist. Creating an empty file.' % SETLIST_FILE_PATH
+            file = open(SETLIST_FILE_PATH, 'w')
+            file.close()
+    else:
+        SETLIST_FILE_PATH = 'setlist/setlist.txt'  # When using SD card
+else:
+    SETLIST_FILE_PATH = '../setlist/setlist.txt'  # When testing modules
+
+SETLIST_LIST = None  # open(SETLIST_FILE_PATH).read().splitlines()
 NUM_FOLDERS = len(os.walk(SAMPLES_DIR).next()[1])
 
 # Disable Freeverb when not on Pi
@@ -184,7 +193,7 @@ for channel in xrange(16):
     triggernotes[channel + 1] = [128] * 128
     playingnotes[channel + 1] = {}
 fillnotes = {}
-fillnote = 'Y' # by default we will fill/generate missing notes
+fillnote = 'Y'  # by default we will fill/generate missing notes
 sustain = False
 playingsounds = []
 globaltranspose = 0
@@ -252,7 +261,7 @@ gain = 1  # the input volume correction, change per set in definition.txt
 
 PRERELEASE = BOXRELEASE
 PITCHRANGE_DEFAULT = 12  # default range of the pitchwheel in semitones (max=12. Higher than 12 produces inaccurate pitching)
-PITCHRANGE_DEFAULT *= 2     # actually it is 12 up and 12 down
+PITCHRANGE_DEFAULT *= 2  # actually it is 12 up and 12 down
 PITCHBITS = 7  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
 PITCHBEND = 0
 pitchnotes = PITCHRANGE_DEFAULT
@@ -267,13 +276,13 @@ msleep = lambda x: time.sleep(x / 1000.0)
 # FADE / RELEASE / SPEED
 ###################
 
-FADEOUTLENGTH = 640*1000  # a large table gives reasonable results (640 up to 2 sec)
-FADEOUT = numpy.linspace(1., 0., FADEOUTLENGTH)     # by default, float64
+FADEOUTLENGTH = 640 * 1000  # a large table gives reasonable results (640 up to 2 sec)
+FADEOUT = numpy.linspace(1., 0., FADEOUTLENGTH)  # by default, float64
 FADEOUT = numpy.power(FADEOUT, 6)
 FADEOUT = numpy.append(FADEOUT, numpy.zeros(FADEOUTLENGTH, numpy.float32)).astype(numpy.float32)
 SPEEDRANGE = 48
-SPEED = numpy.power(2, numpy.arange(-1.0*SPEEDRANGE*PITCHSTEPS, 1.0*SPEEDRANGE*PITCHSTEPS)/(12*PITCHSTEPS)).astype(numpy.float32)
-
+SPEED = numpy.power(2, numpy.arange(-1.0 * SPEEDRANGE * PITCHSTEPS, 1.0 * SPEEDRANGE * PITCHSTEPS) / (
+    12 * PITCHSTEPS)).astype(numpy.float32)
 
 ###################
 # BACKING TRACK VARS

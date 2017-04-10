@@ -34,7 +34,10 @@ func = gv.BUTTON_FUNC_MIDI
 #################
 
 def MidiCallback(src, message, time_stamp):
-    global enter, left, right, cancel, up, down, func
+    # global enter, left, right, cancel, up, down, func
+
+    gv.ls.midi_detected = True
+
     midimaps = gv.midimaps
     src = src[:src.rfind(" "):]  # remove the port number from the end
 
@@ -181,7 +184,7 @@ def MidiCallback(src, message, time_stamp):
             # print 'Program change ' + str(note)
             if gv.preset != note:
                 gv.preset = note
-                gv.ls.LoadSamples()
+                gv.ls.load_samples()
 
         elif messagetype == 14:  # Pitch Bend
 
