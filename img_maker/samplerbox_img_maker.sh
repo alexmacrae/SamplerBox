@@ -2,7 +2,7 @@
 # CREATE A RASPBIAN JESSIE IMAGE FOR SAMPLERBOX
 # 2017-03-30
 #
-# USAGE: sudo chmod 777 samplerbox_iso_maker.sh ; nohup sudo ./samplerbox_iso_maker.sh &
+# USAGE: sudo chmod 777 samplerbox_img_maker.sh ; nohup sudo ./samplerbox_img_maker.sh &
 #
 # TODO:
 #       * Sample-sets on SD card:
@@ -161,8 +161,8 @@ chroot sdcard apt-get -y upgrade
 chroot sdcard apt-get -y dist-upgrade
 chroot sdcard apt-get -y install libraspberrypi-bin libraspberrypi-dev libraspberrypi0 raspberrypi-bootloader ssh wireless-tools usbutils python-tk ntpdate unzip
 chroot sdcard apt-get clean
-chroot sdcard apt-get -y install build-essential python-dev python-pip cython python-smbus python-numpy python-rpi.gpio python-serial portaudio19-dev alsa-utils libportaudio2 libffi-dev
-chroot sdcard apt-get -y install python-configparser python-psutil python-scipy git python-alsaaudio
+chroot sdcard apt-get -y install build-essential python-dev python-pip cython python-smbus python-numpy python-rpi.gpio python-serial
+chroot sdcard apt-get -y install python-configparser python-psutil python-scipy git portaudio19-dev alsa-utils libportaudio2 libffi-dev pyalsaaudio
 chroot sdcard apt-get clean
 chroot sdcard apt-get autoremove -y
 chroot sdcard pip install pyaudio cffi sounddevice
