@@ -962,7 +962,7 @@ class AudioDevice(Navigator):
 
     def enter(self):
         gv.cp.update_config('SAMPLERBOX CONFIG', 'AUDIO_DEVICE_NAME', self.device_name)
-        gv.AUDIO_DEVICE_ID = -1
+        gv.AUDIO_DEVICE_ID = -1 # sound.py prioritises searching AUDIO_DEVICE_ID if it is 0 or greater
         gv.sound.set_audio_device(self.device_name)
         self.display(changed=True)
 
@@ -1063,6 +1063,43 @@ class ToggleReverb(Navigator):
         gv.cp.update_config('SAMPLERBOX CONFIG', 'USE_FREEVERB', str(self.freeverb_state))
         gv.sound.close_stream()
         gv.sound.start_sounddevice_stream()
+        self.cancel()
+
+    def cancel(self):
+        self.load_state(MenuNav)
+
+
+class SetRAMLimit(Navigator):
+    def __init__(self):
+        self.text_scroller.stop()
+        self.ram_limit = gv.RAM_LIMIT_PERCENTAGE
+        self.limit_min = gv.cp.configdefaults['RAM_LIMIT_PERCENTAGE']['min']
+        self.limit_max = gv.cp.configdefaults['RAM_LIMIT_PERCENTAGE']['max']
+        self.display()
+
+    def display(self):
+        gv.displayer.disp_change('Set RAM limit'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        ram_percentage = '%d%%' % self.ram_limit
+        gv.displayer.disp_change(ram_percentage.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+
+    def left(self):
+        if self.ram_limit > self.limit_min:
+            self.ram_limit -= 5
+        else:
+            self.ram_limit = self.limit_min
+        self.display()
+
+    def right(self):
+        if self.ram_limit < self.limit_max:
+            self.ram_limit += 5
+        else:
+            self.ram_limit = self.limit_max
+        self.display()
+
+    def enter(self):
+        gv.cp.update_config('SAMPLERBOX CONFIG', 'RAM_LIMIT_PERCENTAGE', str(self.ram_limit))
+        gv.RAM_LIMIT_PERCENTAGE = self.ram_limit
+        gv.ls.load_samples() # perhaps we increased the RAM, so go ahead and load more samples now!
         self.cancel()
 
     def cancel(self):

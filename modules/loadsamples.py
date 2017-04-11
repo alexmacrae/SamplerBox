@@ -209,15 +209,14 @@ class LoadingSamples:
             print '\rLOADED NOTHING: all presets have been loaded into memory'
             self.set_globals_from_keywords()
             self.set_global_fadeout()
-            gv.displayer.disp_change('preset')  # Force the display to update
+            if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset')  # Force the display to update
             return  # all is loaded, no need to proceed further from here
 
         preset_focus_is_loaded = False
 
         if self.preset_current_loading == gv.samples_indices[gv.preset]:
 
-            print '\rCurrent preset: [%d: %s]' % (
-                self.preset_current_loading, gv.SETLIST_LIST[self.preset_current_loading])  # debug
+            print '\rCurrent preset: [%d: %s]' % (self.preset_current_loading, gv.SETLIST_LIST[self.preset_current_loading])  # debug
 
             self.preset_current_is_loaded = False
             self.preset_change_triggered = False
@@ -233,8 +232,7 @@ class LoadingSamples:
         if gv.samples.has_key(self.preset_current_loading):  # If key exists, preset has started to load at some point
             # If 'loaded' key exists, preset is fully loaded.
             if gv.samples[self.preset_current_loading].has_key('loaded'):
-                print '[%d: %s] has already been loaded. Skipping.' % (
-                    self.preset_current_loading, gv.SETLIST_LIST[self.preset_current_loading])
+                print '[%d: %s] has already been loaded. Skipping.' % (self.preset_current_loading, gv.SETLIST_LIST[self.preset_current_loading])
                 preset_focus_is_loaded = True
             else:
                 # Preset seems to have been partially loaded at some point.
@@ -266,14 +264,13 @@ class LoadingSamples:
                 print '---- LOADING: [%d] %s' % (self.preset_current_loading, current_basename)  # debug
 
                 definition_list = list(enumerate(open(definitionfname, 'r')))
-                wav_definitions_list = [x for x in definition_list if
-                                        "%%" not in x[1]]  # remove list entries containing %%
+                wav_definitions_list = [x for x in definition_list if "%%" not in x[1]]  # remove list entries containing %%
 
                 with open(definitionfname, 'r') as definitionfile:
 
                     self.pause_if_playingsounds_or_midi()
 
-                    for i, pattern in enumerate(definitionfile): # iterate every line
+                    for i, pattern in enumerate(definitionfile):  # iterate every line
 
                         self.pause_if_playingsounds_or_midi()
 
@@ -287,12 +284,10 @@ class LoadingSamples:
                             """
 
                             if r'%%gain' in pattern:
-                                gv.samples[self.preset_current_loading]['keywords']['gain'] = abs(
-                                    float(pattern.split('=')[1].strip()))
+                                gv.samples[self.preset_current_loading]['keywords']['gain'] = abs(float(pattern.split('=')[1].strip()))
                                 pass
                             if r'%%transpose' in pattern:
-                                gv.samples[self.preset_current_loading]['keywords']['transpose'] = int(
-                                    pattern.split('=')[1].strip())
+                                gv.samples[self.preset_current_loading]['keywords']['transpose'] = int(pattern.split('=')[1].strip())
                                 pass
                             if r'%%release' in pattern:
                                 release = (int(pattern.split('=')[1].strip()))
@@ -309,8 +304,7 @@ class LoadingSamples:
                             if r'%%pitchbend' in pattern:
                                 pitchnotes = abs(int(pattern.split('=')[1].strip()))
                                 if pitchnotes > 12:
-                                    print "Pitchbend of %d limited to 12 (higher values produce inaccurate pitching)" \
-                                          % pitchnotes
+                                    print "Pitchbend of %d limited to 12 (higher values produce inaccurate pitching)" % pitchnotes
                                     pitchnotes = 12
                                 pitchnotes *= 2  # actually it is 12 up and 12 down
                                 gv.samples[self.preset_current_loading]['keywords']['pitchbend'] = pitchnotes
@@ -341,10 +335,7 @@ class LoadingSamples:
                                              'fillnote': 'Y'}
 
                             if len(pattern.split(',')) > 1:
-                                defaultparams.update(dict([item.split('=') for item in
-                                                           pattern.split(',', 1)[1].replace(' ', '').replace('%',
-                                                                                                             '').split(
-                                                               ',')]))
+                                defaultparams.update(dict([item.split('=') for item in pattern.split(',', 1)[1].replace(' ', '').replace('%', '').split(',')]))
                             pattern = pattern.split(',')[0]
                             pattern = re.escape(pattern.strip())
                             pattern = pattern \
@@ -353,12 +344,12 @@ class LoadingSamples:
                                 .replace(r"\%velocity", r"(?P<velocity>\d+)") \
                                 .replace(r"\%voice", r"(?P<voice>\d+)") \
                                 .replace(r"\%release", r"(?P<release>\d+)") \
-                                .replace(r"\%fillnote",r"(?P<fillnote>[YNyn])") \
+                                .replace(r"\%fillnote", r"(?P<fillnote>[YNyn])") \
                                 .replace(r"\%seq", r"(?P<seq>\d+)") \
                                 .replace(r"\%notename", r"(?P<notename>[A-Ga-g]#?[0-9])") \
                                 .replace(r"\*", r".*?").strip()  # .*? => non greedy
 
-                            for fname in os.listdir(dirname): # iterate over samples in the dir
+                            for fname in os.listdir(dirname):  # iterate over samples in the dir
                                 self.pause_if_playingsounds_or_midi()
                                 # print 'Processing ' + fname
                                 if self.LoadingInterrupt:
@@ -368,7 +359,7 @@ class LoadingSamples:
                                 # Send percent loaded of sample-set to be displayed
                                 if self.preset_current_loading == gv.samples_indices[gv.preset]:
                                     gv.percent_loaded = percent_loaded
-                                    gv.displayer.disp_change('loading', timeout=0.5)
+                                    if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('loading', timeout=0.5)
 
                                 file_current += 1
                                 if self.LoadingInterrupt:
@@ -380,8 +371,7 @@ class LoadingSamples:
                                     voices_local.append(voice)
                                     release = int(info.get('release', defaultparams['release']))
                                     voicefillnote = str(info.get('fillnote', defaultparams['fillnote'])).title().rstrip()
-                                    if self.preset_current_loading == gv.samples_indices[
-                                        gv.preset]: gv.voices = voices_local
+                                    if self.preset_current_loading == gv.samples_indices[gv.preset]: gv.voices = voices_local
                                     midinote = int(info.get('midinote', defaultparams['midinote']))
                                     channel = int(info.get('channel', defaultparams['channel']))
                                     velocity = int(info.get('velocity', defaultparams['velocity']))
@@ -390,8 +380,7 @@ class LoadingSamples:
                                     # next statement places note 60 on C3/C4/C5 with the +0/1/2. So now it is C4:
                                     if notename:
                                         midinote = gv.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
-                                    if gv.samples[self.preset_current_loading].has_key(
-                                            (midinote, velocity, voice, channel)):
+                                    if gv.samples[self.preset_current_loading].has_key((midinote, velocity, voice, channel)):
                                         """
                                         Sample Randomization by David Hilowitz
                                         """
@@ -407,17 +396,12 @@ class LoadingSamples:
                                             if (midinote, velocity, voice, channel) in gv.samples[
                                                 self.preset_current_loading]:
                                                 gv.samples[self.preset_current_loading][
-                                                    midinote, velocity, voice, channel].append(sound.Sound(
-                                                    os.path.join(dirname, fname), midinote, velocity, seq, channel,
-                                                    release))
-                                                print 'Sample randomization: found seq:%i (%s) >> loading' % (
-                                                    seq, fname)
+                                                    midinote, velocity, voice, channel].append(sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release))
+                                                print 'Sample randomization: found seq:%i (%s) >> loading' % (seq, fname)
                                     else:
 
                                         gv.samples[self.preset_current_loading][midinote, velocity, voice, channel] = [
-                                            sound.Sound(
-                                                os.path.join(dirname, fname), midinote, velocity, seq, channel,
-                                                release)]
+                                            sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release)]
 
                                         gv.fillnotes[midinote, voice] = voicefillnote
                                         gv.samples[self.preset_current_loading]['fillnotes'][midinote, voice] = voicefillnote
@@ -425,7 +409,7 @@ class LoadingSamples:
                         except Exception as e:
                             if pattern != '':
                                 print "Error in definition file, skipping line %s." % (i + 1)
-                                print "Line %d contents: %s" % (i+1, pattern)
+                                print "Line %d contents: %s" % (i + 1, pattern)
                                 # exc_info = sys.exc_info()
                                 # print exc_info
                                 print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e), e)
@@ -444,14 +428,11 @@ class LoadingSamples:
                     # print "Trying " + file_
                     if os.path.isfile(file_):
                         # print "Processing " + file_
-                        gv.samples[self.preset_current_loading][midinote, 127, 1, channel] = sound.Sound(file_,
-                                                                                                         midinote, 127,
-                                                                                                         channel,
-                                                                                                         gv.BOXRELEASE)
+                        gv.samples[self.preset_current_loading][midinote, 127, 1, channel] = sound.Sound(file_, midinote, 127, 1, channel, gv.BOXRELEASE)
 
                     percent_loaded = (file_current * 100) / file_count  # more accurate loading progress
                     gv.percent_loaded = percent_loaded
-                    gv.displayer.disp_change('loading')
+                    if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('loading')
                     file_current += 1
 
             ################
@@ -480,13 +461,12 @@ class LoadingSamples:
                                 if not last_velocity:
                                     for v in xrange(velocity):
                                         self.pause_if_playingsounds_or_midi()
-                                        gv.samples[self.preset_current_loading][midinote, v, voice, gv.MIDI_CHANNEL] = gv.samples[self.preset_current_loading][midinote, velocity, voice, gv.MIDI_CHANNEL]
-                                last_velocity = gv.samples[self.preset_current_loading][
-                                    midinote, velocity, voice, gv.MIDI_CHANNEL]
+                                        gv.samples[self.preset_current_loading][midinote, v, voice, gv.MIDI_CHANNEL] = gv.samples[self.preset_current_loading][
+                                            midinote, velocity, voice, gv.MIDI_CHANNEL]
+                                last_velocity = gv.samples[self.preset_current_loading][midinote, velocity, voice, gv.MIDI_CHANNEL]
                             else:
                                 if last_velocity:
-                                    gv.samples[self.preset_current_loading][
-                                        midinote, velocity, voice, gv.MIDI_CHANNEL] = last_velocity
+                                    gv.samples[self.preset_current_loading][midinote, velocity, voice, gv.MIDI_CHANNEL] = last_velocity
 
                     # we got more keys, but not enough yet
                     initial_keys = set(gv.samples[self.preset_current_loading].keys())
@@ -496,7 +476,7 @@ class LoadingSamples:
                     for midinote in xrange(128):  # and start filling the missing notes
                         if (midinote, 1, voice, gv.MIDI_CHANNEL) in initial_keys:  # only process default midi channel
                             try:
-                                if fillnotes.has_key((midinote,voice)):
+                                if fillnotes.has_key((midinote, voice)):
                                     if fillnotes[midinote, voice] == 'Y':  # can we use this note for filling?
                                         next_high = None  # passed next_high
                                         last_low = midinote  # but we got fresh low info
@@ -513,8 +493,8 @@ class LoadingSamples:
                                                 next_high = m
                             if (next_high - last_low) > 260:  # did we find a note valid for filling?
                                 # break  # no, stop trying
-                                continue # no, stop trying
-                            if midinote <= 0.5 + (next_high + last_low) / 2:
+                                continue  # no, stop trying
+                            if float(midinote) <= 0.5 + (next_high + last_low) / 2:
                                 m = last_low
                             else:
                                 m = next_high
@@ -523,7 +503,7 @@ class LoadingSamples:
                                 self.pause_if_playingsounds_or_midi()
                                 gv.samples[self.preset_current_loading][midinote, velocity, voice, gv.MIDI_CHANNEL] = gv.samples[self.preset_current_loading][m, velocity, voice, gv.MIDI_CHANNEL]
             elif len(initial_keys) == 0:
-                gv.displayer.disp_change('preset')
+                if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset')
                 pass
             else:
                 gv.displayer.disp_change('')  # Force the display to update
@@ -546,7 +526,7 @@ class LoadingSamples:
 
             self.pause_if_playingsounds_or_midi()
 
-        gv.displayer.disp_change('preset')  # Force the display to update
+        if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset')  # Force the display to update
 
         if is_memory_too_high_bool == False:
 
@@ -563,8 +543,5 @@ class LoadingSamples:
             self.actually_load()  # load next preset
 
         else:
-            print '-- RAM usage has reach limit (%d%%) \r-- Stop loading other presets' \
-                  % is_memory_too_high_percentage  # debug
+            print '-- RAM usage has reach limit (%d%%) \r-- Stop loading other presets' % is_memory_too_high_percentage  # debug
             return
-
-

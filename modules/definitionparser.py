@@ -141,4 +141,3 @@ class DefinitionParser:
         print '#### END GET PATTERNS FROM FILE ####'
 
         return existing_patterns
-

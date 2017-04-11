@@ -8,7 +8,7 @@
 #  samplerbox.py:  Main file
 #
 
-# TODO: if we're compiling a dist, bundled files such as config.ini can't be found, ie relative paths are affected
+# TODO: if we're compiling a dist (Windows/Mac), bundled files such as config.ini can't be found, ie relative paths are affected
 
 # import os, sys
 # if 'Python' in  os.path.dirname(sys.executable):
@@ -38,6 +38,7 @@ from modules import setlist
 from modules import loadsamples
 from modules import sound
 from modules import midimaps
+from modules import midicallback
 
 ###########
 # Logging #
@@ -86,11 +87,22 @@ gv.sound = sound.StartSound()
 gv.sysfunc = systemfunctions.SystemFunctions()
 gv.ls = loadsamples.LoadingSamples()
 bnt = buttons.Buttons()
-from modules import midicallback
+gv.midicallback = midicallback.Midi()
 
 import modules.gui as gui
 
+###########################################
+# START GUI                               #
+# If running on Windows/Mac. Experimental #
+###########################################
+
 if gv.USE_GUI and not gv.IS_DEBIAN: gv.gui = gui.SamplerBoxGUI()  # Start the GUI
+
+################################
+# LOAD FIRST SAMPLE-SET/PRESET #
+################################
+
+gv.ls.load_samples()
 
 ################################################################
 # MIDI IN via SERIAL PORT                                      #
@@ -103,7 +115,6 @@ if gv.USE_SERIALPORT_MIDI:
 
     # see hack in /boot/cmline.txt : 38400 is 31250 baud for MIDI!
     ser = serial.Serial('/dev/ttyAMA0', baudrate=38400)
-
 
     def midi_serial_callback():
         message = [0, 0, 0]
@@ -120,18 +131,14 @@ if gv.USE_SERIALPORT_MIDI:
                     0] >> 4 == 12:  # program change: don't wait for a third byte: it has only 2 bytes
                     message[2] = 0
                     i = 3
-            midicallback.MidiCallback(src='', message=message, time_stamp=None)
+            gv.midicallback.callback(src='MIDISERIALPORT', message=message, time_stamp=None)
 
 
     MidiThread = threading.Thread(target=midi_serial_callback)
     MidiThread.daemon = True
     MidiThread.start()
 
-################################
-# LOAD FIRST SAMPLE-SET/PRESET #
-################################
 
-gv.ls.load_samples()
 
 ##########################
 # MIDI DEVICES DETECTION #
@@ -164,7 +171,7 @@ try:
                         if port not in prev_ports and 'Midi Through' not in port and (
                                         len(prev_ports) != len(curr_ports) and 'LoopBe Internal' not in port):
                             midi_in.open_ports(port)
-                            midi_in.callback = midicallback.MidiCallback
+                            midi_in.callback = gv.midicallback.callback
                             if first_loop:
                                 print 'Opened MIDI port: ' + port
                             else:
@@ -176,7 +183,8 @@ try:
 
 
     if gv.USE_GUI and not gv.IS_DEBIAN:
-        # MIDI device detection is threaded because Tkinter's loop is now the main loop
+
+        # MIDI device detection is threaded because Tkinter's loop will become the main loop (below)
         LoadingInterrupt = False
         LoadingThread = threading.Thread(target=midi_devices_loop)
         LoadingThread.daemon = True
@@ -201,7 +209,7 @@ except:
     gv.sysfunc.shutdown(log_file)
     exit()
 
-# For returning errors to the LCD screen. `try:` needs to encapsulate whole script. Buggy.
+# TODO: returns fatal errors to the LCD screen. `try:` needs to encapsulate whole script. Buggy.
 # except:
 #     exc_info = sys.exc_info()
 #     # print exc_info

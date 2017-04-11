@@ -2,10 +2,12 @@
 
 """
 import configparser
-
+import configdefaultsdict as cdd
 
 class Setup:
     def __init__(self, config_file_path):
+
+        self.configdefaults = cdd.configdefaults
 
         self.CONFIG_FILE_PATH = config_file_path
         self.print_config = True
@@ -129,6 +131,5 @@ class Setup:
 
 
     def build_config_from_defaults(self):
-        import configdefaultsdict as cdd
-        for c in cdd.configdefaults.iteritems():
+        for c in self.configdefaults.iteritems():
             self.update_config(section=c[1].get('section'), option=c[0], value=c[1].get('default'))

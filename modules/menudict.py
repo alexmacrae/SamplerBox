@@ -235,7 +235,8 @@ menu = {
                 3: {'name': 'Audio channels', 'desc': '', 'fn': 'ChannelsConfig'},
                 4: {'name': 'Buffer size', 'desc': '', 'fn': 'BufferSizeConfig'},
                 5: {'name': 'Sample rate', 'desc': '', 'fn': 'SampleRateConfig'},
-                6: {'name': 'Reverb ON/OFF', 'desc': '', 'fn': 'ToggleReverb'}
+                6: {'name': 'Reverb ON/OFF', 'desc': '', 'fn': 'ToggleReverb'},
+                7: {'name': 'Set RAM limit', 'desc': 'Set the amount of RAM the system can use for samples', 'fn': 'SetRAMLimit'}
 
             }
 

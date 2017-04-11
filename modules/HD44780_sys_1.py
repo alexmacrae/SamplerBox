@@ -110,8 +110,7 @@ class LCD_SYS_1:
                     if gv.USE_HD44780_20x4_LCD:
                         self.lcd_string(self.STRING_3, 3)
                         self.lcd_string(self.STRING_4, 4)
-                        print_message = "\r%s||%s||%s" % (print_message,
-                                                          self.STRING_3[:gv.LCD_COLS], self.STRING_4[:gv.LCD_COLS])
+                        print_message = "\r%s||%s||%s" % (print_message, self.STRING_3[:gv.LCD_COLS], self.STRING_4[:gv.LCD_COLS])
 
                 elif gv.displayer.menu_mode == gv.displayer.DISP_PRESET_MODE:
                     self.lcd_string(self.STRING_1_PRIORITY, 1)
@@ -121,8 +120,7 @@ class LCD_SYS_1:
                     if gv.USE_HD44780_20x4_LCD:
                         self.lcd_string(self.STRING_3_PRIORITY, 3)
                         self.lcd_string(self.STRING_4_PRIORITY, 4)
-                        print_message = "\r%s||%s||%s" % (print_message, self.STRING_3_PRIORITY[:gv.LCD_COLS],
-                                                          self.STRING_4_PRIORITY[:gv.LCD_COLS])
+                        print_message = "\r%s||%s||%s" % (print_message, self.STRING_3_PRIORITY[:gv.LCD_COLS], self.STRING_4_PRIORITY[:gv.LCD_COLS])
                 elif gv.displayer.menu_mode == gv.displayer.DISP_MENU_MODE:
                     self.lcd_string(self.STRING_1_PRIORITY, 1)
                     self.lcd_string(self.STRING_2_PRIORITY, 2)
@@ -131,8 +129,7 @@ class LCD_SYS_1:
                     if gv.USE_HD44780_20x4_LCD:
                         self.lcd_string(self.STRING_3_PRIORITY, 3)
                         self.lcd_string(self.STRING_4_PRIORITY, 4)
-                        print_message = "\r%s||%s||%s" % (print_message, self.STRING_3_PRIORITY[:gv.LCD_COLS],
-                                                          self.STRING_4_PRIORITY[:gv.LCD_COLS])
+                        print_message = "\r%s||%s||%s" % (print_message, self.STRING_3_PRIORITY[:gv.LCD_COLS], self.STRING_4_PRIORITY[:gv.LCD_COLS])
 
                 if gv.PRINT_LCD_MESSAGES:
                     sys.stdout.write(print_message)
