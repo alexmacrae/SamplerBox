@@ -192,7 +192,6 @@ class StartSound:
 
         self.sd = None
         self.amixer = None
-        self.device_found = False
         self.mixer_card_index = 0
         self.mixer_id = 0
         self.mixer_control = 'PCM'
@@ -300,7 +299,7 @@ class StartSound:
 
     def set_audio_device(self, device_name):
 
-        self.device_found = False
+        device_found = False
         try:
             if gv.AUDIO_DEVICE_ID >= 0:
                 print '>>>> Using user-defined AUDIO_DEVICE_ID (%d)' % gv.AUDIO_DEVICE_ID
@@ -310,12 +309,14 @@ class StartSound:
                 for d in sounddevice.query_devices():
                     if device_name in d['name'] and d['max_output_channels'] > 0:
                         gv.AUDIO_DEVICE_ID = i
-                        print '\r>>>> Device selected by name: [%i]: %s\r' % (i, d['name'])
-                        self.device_found = True
+                        device_name = d['name']
+                        gv.AUDIO_DEVICE_NAME = device_name
+                        print '\r>>>> Device selected by name: [%i]: %s\r' % (i, device_name)
+                        device_found = True
                         break
                     i += 1
 
-                if self.device_found is not True and gv.IS_DEBIAN:
+                if device_found is not True and gv.IS_DEBIAN:
                     print ">>>> Device defined in config.ini could not be found. Looking for other connected audio devices."
                     i = 0
                     for d in sounddevice.query_devices():
@@ -324,21 +325,25 @@ class StartSound:
                                 and 'default' not in d['name'] and 'dmix' not in d['name'] \
                                 and d['max_output_channels'] > 0:
                             gv.AUDIO_DEVICE_ID = i
-                            print '\r>>>>> Device selected by name: [%i]: %s\r' % (i, d['name'])
-                            self.device_found = True
+                            device_name = d['name']
+                            gv.AUDIO_DEVICE_NAME = device_name
+                            print '\r>>>>> Device selected by name: [%i]: %s\r' % (i, device_name)
+                            device_found = True
                             break
                         i += 1
 
                 # Default to the Raspberry Pi on-board audio if device in config is not found
-                if self.device_found is not True and gv.IS_DEBIAN:
+                if device_found is not True and gv.IS_DEBIAN:
                     print ">>>> No connected audio devices found. Defaulting to RPi on-board soundcard."
                     i = 0
                     device_name = 'bcm2835'
                     for d in sounddevice.query_devices():
                         if device_name in d['name'] and d['max_output_channels'] > 0:
                             gv.AUDIO_DEVICE_ID = i
-                            print '\r>>>>> Default RPi audio device selected: [%i]: %s\r' % (i, d['name'])
-                            self.device_found = True
+                            device_name = d['name']
+                            gv.AUDIO_DEVICE_NAME = device_name
+                            print '\r>>>>> Default RPi audio device selected: [%i]: %s\r' % (i, device_name)
+                            device_found = True
                             break
                         i += 1
 
@@ -351,7 +356,6 @@ class StartSound:
         # if 'bcm2835' in device_name:
         #     self.start_sounddevice_stream('high') # must be high latency for on-board
         #     self.start_alsa_mixer()
-
         if self.is_alsa_device(device_name):
             latency = 'low'
             if 'bcm2835' in device_name: latency = 'high'
