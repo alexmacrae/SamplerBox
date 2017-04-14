@@ -2,9 +2,10 @@ import globalvars as gv
 from ctypes import *
 import ctypes
 from os.path import dirname, abspath
-from filters import FilterType, Filter, FilterChain
 from collections import OrderedDict
 import random
+if gv.USE_TONECONTROL:
+    from filters import FilterType, Filter, FilterChain
 
 class AudioControls(object):
     def __init__(self):
@@ -317,28 +318,30 @@ class Sustain:
 ###################
 
 class ToneControl:
-    LOW_EQ_FREQ = 80.0
-    HIGH_EQ_FREQ = 8000.0
-    HIGH_EQ = (2 * HIGH_EQ_FREQ) / gv.SAMPLERATE
-    LOW_EQ = (2 * LOW_EQ_FREQ) / gv.SAMPLERATE
-
-    filterTypes = OrderedDict({
-        FilterType.LPButter: 'Low Pass (Flat)',
-        FilterType.LPBrickwall: 'Low Pass (Brickwall)',
-        FilterType.HPButter: 'High Pass (Flat)',
-        FilterType.HPBrickwall: 'High Pass (Brickwall)',
-        FilterType.LShelving: 'Low Shelf',
-        FilterType.HShelving: 'High Shelf',
-        FilterType.Peak: 'Peak'})
-
-    eps = 0.0000001
-    TYPE = 1
-    F = 2
-    G = 3
-    Q = 4
-    deffs = [80, 1000, 3000, 5000, 15000]
 
     def __init__(self):
+        self.LOW_EQ_FREQ = 80.0
+        self.HIGH_EQ_FREQ = 8000.0
+        self.HIGH_EQ = (2 * self.HIGH_EQ_FREQ) / gv.SAMPLERATE
+        self.LOW_EQ = (2 * self.LOW_EQ_FREQ) / gv.SAMPLERATE
+
+        self.filterTypes = OrderedDict({
+            FilterType.LPButter: 'Low Pass (Flat)',
+            FilterType.LPBrickwall: 'Low Pass (Brickwall)',
+            FilterType.HPButter: 'High Pass (Flat)',
+            FilterType.HPBrickwall: 'High Pass (Brickwall)',
+            FilterType.LShelving: 'Low Shelf',
+            FilterType.HShelving: 'High Shelf',
+            FilterType.Peak: 'Peak'})
+
+        self.eps = 0.0000001
+        self.TYPE = 1
+        self.F = 2
+        self.G = 3
+        self.Q = 4
+        self.deffs = [80, 1000, 3000, 5000, 15000]
+
+
         self.chain = None
         self.initFilter()
 

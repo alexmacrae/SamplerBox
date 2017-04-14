@@ -22,9 +22,9 @@
 #########################################
 import time
 
+time_start = time.time()
 usleep = lambda x: time.sleep(x / 1000000.0)
 msleep = lambda x: time.sleep(x / 1000.0)
-
 import threading
 import rtmidi2
 # from filters import FilterType, Filter, FilterChain
@@ -39,6 +39,7 @@ from modules import loadsamples
 from modules import sound
 from modules import midimaps
 from modules import midicallback
+
 
 ###########
 # Logging #
@@ -116,6 +117,7 @@ if gv.USE_SERIALPORT_MIDI:
     # see hack in /boot/cmline.txt : 38400 is 31250 baud for MIDI!
     ser = serial.Serial('/dev/ttyAMA0', baudrate=38400)
 
+
     def midi_serial_callback():
         message = [0, 0, 0]
         while True:
@@ -139,6 +141,10 @@ if gv.USE_SERIALPORT_MIDI:
     MidiThread.start()
 
 
+# Test initial script load time
+time_end = time.time()
+time_total = float(time_end - time_start)
+print '\rINIT LOAD TIME: %d seconds (before sample loading)\r' % time_total
 
 ##########################
 # MIDI DEVICES DETECTION #

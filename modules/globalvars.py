@@ -1,5 +1,4 @@
 import platform
-import os
 import numpy
 import re
 import configparser_samplerbox
@@ -22,8 +21,8 @@ if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
     CONFIG_FILE_PATH = "/media/config.ini"
     print '>>>> CONFIG: using config.ini found in /media/'
     if not os.path.exists(CONFIG_FILE_PATH):
-        CONFIG_FILE_PATH = "/boot/config.ini"
-        print '>>>> CONFIG: using config.ini found in /boot/'
+        CONFIG_FILE_PATH = "/sbboot/samplerbox/config.ini"
+        print '>>>> CONFIG: using config.ini found in /sbboot/samplerbox/'
         if not os.path.exists(CONFIG_FILE_PATH):
             CONFIG_FILE_PATH = "./config.ini"
             print '>>>> CONFIG: using config.ini found in /SamplerBox/'
@@ -155,23 +154,26 @@ VERSION2 = "V2.0.1 15-06-2016"
 # MIDI MAPS
 ###################
 
-MIDIMAPS_FILE_PATH = 'midimaps.pkl'
+if IS_DEBIAN:
+    MIDIMAPS_FILE_PATH = '/sbboot/samplerbox/midimaps.pkl'
+else:
+    MIDIMAPS_FILE_PATH = 'midimaps.pkl'
 
 ###################
 # SETLIST
 ###################
 
-SONG_FOLDERS_LIST = os.listdir(SAMPLES_DIR)
+SONG_FOLDERS_LIST = [d for d in os.listdir(SAMPLES_DIR) if os.path.isdir(os.path.join(SAMPLES_DIR, d))]
 
 if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
-    if SAMPLES_DIR == '/media/SampleSets':
+    if SAMPLES_DIR == '/media':
         SETLIST_FILE_PATH = '/media/setlist.txt'  # When using USB stick
         if not os.path.exists(SETLIST_FILE_PATH):
             print '>>>> SETLIST: %s does not exist. Creating an empty file.' % SETLIST_FILE_PATH
             file = open(SETLIST_FILE_PATH, 'w')
             file.close()
     else:
-        SETLIST_FILE_PATH = 'setlist/setlist.txt'  # When using SD card
+        SETLIST_FILE_PATH = '/sbboot/samplerbox/setlist.txt'  # When using SD card
 else:
     SETLIST_FILE_PATH = '../setlist/setlist.txt'  # When testing modules
 

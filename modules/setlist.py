@@ -2,6 +2,9 @@ import globalvars as gv
 from os.path import isdir
 import re
 
+
+IGNORE_FOLDERS = ['System\ Volume', 'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004']
+
 class Setlist:
 
     def __init__(self):
@@ -83,12 +86,11 @@ class Setlist:
         songs_in_setlist = list(filter(None, songs_in_setlist))  # remove empty strings / empty lines
         changes_in_dir = False
 
-        if (set(songs_in_setlist).intersection(gv.SONG_FOLDERS_LIST) != len(gv.SONG_FOLDERS_LIST) and len(
-                songs_in_setlist) != 0):
+        if (set(songs_in_setlist).intersection(gv.SONG_FOLDERS_LIST) != len(gv.SONG_FOLDERS_LIST) and len(songs_in_setlist) != 0):
 
             for song_folder_name in gv.SONG_FOLDERS_LIST:
                 i = 0
-                if isdir(gv.SAMPLES_DIR + '/' + song_folder_name):  # check if entry is a folder
+                if isdir(gv.SAMPLES_DIR + '/' + song_folder_name) and song_folder_name not in IGNORE_FOLDERS:  # check if entry is a folder
                     for song_name in songs_in_setlist:
                         if (song_folder_name == song_name):
                             break

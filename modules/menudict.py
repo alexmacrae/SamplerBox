@@ -33,12 +33,13 @@ menu = {
             }
         },
         # TODO: Find best way to modify ALSA mixer volume
-        3: {
-            'name': 'Master volume',
-            'desc': 'Modify the system\'s master volume',
-            'fn': 'MasterVolumeConfig'
-        },
-        4: {'name': 'MIDI Mapping',
+        # Remember to renumber indexes
+        # 3: {
+        #     'name': 'Master volume',
+        #     'desc': 'Modify the system\'s master volume',
+        #     'fn': 'MasterVolumeConfig'
+        # },
+        3: {'name': 'MIDI Mapping',
             'desc': 'Map any MIDI control to various playback and system features',
             'submenu': {
                 0: {
@@ -164,16 +165,16 @@ menu = {
                         3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                     }
                 },
+                # 4: { # remember to renumber indexes
+                #     'name': 'ModWheel:unavail',
+                #     'desc': 'Unavailable at this time',
+                #     'function_to_map': 'gv.ac.mod_wheel.set_modulation_disabled',
+                #     'submenu': {
+                #         0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                #         3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                #     }
+                # },
                 4: {
-                    'name': 'ModWheel:unavail',
-                    'desc': 'Unavailable at this time',
-                    'function_to_map': 'gv.ac.mod_wheel.set_modulation_disabled',
-                    'submenu': {
-                        0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                    }
-                },
-                5: {
                     'name': 'Sustain',
                     'desc': 'Map an unconventional control to the sustain pedal',
                     'function_to_map': 'gv.ac.sustain.set_sustain',
@@ -182,13 +183,13 @@ menu = {
                         3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                     }
                 },
-                6: {
+                5: {
                     'name': 'System Navigation',
                     'desc': 'Map additional system navigation controls',
                     'submenu': {
                         0: {
                             'name': 'Left',
-                            'desc': '',
+                            'desc': 'Map system navigation LEFT to a MIDI control',
                             'function_to_map': 'gv.nav.state.left',
                             'submenu': {
                                 0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
@@ -197,7 +198,7 @@ menu = {
                         },
                         1: {
                             'name': 'Right',
-                            'desc': '',
+                            'desc': 'Map system navigation RIGHT to a MIDI control',
                             'function_to_map': 'gv.nav.state.right',
                             'submenu': {
                                 0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
@@ -206,7 +207,7 @@ menu = {
                         },
                         2: {
                             'name': 'Enter',
-                            'desc': '',
+                            'desc': 'Map system navigation ENTER to a MIDI control',
                             'function_to_map': 'gv.nav.state.enter',
                             'submenu': {
                                 0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
@@ -215,7 +216,7 @@ menu = {
                         },
                         3: {
                             'name': 'Cancel',
-                            'desc': '',
+                            'desc': 'Map system navigation CANCEL to a MIDI control',
                             'function_to_map': 'gv.nav.state.cancel',
                             'submenu': {
                                 0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
@@ -226,17 +227,17 @@ menu = {
                 }
             }
             },
-        5: {'name': 'System settings',
+        4: {'name': 'System settings',
             'desc': 'Modify settings and save them to your config.ini',
             'submenu': {
                 0: {'name': 'Audio Device', 'desc': 'Select a different audio device', 'fn': 'AudioDevice'},
                 1: {'name': 'Max polyphony', 'desc': 'The max number of samples can be played simultaneously', 'fn': 'MaxPolyphonyConfig'},
                 2: {'name': 'MIDI channel', 'desc': '', 'fn': 'MidiChannelConfig'},
-                3: {'name': 'Audio channels', 'desc': '', 'fn': 'ChannelsConfig'},
-                4: {'name': 'Buffer size', 'desc': '', 'fn': 'BufferSizeConfig'},
-                5: {'name': 'Sample rate', 'desc': '', 'fn': 'SampleRateConfig'},
-                6: {'name': 'Reverb ON/OFF', 'desc': '', 'fn': 'ToggleReverb'},
-                7: {'name': 'Set RAM limit', 'desc': 'Set the amount of RAM the system can use for samples', 'fn': 'SetRAMLimit'}
+                3: {'name': 'Sample rate', 'desc': '', 'fn': 'SampleRateConfig'},
+                4: {'name': 'Reverb ON/OFF', 'desc': '', 'fn': 'ToggleReverb'},
+                5: {'name': 'Set RAM limit', 'desc': 'Set the amount of RAM the system can use for samples', 'fn': 'SetRAMLimit'}
+                # 3: {'name': 'Audio channels', 'desc': '', 'fn': 'ChannelsConfig'},
+                # 4: {'name': 'Buffer size', 'desc': '', 'fn': 'BufferSizeConfig'}
 
             }
 
