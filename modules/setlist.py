@@ -3,7 +3,7 @@ from os.path import isdir
 import re
 
 
-IGNORE_FOLDERS = ['System\ Volume', 'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004', '.tmp']
+IGNORE_FOLDERS = ['System\ Volume', 'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004', '.tmp' ,'lost+found']
 
 class Setlist:
 
