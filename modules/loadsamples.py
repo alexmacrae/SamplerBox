@@ -1,7 +1,7 @@
+import time
 import os
 import re
 import threading
-import time
 import psutil
 import globalvars as gv
 import sound
@@ -528,7 +528,7 @@ class LoadingSamples:
 
         if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset')  # Force the display to update
 
-        if is_memory_too_high_bool == False:
+        if is_memory_too_high_bool == False and len(gv.SETLIST_LIST) > 1:
 
             if self.preset_current_loading == gv.samples_indices[gv.preset]:
                 gv.displayer.disp_change('preset', timeout=0)

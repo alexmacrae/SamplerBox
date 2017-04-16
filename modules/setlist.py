@@ -3,7 +3,7 @@ from os.path import isdir
 import re
 
 
-IGNORE_FOLDERS = ['System\ Volume', 'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004']
+IGNORE_FOLDERS = ['System\ Volume', 'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004', '.tmp']
 
 class Setlist:
 
@@ -90,7 +90,7 @@ class Setlist:
 
             for song_folder_name in gv.SONG_FOLDERS_LIST:
                 i = 0
-                if isdir(gv.SAMPLES_DIR + '/' + song_folder_name) and song_folder_name not in IGNORE_FOLDERS:  # check if entry is a folder
+                if isdir(gv.SAMPLES_DIR + '/' + song_folder_name) and song_folder_name not in IGNORE_FOLDERS:  # check if entry is a dir, and not a system dir
                     for song_name in songs_in_setlist:
                         if (song_folder_name == song_name):
                             break
