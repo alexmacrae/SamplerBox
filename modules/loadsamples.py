@@ -129,7 +129,7 @@ class LoadingSamples:
         for s in gv.samples.keys():
             if gv.samples[s].has_key('loaded'):
                 i += 1
-        if len(gv.SONG_FOLDERS_LIST) == i:
+        if len(gv.setlist.song_folders_list) == i:
             print '///// All presets are now loaded into memory /////'
             self.all_presets_loaded = True
         else:

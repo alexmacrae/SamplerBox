@@ -21,12 +21,13 @@
 # MODULES
 #########################################
 import time
-
 time_start = time.time()
 usleep = lambda x: time.sleep(x / 1000000.0)
 msleep = lambda x: time.sleep(x / 1000.0)
 import threading
 import rtmidi2
+from os.path import isfile
+from os import system
 # from filters import FilterType, Filter, FilterChain
 # from utility import byteToPCM, floatToPCM, pcmToFloat, sosfreqz
 from modules import globalvars as gv
@@ -59,14 +60,31 @@ log_file = None
 # Start the GUI       #
 #######################
 
-print '#### START SETLIST ####'
-gv.setlist = setlist.Setlist()
-print '####  END SETLIST  ####\n'
+
 
 # TODO: displayer / HD44780_sys_1 and 2 initiate the LCD screen, but it needs globalvars for some variables.
 #       Change so that we see the welcome message asap.
 
+samples_fs_resize_format_script = '/boot/make_samples_part.sh'
 gv.displayer = displayer.Displayer()
+
+if isfile(samples_fs_resize_format_script):
+    gv.SYSTEM_MODE = 1
+    from modules import HD44780_sys_1
+    gv.displayer.LCD_SYS = HD44780_sys_1.LCD_SYS_1()
+    gv.displayer.LCD_SYS.temp_display = True
+    time.sleep(0.1)
+    gv.displayer.disp_change(str_override='ExpandingStorage', timeout=60, line=1, is_priority=True)
+    gv.displayer.disp_change(str_override='DO NOT TURN OFF!', timeout=60, line=2, is_priority=True)
+    time.sleep(0.5)
+    system('yes | sh '+samples_fs_resize_format_script)
+else:
+    print '\r/SAMPLES/ HAS BEEN GROWN AND FORMATTED - READY TO GO\r'
+
+print '#### START SETLIST ####'
+gv.setlist = setlist.Setlist()
+print '####  END SETLIST  ####\n'
+
 
 if gv.SYSTEM_MODE == 1:
     from modules import HD44780_sys_1
