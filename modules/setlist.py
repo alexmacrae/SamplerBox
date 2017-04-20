@@ -3,7 +3,7 @@ import os
 import re
 import systemfunctions as sysfunc
 
-IGNORE_FOLDERS = ['System\ Volume', 'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004', '.tmp', 'lost+found']
+IGNORE_FOLDERS = ['System Volume', 'System\ Volume', 'FOUND.000', 'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004', '.tmp', 'lost+found']
 
 class Setlist:
 
