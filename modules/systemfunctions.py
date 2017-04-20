@@ -1,6 +1,22 @@
 import globalvars as gv
 import time
+from os import system
 
+def mount_samples_rw():
+    if gv.SAMPLES_DIR == '/samples': system('mount -o remount,rw /samples')
+    print '/samples has been remounted as READ-WRITE'
+
+def mount_samples_ro():
+    if gv.SAMPLES_DIR == '/samples': system('mount -o remount,ro /samples')
+    print '/samples has been remounted as READ-ONLY'
+
+def mount_boot_rw():
+    if gv.CONFIG_FILE_PATH == "/boot/samplerbox/config.ini": system('mount -o remount,rw /boot')
+    print '/boot has been remounted as READ-WRITE'
+
+def mount_boot_ro():
+    if gv.CONFIG_FILE_PATH == "/boot/samplerbox/config.ini": system('mount -o remount,ro /boot')
+    print '/boot has been remounted as READ-ONLY'
 
 class SystemFunctions:
     def __init__(self):

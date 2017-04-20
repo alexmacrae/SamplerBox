@@ -1,6 +1,7 @@
 import globalvars as gv
 import os
 import re
+import systemfunctions as sysfunc
 
 IGNORE_FOLDERS = ['System\ Volume', 'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004', '.tmp', 'lost+found']
 
@@ -48,12 +49,13 @@ class Setlist:
 
     def write_setlist(self, list_to_write):
         print('>>>> SETLIST: Writing the setlist to setlist.txt')
+        sysfunc.mount_samples_rw() # remount `/samples` as read-write (if using SD card)
         setlist = open(gv.SETLIST_FILE_PATH, "w")
-
         list_to_write = list(filter(None, list_to_write))  # remove empty strings / empty lines
         for song in list_to_write:
             setlist.write(song + '\n')
         setlist.close()
+        sysfunc.mount_samples_ro() # remount as read-only
         # Let's keep SETLIST_LIST the same as before any rearrangements. We let the samples_indices find the name
         # self.update()
 
@@ -148,8 +150,6 @@ class Setlist:
         songs_in_setlist = [song for song in songs_in_setlist if '* ' not in song]
 
         self.write_setlist(songs_in_setlist)
-
-
 
 if __name__ == "__main__":
     setlist = Setlist()

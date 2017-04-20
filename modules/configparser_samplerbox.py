@@ -3,6 +3,7 @@
 """
 import configparser
 import configdefaultsdict as cdd
+import systemfunctions as sysfunc
 
 class Setup:
     def __init__(self, config_file_path):
@@ -94,8 +95,10 @@ class Setup:
 
         self.config.set(section, option.upper(), value)
 
+        sysfunc.mount_boot_rw()  # remount `/samples` as read-write (if using SD card)
         with open(self.CONFIG_FILE_PATH, 'w') as fp:
             self.config.write(fp)
+        sysfunc.mount_boot_ro()  # remount as read-only
 
             # from configobj import ConfigObj
             # config2 = ConfigObj("config.ini")

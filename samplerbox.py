@@ -65,7 +65,7 @@ log_file = None
 # TODO: displayer / HD44780_sys_1 and 2 initiate the LCD screen, but it needs globalvars for some variables.
 #       Change so that we see the welcome message asap.
 
-samples_fs_resize_format_script = '/boot/make_samples_part.sh'
+samples_fs_resize_format_script = '/boot/resize_samples_partition.sh'
 gv.displayer = displayer.Displayer()
 
 if isfile(samples_fs_resize_format_script):

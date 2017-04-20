@@ -5,6 +5,7 @@ import configparser_samplerbox
 import time
 import os
 import sys
+import systemfunctions as sysfunc
 from os import path
 
 IS_DEBIAN = platform.linux_distribution()[0].lower() == 'debian'  # Determine if running on RPi (True / False)
@@ -176,7 +177,9 @@ else:
 
 if not os.path.exists(SETLIST_FILE_PATH):
     print '>>>> SETLIST: %s does not exist. Creating an empty setlist file.' % SETLIST_FILE_PATH
+    sysfunc.mount_samples_rw()  # remount `/samples` as read-write (if using SD card)
     f = open(SETLIST_FILE_PATH, 'w')
+    sysfunc.mount_samples_ro()  # remount as read-only
     f.close()
 
 SETLIST_LIST = None  # open(SETLIST_FILE_PATH).read().splitlines()

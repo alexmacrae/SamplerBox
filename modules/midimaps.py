@@ -1,6 +1,7 @@
 import cPickle
 import os
 import globalvars as gv
+import systemfunctions as sysfunc
 
 class MidiMapping:
 
@@ -30,9 +31,11 @@ class MidiMapping:
 
 
     def save_maps(self, obj):
+        sysfunc.mount_boot_rw()  # remount `/samples` as read-write (if using SD card)
         with open(self.filename, 'w') as f:
             cPickle.dump(obj, f, 0)
             print '##### Saving new file (%s) #####' % (gv.MIDIMAPS_FILE_PATH)
+        sysfunc.mount_boot_ro()  # remount as read-only
 
     def load_maps(self):
         if os.path.isfile(self.filename):
