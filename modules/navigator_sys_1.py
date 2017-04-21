@@ -289,7 +289,7 @@ class SelectSong(Navigator):
 
         line_2 = '[%s] %s' % (str(self.preset + 1), str(gv.SETLIST_LIST[gv.samples_indices[self.preset]]))
 
-        gv.displayer.disp_change('SELECT SONG'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change('SELECT SONG'.center(gv.LCD_COLS, ' '), line=1)
         gv.displayer.disp_change(line_2.ljust(gv.LCD_COLS, ' '), line=2)
 
     # next song
@@ -328,7 +328,7 @@ class MoveSong(Navigator):
         line_1 = 'MOVING FROM [%d]' % (self.starting_preset + 1)
         line_2 = '[%s] %s' % (str(self.preset + 1), str(gv.SETLIST_LIST[gv.samples_indices[self.starting_preset]]))
 
-        gv.displayer.disp_change(line_1.ljust(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change(line_1.ljust(gv.LCD_COLS, ' '), line=1)
         gv.displayer.disp_change(line_2.ljust(gv.LCD_COLS, ' '), line=2)
 
     # Move song up the setlist

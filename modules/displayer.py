@@ -93,9 +93,7 @@ class Displayer:
 
                         if str_override:
                             self.LCD_SYS.display_called = True
-                            self.LCD_SYS.display(str_override.center(gv.LCD_COLS, ' '), line=line,
-                                                 is_priority=is_priority,
-                                                 timeout_custom=timeout)
+                            self.LCD_SYS.display(str_override.center(gv.LCD_COLS, ' '), line=line, is_priority=is_priority, timeout_custom=timeout)
                             return
 
                         if 'preset' in changed_var or 'voice' in changed_var:
@@ -172,11 +170,6 @@ class Displayer:
                         if 'volume' in changed_var or 'loading' in changed_var or 'effect' in changed_var or 'voice' in changed_var:
                             return
                         self.LCD_SYS.display(changed_var[0], line=line, is_priority=True, timeout_custom=timeout)
-
-
-
-
-
 
             #######################
             # SYSTEM MODE 2 by Hans

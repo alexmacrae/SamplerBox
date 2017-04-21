@@ -531,7 +531,7 @@ class LoadingSamples:
         if is_memory_too_high_bool == False and len(gv.SETLIST_LIST) > 1:
 
             if self.preset_current_loading == gv.samples_indices[gv.preset]:
-                gv.displayer.disp_change('preset', timeout=0)
+                if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset', timeout=0)
                 self.preset_next_to_load = self.get_next_preset(gv.preset)
                 self.preset_current_is_loaded = True
             else:

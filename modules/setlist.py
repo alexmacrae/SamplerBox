@@ -3,10 +3,12 @@ import os
 import re
 import systemfunctions as sysfunc
 
-IGNORE_FOLDERS = ['System Volume', 'System\ Volume', 'FOUND.000', 'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004', '.tmp', 'lost+found']
+IGNORE_FOLDERS = ['System Volume Information', 'System\ Volume\ Information', 'FOUND.000',
+                  'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004', 'FOUND.005', 'FOUND.006',
+                  'FOUND.007', '.tmp', 'lost+found']
+
 
 class Setlist:
-
     def __init__(self):
 
         self.song_folders_list = self.get_song_folders_list()
@@ -27,7 +29,7 @@ class Setlist:
         for i in xrange(len(gv.SETLIST_LIST)):
             gv.samples_indices.append(i)
 
-    def natural_sort_key(self,s):
+    def natural_sort_key(self, s):
         # Alphanumeric sorting
         _nsre = re.compile('([0-9]+)')
         return [int(text) if text.isdigit() else text.lower()
@@ -42,20 +44,19 @@ class Setlist:
             if os.path.isdir(gv.SAMPLES_DIR + '/' + song_folder_name) \
                     and song_folder_name not in IGNORE_FOLDERS \
                     and os.listdir(gv.SAMPLES_DIR + '/' + song_folder_name) != []:
-
                 all_qualified_folders.append(song_folder_name)
 
         return all_qualified_folders
 
     def write_setlist(self, list_to_write):
         print('>>>> SETLIST: Writing the setlist to setlist.txt')
-        sysfunc.mount_samples_rw() # remount `/samples` as read-write (if using SD card)
+        sysfunc.mount_samples_rw()  # remount `/samples` as read-write (if using SD card)
         setlist = open(gv.SETLIST_FILE_PATH, "w")
         list_to_write = list(filter(None, list_to_write))  # remove empty strings / empty lines
         for song in list_to_write:
             setlist.write(song + '\n')
         setlist.close()
-        sysfunc.mount_samples_ro() # remount as read-only
+        sysfunc.mount_samples_ro()  # remount as read-only
         # Let's keep SETLIST_LIST the same as before any rearrangements. We let the samples_indices find the name
         # self.update()
 
@@ -108,8 +109,8 @@ class Setlist:
             for song_folder_name in self.song_folders_list:
                 i = 0
                 # check if entry is a dir, and not a system dir and that dir is not empty
-                if os.path.isdir(gv.SAMPLES_DIR + '/' + song_folder_name)\
-                        and song_folder_name not in IGNORE_FOLDERS\
+                if os.path.isdir(gv.SAMPLES_DIR + '/' + song_folder_name) \
+                        and song_folder_name not in IGNORE_FOLDERS \
                         and os.listdir(gv.SAMPLES_DIR + '/' + song_folder_name) != []:
                     for song_name in songs_in_setlist:
                         if (song_folder_name == song_name):
@@ -129,8 +130,8 @@ class Setlist:
             for song_folder_name in self.song_folders_list:
                 i = 0
                 # check if entry is a dir, and not a system dir and that dir is not empty
-                if os.path.isdir(gv.SAMPLES_DIR + '/' + song_folder_name)\
-                        and song_folder_name not in IGNORE_FOLDERS\
+                if os.path.isdir(gv.SAMPLES_DIR + '/' + song_folder_name) \
+                        and song_folder_name not in IGNORE_FOLDERS \
                         and os.listdir(gv.SAMPLES_DIR + '/' + song_folder_name) != []:
                     print '>>>> SETLIST: Adding /%s/' % song_folder_name
                     songs_in_setlist.append(song_folder_name)
@@ -150,6 +151,7 @@ class Setlist:
         songs_in_setlist = [song for song in songs_in_setlist if '* ' not in song]
 
         self.write_setlist(songs_in_setlist)
+
 
 if __name__ == "__main__":
     setlist = Setlist()
