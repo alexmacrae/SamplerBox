@@ -254,8 +254,8 @@ class LoadingSamples:
         dirname = os.path.join(gv.SAMPLES_DIR, current_basename)
 
         definitionfname = os.path.join(dirname, "definition.txt")
-        file_count = len(os.listdir(dirname))
-        file_current = 0
+        file_count = float(len(os.listdir(dirname)))
+        file_current = 0.0
 
         if preset_focus_is_loaded == False:
 
@@ -263,8 +263,11 @@ class LoadingSamples:
 
                 print '---- LOADING: [%d] %s' % (self.preset_current_loading, current_basename)  # debug
 
+                file_count = file_count - 1 # One of the files is definition.txt
+
                 definition_list = list(enumerate(open(definitionfname, 'r')))
                 wav_definitions_list = [x for x in definition_list if "%%" not in x[1]]  # remove list entries containing %%
+                wav_definitions_list = [x for x in wav_definitions_list if "\n" != x[1]]  # remove blank lines
 
                 with open(definitionfname, 'r') as definitionfile:
 
@@ -350,62 +353,73 @@ class LoadingSamples:
                                 .replace(r"\*", r".*?").strip()  # .*? => non greedy
 
                             for fname in os.listdir(dirname):  # iterate over samples in the dir
-                                self.pause_if_playingsounds_or_midi()
-                                # print 'Processing ' + fname
-                                if self.LoadingInterrupt:
-                                    # print 'Loading % s interrupted...' % dirname
-                                    return
-                                percent_loaded = (file_current * (100 / len(wav_definitions_list))) / file_count
-                                # Send percent loaded of sample-set to be displayed
-                                if self.preset_current_loading == gv.samples_indices[gv.preset]:
-                                    gv.percent_loaded = percent_loaded
-                                    if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('loading', timeout=0.5)
 
-                                file_current += 1
-                                if self.LoadingInterrupt:
-                                    return
-                                m = re.match(pattern, fname)
-                                if m:
-                                    info = m.groupdict()
-                                    voice = int(info.get('voice', defaultparams['voice']))
-                                    voices_local.append(voice)
-                                    release = int(info.get('release', defaultparams['release']))
-                                    voicefillnote = str(info.get('fillnote', defaultparams['fillnote'])).title().rstrip()
-                                    if self.preset_current_loading == gv.samples_indices[gv.preset]: gv.voices = voices_local
-                                    midinote = int(info.get('midinote', defaultparams['midinote']))
-                                    channel = int(info.get('channel', defaultparams['channel']))
-                                    velocity = int(info.get('velocity', defaultparams['velocity']))
-                                    seq = int(info.get('seq', defaultparams['seq']))
-                                    notename = info.get('notename', defaultparams['notename'])
-                                    # next statement places note 60 on C3/C4/C5 with the +0/1/2. So now it is C4:
-                                    if notename:
-                                        midinote = gv.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
-                                    if gv.samples[self.preset_current_loading].has_key((midinote, velocity, voice, channel)):
-                                        """
-                                        Sample Randomization by David Hilowitz
-                                        """
-                                        # Find samples marked for randomization (seq).
-                                        # Check existing list of sound objects if s.seq == seq
-                                        if any(s.seq == seq for s in
-                                               gv.samples[self.preset_current_loading][
-                                                   midinote, velocity, voice, channel]):
-                                            print 'Sequence:%i, File:%s already loaded' % (seq, fname)
-                                            continue
-                                            # break
+                                if 'definition.txt' not in fname:
+
+                                    self.pause_if_playingsounds_or_midi()
+                                    # print 'Processing ' + fname
+                                    if self.LoadingInterrupt:
+                                        # print 'Loading % s interrupted...' % dirname
+                                        return
+
+                                    if self.preset_current_loading == gv.samples_indices[gv.preset]:
+                                        # Call the displayer outside of this loop - we don't need % fidelity to be so high
+                                        percent_loaded = (file_current / (file_count * len(definition_list)) * 100.0)
+                                        file_current += 1
+                                        gv.percent_loaded = percent_loaded
+
+                                    if self.LoadingInterrupt:
+                                        return
+                                    m = re.match(pattern, fname)
+                                    if m:
+                                        info = m.groupdict()
+                                        voice = int(info.get('voice', defaultparams['voice']))
+                                        voices_local.append(voice)
+                                        release = int(info.get('release', defaultparams['release']))
+                                        voicefillnote = str(info.get('fillnote', defaultparams['fillnote'])).title().rstrip()
+                                        if self.preset_current_loading == gv.samples_indices[gv.preset]: gv.voices = voices_local
+                                        midinote = int(info.get('midinote', defaultparams['midinote']))
+                                        channel = int(info.get('channel', defaultparams['channel']))
+                                        velocity = int(info.get('velocity', defaultparams['velocity']))
+                                        seq = int(info.get('seq', defaultparams['seq']))
+                                        notename = info.get('notename', defaultparams['notename'])
+                                        # next statement places note 60 on C3/C4/C5 with the +0/1/2. So now it is C4:
+                                        if notename:
+                                            midinote = gv.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
+                                        if gv.samples[self.preset_current_loading].has_key((midinote, velocity, voice, channel)):
+                                            """
+                                            Sample Randomization by David Hilowitz
+                                            """
+                                            # Find samples marked for randomization (seq).
+                                            # Check existing list of sound objects if s.seq == seq
+                                            if any(s.seq == seq for s in
+                                                   gv.samples[self.preset_current_loading][
+                                                       midinote, velocity, voice, channel]):
+                                                print 'Sequence:%i, File:%s already loaded' % (seq, fname)
+                                                continue
+                                                # break
+                                            else:
+                                                if (midinote, velocity, voice, channel) in gv.samples[
+                                                    self.preset_current_loading]:
+                                                    gv.samples[self.preset_current_loading][
+                                                        midinote, velocity, voice, channel].append(sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release))
+                                                    print 'Sample randomization: found seq:%i (%s) >> loading' % (seq, fname)
                                         else:
-                                            if (midinote, velocity, voice, channel) in gv.samples[
-                                                self.preset_current_loading]:
-                                                gv.samples[self.preset_current_loading][
-                                                    midinote, velocity, voice, channel].append(sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release))
-                                                print 'Sample randomization: found seq:%i (%s) >> loading' % (seq, fname)
-                                    else:
 
-                                        gv.samples[self.preset_current_loading][midinote, velocity, voice, channel] = [
-                                            sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release)]
+                                            gv.samples[self.preset_current_loading][midinote, velocity, voice, channel] = [
+                                                sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release)]
 
-                                        gv.fillnotes[midinote, voice] = voicefillnote
-                                        gv.samples[self.preset_current_loading]['fillnotes'][midinote, voice] = voicefillnote
-                                        # print "sample: %s, note: %d, voice: %d, channel: %d" %(fname, midinote, voice, channel)
+                                            gv.fillnotes[midinote, voice] = voicefillnote
+                                            gv.samples[self.preset_current_loading]['fillnotes'][midinote, voice] = voicefillnote
+                                            # print "sample: %s, note: %d, voice: %d, channel: %d" %(fname, midinote, voice, channel)
+
+
+
+                            # Send percent loaded of sample-set to be displayed
+                            if self.preset_current_loading == gv.samples_indices[gv.preset]:
+                                if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('loading', timeout=0.5)
+                                # print '%d%%' % int(gv.percent_loaded)
+
                         except Exception as e:
                             if pattern != '':
                                 print "Error in definition file, skipping line %s." % (i + 1)

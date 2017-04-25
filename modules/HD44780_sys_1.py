@@ -30,7 +30,7 @@ class LCD_SYS_1:
             self.temp_display = False
 
             if gv.IS_DEBIAN:
-                self.thread_sleep = 0.02
+                self.thread_sleep = 0.05
             else:
                 self.thread_sleep = 0.1
 
@@ -49,10 +49,6 @@ class LCD_SYS_1:
             if gv.IS_DEBIAN:
                 import RPi.GPIO as GPIO
                 from RPLCD import CharLCD
-
-                # Initialize GPIO
-                GPIO.setmode(GPIO.BCM)
-                GPIO.cleanup()
 
                 self.lcd = CharLCD(pin_rs=gv.GPIO_LCD_RS, pin_rw=None, pin_e=gv.GPIO_LCD_E,
                                    pins_data=[gv.GPIO_LCD_D4, gv.GPIO_LCD_D5, gv.GPIO_LCD_D6, gv.GPIO_LCD_D7],
@@ -81,16 +77,15 @@ class LCD_SYS_1:
         if gv.USE_HD44780_20x4_LCD and gv.IS_DEBIAN:
             self.lcd.clear()
 
-        if gv.USE_HD44780_16x2_LCD:
-            self.lcd_string("WELCOME TO".center(gv.LCD_COLS, ' '), 1)
-            self.lcd_string("SAMPLERBOX".center(gv.LCD_COLS, ' '), 2)
-        if gv.USE_HD44780_20x4_LCD:
-            self.lcd_string(unichr(1) * gv.LCD_COLS, 1)
-            self.lcd_string("WELCOME TO".center(gv.LCD_COLS, ' '), 2)
-            self.lcd_string("SAMPLERBOX".center(gv.LCD_COLS, ' '), 3)
-            self.lcd_string(unichr(1) * gv.LCD_COLS, 4)
-
-        time.sleep(1)
+        # if gv.USE_HD44780_16x2_LCD:
+        #     self.lcd_string("WELCOME TO".center(gv.LCD_COLS, ' '), 1)
+        #     self.lcd_string("SAMPLERBOX".center(gv.LCD_COLS, ' '), 2)
+        # elif gv.USE_HD44780_20x4_LCD:
+        #     self.lcd_string(unichr(1) * gv.LCD_COLS, 1)
+        #     self.lcd_string("WELCOME TO".center(gv.LCD_COLS, ' '), 2)
+        #     self.lcd_string("SAMPLERBOX".center(gv.LCD_COLS, ' '), 3)
+        #     self.lcd_string(unichr(1) * gv.LCD_COLS, 4)
+        # time.sleep(0.6)
 
         self.timeout_start = time.time()
         print_message = ''

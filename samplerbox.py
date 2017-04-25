@@ -20,14 +20,16 @@
 # IMPORT
 # MODULES
 #########################################
+from os.path import ismount
+from os.path import isfile
+from os import system
+if ismount('/media'): system("fsck -yvp /media") # auto-repair USB drive in case of dirty bits (if connected/mounted)
 import time
 time_start = time.time()
 usleep = lambda x: time.sleep(x / 1000000.0)
 msleep = lambda x: time.sleep(x / 1000.0)
 import threading
 import rtmidi2
-from os.path import isfile
-from os import system
 # from filters import FilterType, Filter, FilterChain
 # from utility import byteToPCM, floatToPCM, pcmToFloat, sosfreqz
 from modules import globalvars as gv

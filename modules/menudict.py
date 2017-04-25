@@ -242,7 +242,8 @@ menu = {
             }
 
             },
-        # 6: {'name': 'Restart', 'fn': 'gv.sysfunc.restart()'},
+        # 5: {'name': 'Restart', 'fn': 'gv.sysfunc.restart()'},
+        5: {'name': 'Reboot System', 'fn': 'gv.sysfunc.reboot()'},
 
     }
 }

@@ -33,7 +33,7 @@ class Displayer:
 
         self.voices_display_blocks = True
 
-    def display_preset_with_voices(self, preset_string):
+    def display_preset_with_voices(self, preset_string=''):
         preset_string = preset_string + ' ' * gv.LCD_COLS  # fill with space chars
         preset_string_list = list(preset_string[:gv.LCD_COLS])  # limit to width of LCD's chars/columns
         v_len = len(gv.voices)
@@ -113,7 +113,8 @@ class Displayer:
                             preset_name = gv.SETLIST_LIST[gv.samples_indices[next_preset]]
                             preset_num_name = str(next_preset - gv.PRESET_BASE + 1) + ' ' + preset_name
                             if len(gv.samples_indices) == 1: # if there's only 1 sample set
-                                preset_line_2 = ''
+                                # preset_line_2 = ''
+                                preset_line_2 = self.display_preset_with_voices()
                             else:
                                 preset_line_2 = self.display_preset_with_voices(preset_num_name)
 
