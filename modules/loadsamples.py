@@ -352,7 +352,7 @@ class LoadingSamples:
                                 .replace(r"\%notename", r"(?P<notename>[A-Ga-g]#?[0-9])") \
                                 .replace(r"\*", r".*?").strip()  # .*? => non greedy
 
-                            for fname in os.listdir(dirname):  # iterate over samples in the dir
+                            for fname in os.listdir(dirname):  # iterate over samples in the dir and ignore definition.txt
 
                                 if 'definition.txt' not in fname:
 
@@ -362,12 +362,17 @@ class LoadingSamples:
                                         # print 'Loading % s interrupted...' % dirname
                                         return
 
+                                    ############################
+                                    # DISPLAY LOADING PROGRESS #
+                                    ############################
                                     if self.preset_current_loading == gv.samples_indices[gv.preset]:
-                                        # Call the displayer outside of this loop - we don't need % fidelity to be so high
                                         percent_loaded = (file_current / (file_count * len(definition_list)) * 100.0)
                                         file_current += 1
                                         gv.percent_loaded = percent_loaded
-
+                                        # Send percent loaded of sample-set to be displayed
+                                        if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('loading', timeout=0.5)
+                                    ############################
+                                    
                                     if self.LoadingInterrupt:
                                         return
                                     m = re.match(pattern, fname)
@@ -412,13 +417,6 @@ class LoadingSamples:
                                             gv.fillnotes[midinote, voice] = voicefillnote
                                             gv.samples[self.preset_current_loading]['fillnotes'][midinote, voice] = voicefillnote
                                             # print "sample: %s, note: %d, voice: %d, channel: %d" %(fname, midinote, voice, channel)
-
-
-
-                            # Send percent loaded of sample-set to be displayed
-                            if self.preset_current_loading == gv.samples_indices[gv.preset]:
-                                if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('loading', timeout=0.5)
-                                # print '%d%%' % int(gv.percent_loaded)
 
                         except Exception as e:
                             if pattern != '':
