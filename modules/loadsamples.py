@@ -370,9 +370,9 @@ class LoadingSamples:
                                         file_current += 1
                                         gv.percent_loaded = percent_loaded
                                         # Send percent loaded of sample-set to be displayed
-                                        if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('loading', timeout=0.5)
+                                        if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('loading', timeout=0.2)
                                     ############################
-                                    
+
                                     if self.LoadingInterrupt:
                                         return
                                     m = re.match(pattern, fname)
@@ -398,14 +398,12 @@ class LoadingSamples:
                                             # Find samples marked for randomization (seq).
                                             # Check existing list of sound objects if s.seq == seq
                                             if any(s.seq == seq for s in
-                                                   gv.samples[self.preset_current_loading][
-                                                       midinote, velocity, voice, channel]):
+                                                   gv.samples[self.preset_current_loading][midinote, velocity, voice, channel]):
                                                 print 'Sequence:%i, File:%s already loaded' % (seq, fname)
                                                 continue
                                                 # break
                                             else:
-                                                if (midinote, velocity, voice, channel) in gv.samples[
-                                                    self.preset_current_loading]:
+                                                if (midinote, velocity, voice, channel) in gv.samples[self.preset_current_loading]:
                                                     gv.samples[self.preset_current_loading][
                                                         midinote, velocity, voice, channel].append(sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release))
                                                     print 'Sample randomization: found seq:%i (%s) >> loading' % (seq, fname)

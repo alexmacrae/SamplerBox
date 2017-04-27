@@ -23,8 +23,11 @@
 from os.path import ismount
 from os.path import isfile
 from os import system
-if ismount('/media'): system("fsck -yvp /media") # auto-repair USB drive in case of dirty bits (if connected/mounted)
+import subprocess
+
+if ismount('/media'): subprocess.call(["fsck", "-yvp", "/media"])  # auto-repair USB drive in case of dirty bits (if connected/mounted)
 import time
+
 time_start = time.time()
 usleep = lambda x: time.sleep(x / 1000000.0)
 msleep = lambda x: time.sleep(x / 1000.0)
@@ -43,12 +46,9 @@ from modules import sound
 from modules import midimaps
 from modules import midicallback
 
-
 ###########
 # Logging #
 ###########
-
-# TODO: not quite there yet
 
 # import sys
 # log_file = open("console.log", 'w')
@@ -62,31 +62,30 @@ log_file = None
 # Start the GUI       #
 #######################
 
-
-
-# TODO: displayer / HD44780_sys_1 and 2 initiate the LCD screen, but it needs globalvars for some variables.
-#       Change so that we see the welcome message asap.
-
 samples_fs_resize_format_script = '/boot/resize_samples_partition.sh'
 gv.displayer = displayer.Displayer()
 
 if isfile(samples_fs_resize_format_script):
     gv.SYSTEM_MODE = 1
     from modules import HD44780_sys_1
+
     gv.displayer.LCD_SYS = HD44780_sys_1.LCD_SYS_1()
     gv.displayer.LCD_SYS.temp_display = True
     time.sleep(0.1)
     gv.displayer.disp_change(str_override='ExpandingStorage', timeout=60, line=1, is_priority=True)
     gv.displayer.disp_change(str_override='DO NOT TURN OFF!', timeout=60, line=2, is_priority=True)
     time.sleep(0.5)
-    system('yes | sh '+samples_fs_resize_format_script)
+    systemfunctions.mount_boot_rw()
+    systemfunctions.mount_root_rw()
+    system('yes | sh ' + samples_fs_resize_format_script)
+    gv.displayer.disp_change(str_override='Rebooting'.center(gv.LCD_COLS, ' '), timeout=60, line=1, is_priority=True)
+    gv.displayer.disp_change(str_override='System'.center(gv.LCD_COLS, ' '), timeout=60, line=2, is_priority=True)
 else:
-    print '\r/SAMPLES/ HAS BEEN GROWN AND FORMATTED - READY TO GO\r'
+    print '\r***********\r/SAMPLES/ HAS BEEN GROWN AND FORMATTED - READY TO GO\r***********\r'
 
 print '#### START SETLIST ####'
 gv.setlist = setlist.Setlist()
 print '####  END SETLIST  ####\n'
-
 
 if gv.SYSTEM_MODE == 1:
     from modules import HD44780_sys_1
@@ -159,7 +158,6 @@ if gv.USE_SERIALPORT_MIDI:
     MidiThread = threading.Thread(target=midi_serial_callback)
     MidiThread.daemon = True
     MidiThread.start()
-
 
 # Test initial script load time
 time_end = time.time()
