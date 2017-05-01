@@ -5,7 +5,7 @@ import systemfunctions as sysfunc
 
 IGNORE_FOLDERS = ['System Volume Information', 'System\ Volume\ Information', 'FOUND.000',
                   'FOUND.001', 'FOUND.002', 'FOUND.003', 'FOUND.004', 'FOUND.005', 'FOUND.006',
-                  'FOUND.007', '.tmp', 'lost+found']
+                  'FOUND.007', 'lost+found']
 
 
 class Setlist:
@@ -43,6 +43,7 @@ class Setlist:
         for song_folder_name in all_folders:
             if os.path.isdir(gv.SAMPLES_DIR + '/' + song_folder_name) \
                     and song_folder_name not in IGNORE_FOLDERS \
+                    and song_folder_name[0] != '.' \
                     and os.listdir(gv.SAMPLES_DIR + '/' + song_folder_name) != []:
                 all_qualified_folders.append(song_folder_name)
 
