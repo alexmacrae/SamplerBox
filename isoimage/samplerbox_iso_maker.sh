@@ -2,7 +2,7 @@
 # CREATE A RASPBIAN JESSIE IMAGE FOR SAMPLERBOX
 # 2017-03-30
 #
-# USAGE: sudo chmod 777 samplerbox_img_maker.sh ; nohup sudo samplerbox_img_maker.sh &
+# USAGE: sudo chmod 777 samplerbox_iso_maker.sh ; nohup sudo samplerbox_iso_maker.sh &
 # Append " | tee -a output.log" to the end of the sh run line to output console lines to output.log
 # To print additions to output.log in realtime from another machine "tail -f output.log". Perhaps you want to
 # monitor progress or errors from another machine or remotely from your mobile!
@@ -32,8 +32,6 @@ n
 
 
 +$(($boot_size))M
-p
-a
 t
 c
 n
@@ -94,7 +92,7 @@ chroot sdcard locale-gen LANG="en_GB.UTF-8"
 chroot sdcard dpkg-reconfigure -f noninteractive locales
 
 cat <<EOF > sdcard/boot/cmdline.txt
-root=/dev/mmcblk0p2 ro rootwait console=tty1 selinux=0 plymouth.enable=0 smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 elevator=noop bcm2708.uart_clock=3000000 fastboot noswap
+root=/dev/mmcblk0p2 ro rootwait console=tty1 selinux=0 plymouth.enable=0 smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 elevator=noop bcm2708.uart_clock=3000000 init=/bin/systemd
 EOF
 # http://k3a.me/how-to-make-raspberrypi-truly-read-only-reliable-and-trouble-free/ @ 4.4 Disable filesystem check and swap
 # added: fastboot noswap
@@ -108,18 +106,59 @@ boot_delay=0
 disable_splash=1
 disable_audio_dither=1
 dtparam=audio=on
+dtoverlay=pi3-disable-bt
+dtparam=uart0_clkrate=3000000
 EOF
+# Following lines added per issue @ https://github.com/josephernest/SamplerBox/issues/24#issuecomment-278706313
+# dtoverlay=pi3-disable-bt
+# dtparam=uart0_clkrate=3000000
+
 
 cat <<EOF > sdcard/etc/fstab
 /dev/sda1       /media          auto    nofail                  0       0
-/dev/mmcblk0p1  /boot           vfat    ro,auto,exec            0       2
-/dev/mmcblk0p2  /               auto    defaults,noatime,ro     0       1
 EOF
-
+# /dev/mmcblk0p1  /boot           vfat    ro,auto,exec            0       2
+# /dev/mmcblk0p2  /               auto    defaults,noatime,ro     0       1
 # /dev/mmcblk0p3  /samples        auto    ro,auto,exec            0       0 # Add this after filesystem resize script on first run
 
 mkdir -v sdcard/samples
 mount -v -t ext4 -o sync $samplespart sdcard/samples
+
+###########################################
+# NETWORKING
+
+# "allow-hotplug" instead of "auto" very important to prevent blocking on boot if no network present
+cat <<EOF > sdcard/etc/network/interfaces
+auto lo
+iface lo inet loopback
+
+allow-hotplug eth0
+iface eth0 inet dhcp
+
+allow-hotplug wlan0
+iface wlan0 inet manual
+	wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+
+allow-hotplug wlan1
+iface wlan0 inet manual
+	wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+
+EOF
+
+mkdir sdcard/etc/wpa_supplicant
+cat <<EOF > sdcard/etc/wpa_supplicant/wpa_supplicant.conf
+ctrl_interface=DIR=/var/run/wpa_supplicant
+update_config=1
+
+# Uncomment and edit below to include your WiFi network's login credentials
+#network={
+#    ssid="YOUR_NETWORK_NAME"
+#    psk="YOUR_NETWORK_PASSWORD"
+#}
+
+EOF
+
+
 
 # Install packages required for SamplerBox
 chroot sdcard apt-get update
@@ -145,66 +184,6 @@ chroot sdcard sh -c "cd /root ; git clone https://github.com/proxypoke/wpa_confi
 # Allowing root to log into $release with password... "
 sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' sdcard/etc/ssh/sshd_config
 
-
-###########################################
-# NETWORKING
-
-#cat <<EOF > /etc/systemd/system/dhcpcd5
-#[Unit]
-#Description=dhcpcd on all interfaces
-#Wants=network.target
-#Before=network.target
-#
-#[Service]
-#Type=forking
-#PIDFile=/var/run/dhcpcd.pid
-#ExecStart=/sbin/dhcpcd -q -b
-#ExecStop=/sbin/dhcpcd -x
-#
-#[Install]
-#WantedBy=multi-user.target
-#Alias=dhcpcd5
-#EOF
-
-# "allow-hotplug" instead of "auto" very important to prevent blocking on boot if no network present
-cat <<EOF > sdcard/etc/network/interfaces
-auto lo
-iface lo inet loopback
-
-allow-hotplug eth0
-iface eth0 inet dhcp
-
-allow-hotplug wlan0
-iface wlan0 inet manual
-	wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-
-allow-hotplug wlan1
-iface wlan0 inet manual
-	wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-
-EOF
-
-#mkdir sdcard/etc/wpa_supplicant/ # is created after apt-get install wpasupplicant
-cat <<EOF > sdcard/etc/wpa_supplicant/wpa_supplicant.conf
-update_config=1
-
-# Uncomment and edit below to include your WiFi network's login credentials
-#network={
-#    ssid="YOUR_NETWORK_NAME"
-#    psk="YOUR_NETWORK_PASSWORD"
-#}
-
-EOF
-
-#mkdir sdcard/boot/networking/wpa_config
-cat <<EOF > sdcard/etc/wpa_config/wpa_supplicant.conf.head
-update_config=1
-EOF
-
-cat <<EOF > sdcard/etc/wpa_config/wpa_supplicant.conf.tail
-
-EOF
-
 ## Start wpa_supplicant
 #chroot sdcard sh -c "wpa_supplicant -B -i wlan0 -c /boot/networking/wireless_networks.conf" # only need if wpa_supplicant.conf lives somewhere other than the default. eg /boot/networking/wireless_networks.conf
 chroot sdcard sh -c "wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf" # only need if wpa_supplicant.conf lives somewhere other than the default. eg /boot/networking/wireless_networks.conf
@@ -224,12 +203,22 @@ cat <<EOF > sdcard/root/SamplerBox/samplerbox.sh
 python /root/SamplerBox/samplerbox.py
 EOF
 
+chmod 777 sdcard/root/SamplerBox/samplerbox.sh
+
 mkdir sdcard/boot/samplerbox
 touch sdcard/boot/samplerbox/midimaps.pkl
 
 # Move config.ini to /boot/samplerbox/ (read-writable)
 cp sdcard/root/SamplerBox/config.ini sdcard/boot/samplerbox/config.ini
 rm sdcard/root/SamplerBox/config.ini
+
+cat <<EOF > sdcard/etc/wpa_config/wpa_supplicant.conf.head
+update_config=1
+EOF
+
+cat <<EOF > sdcard/etc/wpa_config/wpa_supplicant.conf.tail
+
+EOF
 
 cat <<EOF > sdcard/etc/systemd/system/samplerbox.service
 [Unit]
@@ -300,6 +289,8 @@ touch /samples/setlist.txt
 rm -r /samples/lost+found/
 
 cat <<EOF >> /etc/fstab
+/dev/mmcblk0p1  /boot           vfat    ro,auto,exec            0       2
+/dev/mmcblk0p2  /               auto    defaults,noatime,ro     0       1
 /dev/mmcblk0p3  /samples        auto    ro,auto,exec            0       0
 $EOF
 
@@ -312,41 +303,14 @@ EOF
 sed -i 's/ENV{pvolume}:="-20dB"/ENV{pvolume}:="-10dB"/' sdcard/usr/share/alsa/init/default
 #sed -i '$ i\ntpdate &' sdcard/etc/rc.local
 
+chroot sdcard date -s "Mon May 1 12:00:00 UTC 2017"
+
+chroot sdcard systemctl stop serial-getty@ttyAMA0.service
+
 chroot sdcard systemctl enable /etc/systemd/system/samplerbox.service
 
 echo 'i2c-dev' >> sdcard/etc/modules
 echo 'snd_bcm2835' >> sdcard/etc/modules
-
-#############################
-# Prep for read-only system #
-#############################
-
-## Remove unnecessary services and files
-#chroot sdcard apt-get -y remove --purge cron logrotate
-#chroot sdcard insserv -r x11-common
-#chroot sdcard apt-get autoremove --purge
-#
-## Replace log management with the busybox one - will be able to use the `logread` command
-#chroot sdcard apt-get -y install busybox-syslogd
-#chroot sdcard yes | dpkg --purge rsyslog
-#
-## Move some system files to temp filesystem
-#chroot sdcard rm -rf /var/lib/dhcp/ /var/run /var/spool /var/lock /etc/resolv.conf
-#chroot sdcard ln -s /tmp /var/lib/dhcp
-#chroot sdcard ln -s /tmp /var/run
-#chroot sdcard ln -s /tmp /var/spool
-#chroot sdcard ln -s /tmp /var/lock
-#chroot sdcard touch /tmp/dhcpcd.resolv.conf
-#chroot sdcard ln -s /tmp/dhcpcd.resolv.conf /etc/resolv.conf
-#
-## On Debian jessie move `random-seed` file to writable location
-#chroot sdcard rm /var/lib/systemd/random-seed
-#chroot sdcard ln -s /tmp/random-seed /var/lib/systemd/random-seed
-#chroot sdcard sed -i '/ExecStart=\/lib\/systemd/ i\ExecStartPre=\/bin\/echo "" >\/tmp\/random-seed' /lib/systemd/system/systemd-random-seed.service
-#chroot sdcard systemctl daemon-reload
-## Remove some startup scripts
-#chroot sdcard insserv -r bootlogs
-#chroot sdcard insserv -r console-setup
 
 #############################
 
@@ -354,9 +318,8 @@ echo 'snd_bcm2835' >> sdcard/etc/modules
 sync
 
 umount -v sdcard/boot
-umount -lfv sdcard &
-#umount -v sdcard
-umount -v sdcard/samples &
+umount -v sdcard
+umount -v sdcard/samples
 
 kpartx -dv $image_name
 
