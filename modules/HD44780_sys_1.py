@@ -46,6 +46,8 @@ class LCD_SYS_1:
             self.STRING_3_PRIORITY = ''
             self.STRING_4_PRIORITY = ''
 
+            self.loop_alive = True
+
             if gv.IS_DEBIAN:
                 import RPi.GPIO as GPIO
                 from RPLCD import CharLCD
@@ -54,7 +56,11 @@ class LCD_SYS_1:
                                    pins_data=[gv.GPIO_LCD_D4, gv.GPIO_LCD_D5, gv.GPIO_LCD_D6, gv.GPIO_LCD_D7],
                                    numbering_mode=GPIO.BCM, cols=gv.LCD_COLS, rows=gv.LCD_ROWS)
 
+                time.sleep(self.E_DELAY)
+                self.lcd.home()
+                time.sleep(self.E_DELAY)
                 self.lcd.clear()
+                time.sleep(self.E_DELAY)
 
                 # Write custom codes to the LCD
                 self.lcd.create_char(1, lcdcc.block)
@@ -62,6 +68,9 @@ class LCD_SYS_1:
                 self.lcd.create_char(3, lcdcc.voice_button_on)
                 self.lcd.create_char(4, lcdcc.voice_button_off)
                 self.lcd.create_char(5, lcdcc.block2)
+                self.lcd.create_char(6, lcdcc.loading_1)
+                self.lcd.create_char(7, lcdcc.loading_2)
+                self.lcd.create_char(0, lcdcc.loading_3)
 
         self.LCDThread = threading.Thread(target=self.lcd_main)
         self.LCDThread.daemon = True
@@ -90,7 +99,7 @@ class LCD_SYS_1:
         self.timeout_start = time.time()
         print_message = ''
 
-        while True:
+        while self.loop_alive:
             if self.display_called:
                 now = time.time()
 
@@ -110,8 +119,7 @@ class LCD_SYS_1:
                 elif gv.displayer.menu_mode == gv.displayer.DISP_PRESET_MODE:
                     self.lcd_string(self.STRING_1_PRIORITY, 1)
                     self.lcd_string(self.STRING_2_PRIORITY, 2)
-                    print_message = "\r%s||%s" % (
-                        self.STRING_1_PRIORITY[:gv.LCD_COLS], self.STRING_2_PRIORITY[:gv.LCD_COLS])
+                    print_message = "\r%s||%s" % (self.STRING_1_PRIORITY[:gv.LCD_COLS], self.STRING_2_PRIORITY[:gv.LCD_COLS])
                     if gv.USE_HD44780_20x4_LCD:
                         self.lcd_string(self.STRING_3_PRIORITY, 3)
                         self.lcd_string(self.STRING_4_PRIORITY, 4)
@@ -119,8 +127,7 @@ class LCD_SYS_1:
                 elif gv.displayer.menu_mode == gv.displayer.DISP_MENU_MODE:
                     self.lcd_string(self.STRING_1_PRIORITY, 1)
                     self.lcd_string(self.STRING_2_PRIORITY, 2)
-                    print_message = "\r%s||%s" % (
-                        self.STRING_1_PRIORITY[:gv.LCD_COLS], self.STRING_2_PRIORITY[:gv.LCD_COLS])
+                    print_message = "\r%s||%s" % (self.STRING_1_PRIORITY[:gv.LCD_COLS], self.STRING_2_PRIORITY[:gv.LCD_COLS])
                     if gv.USE_HD44780_20x4_LCD:
                         self.lcd_string(self.STRING_3_PRIORITY, 3)
                         self.lcd_string(self.STRING_4_PRIORITY, 4)
@@ -185,5 +192,7 @@ class LCD_SYS_1:
 
         self.display_called = True
 
-    def cleanup(self):
+    def stop(self):
         self.lcd.close()
+        self.loop_alive = False
+

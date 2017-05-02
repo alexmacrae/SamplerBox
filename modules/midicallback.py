@@ -1,7 +1,7 @@
 import globalvars as gv
 
-class Midi:
 
+class Midi:
     def __init__(self):
         ########################
         # Button navigation    #
@@ -17,26 +17,19 @@ class Midi:
         self.down = gv.BUTTON_DOWN_MIDI
         self.func = gv.BUTTON_FUNC_MIDI
 
-
-
     def noteon(self, messagetype, note, vel):
         # print messagetype, note, vel
         pass
 
-
     def noteoff(self, messagetype, note, vel):
         # print messagetype, note, vel
         pass
-
-
-
 
     #################
     # MIDI CALLBACK #
     #################
 
     def callback(self, src, message, time_stamp):
-        # global enter, left, right, cancel, up, down, func
 
         gv.ls.midi_detected = True
 
@@ -49,10 +42,12 @@ class Midi:
         note = message[1] if len(message) > 1 else None
         midinote = note
         velocity = message[2] if len(message) > 2 else None
-        noteoff = False
-        last_note_timestamp = 0
+        noteoff = True
+
         if gv.sample_mode == gv.PLAYLIVE:
             noteoff = True
+        elif gv.sample_mode == gv.PLAYONCE:
+            noteoff = False
 
         if gv.PRINT_MIDI_MESSAGES:
             print '%d, %d, <%s>' % (message[0], note, src)
@@ -84,19 +79,19 @@ class Midi:
 
                 # Check for MIDI map match from the config.ini
 
-                if mk[0] == self.enter[0] and mk[1] == self.enter[1] and velocity > 0: # Enter button
+                if mk[0] == self.enter[0] and mk[1] == self.enter[1] and velocity > 0:  # Enter button
                     if len(self.enter) == 2 or len(self.enter) == 3 and self.enter[2] in src:
                         gv.nav.state.enter()
                         return
-                elif mk[0] == self.left[0] and mk[1] == self.left[1] and velocity > 0: # Left button
+                elif mk[0] == self.left[0] and mk[1] == self.left[1] and velocity > 0:  # Left button
                     if len(self.left) == 2 or len(self.left) == 3 and self.left[2] in src:
                         gv.nav.state.left()
                         return
-                elif mk[0] == self.right[0] and mk[1] == self.right[1] and velocity > 0: # Right button
+                elif mk[0] == self.right[0] and mk[1] == self.right[1] and velocity > 0:  # Right button
                     if len(self.right) == 2 or len(self.right) == 3 and self.right[2] in src:
                         gv.nav.state.right()
                         return
-                elif mk[0] == self.cancel[0] and mk[1] == self.cancel[1] and velocity > 0: # Cancel button
+                elif mk[0] == self.cancel[0] and mk[1] == self.cancel[1] and velocity > 0:  # Cancel button
                     if len(self.cancel) == 2 or len(self.cancel) == 3 and self.cancel[2] in src:
                         gv.nav.state.cancel()
                         return
@@ -141,12 +136,12 @@ class Midi:
                         gv.nav.up()
                         return
                 # Down / previous preset
-                elif mk[0] == self.down[0] and mk[1] == self.down[1]  and velocity > 0:
+                elif mk[0] == self.down[0] and mk[1] == self.down[1] and velocity > 0:
                     if len(self.down) == 2 or len(self.down) == 3 and self.down[2] in src:
                         gv.nav.down()
                         return
                 # Function button
-                elif mk[0] == self.func[0] and mk[1] == self.func[1]  and velocity > 0:
+                elif mk[0] == self.func[0] and mk[1] == self.func[1] and velocity > 0:
                     if len(self.func) == 2 or len(self.func) == 3 and self.func[2] in src:
                         gv.nav.func()
                         return
@@ -179,7 +174,8 @@ class Midi:
 
             elif messagetype == 8:  # Note off
 
-                gv.ac.noteoff(midinote=midinote, midichannel=midichannel)
+                if noteoff == True:
+                    gv.ac.noteoff(midinote=midinote, midichannel=midichannel)
 
 
             elif messagetype == 12:  # Program change

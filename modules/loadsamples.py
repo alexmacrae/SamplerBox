@@ -34,6 +34,7 @@ class LoadingSamples:
         gv.samples[i] = {}
         gv.samples[i]['keywords'] = {}
         gv.samples[i]['fillnotes'] = {}
+        gv.samples[i]['keywords']['voices'] = {}
 
     ###########################
     # Initiate sample loading #
@@ -167,21 +168,21 @@ class LoadingSamples:
             for global_var, keyword in dp.keywords_to_try:
                 if preset_keywords_dict.has_key(keyword):
                     value = preset_keywords_dict.get(keyword)
-                    print '>>>> Keyword found. %s: %s' % (keyword, str(value))  # debug
+                    print '>>>> Global keyword found in definition -> %s: %s' % (keyword, str(value))  # debug
                     exec (global_var + '=value')  # set the global variable
 
     def reset_global_defaults(self):
+
         # gv.global_volume = 10 ** (-6.0/20)  # -12dB default global volume
         gv.basename = gv.SETLIST_LIST[gv.preset]
-        keywords_defaults = dp.keywords_defaults_dict
-        gv.globaltranspose = keywords_defaults['%%transpose']
-        gv.sample_mode = keywords_defaults['%%mode'].title()
-        gv.velocity_mode = keywords_defaults['%%velmode'].title()
-        gv.PRERELEASE = keywords_defaults['%%release']
-        gv.gain = keywords_defaults['%%gain']
-        gv.PITCHBEND = keywords_defaults['%%pitchbend']
+        gv.globaltranspose = dp.get_default('%%transpose')
+        gv.sample_mode = dp.get_default('%%mode')
+        gv.velocity_mode = dp.get_default('%%velmode')
+        gv.PRERELEASE = dp.get_default('%%release')
+        gv.gain = dp.get_default('%%gain')
+        gv.PITCHBEND = dp.get_default('%%pitchbend')
         gv.currvoice = 1
-        # prevbase = gv.basename  # disp_changed from currbase
+        #### prevbase = gv.basename  # disp_changed from currbase
 
     def set_global_fadeout(self):
         # if not (gv.FADEOUTLENGTH) == gv.FADEOUTLENGTH_DEFAULT:
@@ -263,7 +264,7 @@ class LoadingSamples:
 
                 print '---- LOADING: [%d] %s' % (self.preset_current_loading, current_basename)  # debug
 
-                file_count = file_count - 1 # One of the files is definition.txt
+                file_count = file_count - 1  # One of the files is definition.txt
 
                 definition_list = list(enumerate(open(definitionfname, 'r')))
                 wav_definitions_list = [x for x in definition_list if "%%" not in x[1]]  # remove list entries containing %%
@@ -273,37 +274,41 @@ class LoadingSamples:
 
                     self.pause_if_playingsounds_or_midi()
 
+                    ############################
+                    # Global-level definitions #
+                    ############################
+
                     for i, pattern in enumerate(definitionfile):  # iterate every line
 
                         self.pause_if_playingsounds_or_midi()
 
+                        if r'%%' not in pattern:
+                            continue
+
                         try:
 
-                            ############################
-                            # Global-level definitions #
-                            ############################
                             """
                             Add any found keywords to preset's samples dict without applying to globals
                             """
-
+                            print pattern
                             if r'%%gain' in pattern:
                                 gv.samples[self.preset_current_loading]['keywords']['gain'] = abs(float(pattern.split('=')[1].strip()))
-                                pass
+                                continue
                             if r'%%transpose' in pattern:
                                 gv.samples[self.preset_current_loading]['keywords']['transpose'] = int(pattern.split('=')[1].strip())
-                                pass
+                                continue
                             if r'%%release' in pattern:
                                 release = (int(pattern.split('=')[1].strip()))
                                 if release > 127:
                                     print "Release of %d limited to %d" % (release, 127)
                                     release = 127
                                 gv.samples[self.preset_current_loading]['keywords']['release'] = release
-                                pass
+                                continue
                             if r'%%fillnote' in pattern:
                                 m = pattern.split('=')[1].strip().title()
                                 if m == 'Y' or m == 'N':
                                     gv.fillnote = m
-                                    pass
+                                    continue
                             if r'%%pitchbend' in pattern:
                                 pitchnotes = abs(int(pattern.split('=')[1].strip()))
                                 if pitchnotes > 12:
@@ -311,31 +316,58 @@ class LoadingSamples:
                                     pitchnotes = 12
                                 pitchnotes *= 2  # actually it is 12 up and 12 down
                                 gv.samples[self.preset_current_loading]['keywords']['pitchbend'] = pitchnotes
-                                pass
+                                continue
                             if r'%%mode' in pattern:
                                 mode = pattern.split('=')[1].strip().title()
                                 if mode == gv.PLAYLIVE \
-                                        or mode == gv.PLAYBACK \
+                                        or mode == gv.PLAYONCE \
                                         or mode == gv.PLAYSTOP \
                                         or mode == gv.PLAYLOOP \
                                         or mode == gv.PLAYLO2X:
                                     gv.samples[self.preset_current_loading]['keywords']['mode'] = mode
-                                    pass
+                                    continue
                             if r'%%velmode' in pattern:
                                 velmode = pattern.split('=')[1].strip().title()
                                 if velmode == gv.VELSAMPLE or velmode == gv.VELACCURATE:
                                     gv.samples[self.preset_current_loading]['keywords']['velmode'] = velmode
-                                    pass
+                                    continue
 
                             # End of global definitions
 
-                            ############################
-                            # Sample-level definitions #
-                            ############################
+                        except Exception as e:
+                            if pattern != '':
+                                print "Error in definition file, skipping line %s." % (i + 1)
+                                print "Line %d contents: %s" % (i + 1, pattern)
+                                # exc_info = sys.exc_info()
+                                # print exc_info
+                                print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e), e)
+
+                    # Set global variables from definitions or defaults
+
+                    if self.preset_current_loading == gv.samples_indices[gv.preset]:
+                        self.set_globals_from_keywords()
+                        self.set_global_fadeout()
+                        print '################################'
+
+                        self.pause_if_playingsounds_or_midi()
+
+
+                with open(definitionfname, 'r') as definitionfile:
+
+                    self.pause_if_playingsounds_or_midi()
+                    ############################
+                    # Sample-level definitions #
+                    ############################
+
+                    for i, pattern in enumerate(definitionfile):  # iterate every line (again)
+
+                        self.pause_if_playingsounds_or_midi()
+
+                        try:
 
                             defaultparams = {'midinote': '0', 'velocity': '127', 'notename': '',
                                              'voice': '1', 'seq': 1, 'channel': gv.MIDI_CHANNEL, 'release': '128',
-                                             'fillnote': 'Y'}
+                                             'fillnote': 'Y', 'mode': 'Keyb'}
 
                             if len(pattern.split(',')) > 1:
                                 defaultparams.update(dict([item.split('=') for item in pattern.split(',', 1)[1].replace(' ', '').replace('%', '').split(',')]))
@@ -346,8 +378,9 @@ class LoadingSamples:
                                 .replace(r"\%channel", r"(?P<channel>\d+)") \
                                 .replace(r"\%velocity", r"(?P<velocity>\d+)") \
                                 .replace(r"\%voice", r"(?P<voice>\d+)") \
-                                .replace(r"\%release", r"(?P<release>\d+)") \
+                                .replace(r"\%release", r"(?P<release>[a-zA-Z0-9_])") \
                                 .replace(r"\%fillnote", r"(?P<fillnote>[YNyn])") \
+                                .replace(r"\%mode", r"(?P<mode>\w+)") \
                                 .replace(r"\%seq", r"(?P<seq>\d+)") \
                                 .replace(r"\%notename", r"(?P<notename>[A-Ga-g]#?[0-9])") \
                                 .replace(r"\*", r".*?").strip()  # .*? => non greedy
@@ -388,29 +421,34 @@ class LoadingSamples:
                                         velocity = int(info.get('velocity', defaultparams['velocity']))
                                         seq = int(info.get('seq', defaultparams['seq']))
                                         notename = info.get('notename', defaultparams['notename'])
+                                        mode = info.get('mode', defaultparams['mode']).rstrip()
                                         # next statement places note 60 on C3/C4/C5 with the +0/1/2. So now it is C4:
                                         if notename:
                                             midinote = gv.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
+
+                                        ignore_loops = False
+                                        if mode.lower() == 'once':
+                                            ignore_loops = True
+                                        # print ignore_loops
+
                                         if gv.samples[self.preset_current_loading].has_key((midinote, velocity, voice, channel)):
                                             """
                                             Sample Randomization by David Hilowitz
                                             """
                                             # Find samples marked for randomization (seq).
                                             # Check existing list of sound objects if s.seq == seq
-                                            if any(s.seq == seq for s in
-                                                   gv.samples[self.preset_current_loading][midinote, velocity, voice, channel]):
+                                            if any(s.seq == seq for s in gv.samples[self.preset_current_loading][midinote, velocity, voice, channel]):
                                                 print 'Sequence:%i, File:%s already loaded' % (seq, fname)
                                                 continue
-                                                # break
                                             else:
                                                 if (midinote, velocity, voice, channel) in gv.samples[self.preset_current_loading]:
                                                     gv.samples[self.preset_current_loading][
-                                                        midinote, velocity, voice, channel].append(sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release))
+                                                        midinote, velocity, voice, channel].append(sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release, ignore_loops=ignore_loops))
                                                     print 'Sample randomization: found seq:%i (%s) >> loading' % (seq, fname)
                                         else:
 
                                             gv.samples[self.preset_current_loading][midinote, velocity, voice, channel] = [
-                                                sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release)]
+                                                sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release, ignore_loops=ignore_loops)]
 
                                             gv.fillnotes[midinote, voice] = voicefillnote
                                             gv.samples[self.preset_current_loading]['fillnotes'][midinote, voice] = voicefillnote
@@ -529,12 +567,6 @@ class LoadingSamples:
         is_memory_too_high_bool = self.is_memory_too_high()[0]
         is_memory_too_high_percentage = self.is_memory_too_high()[1]
 
-        if self.preset_current_loading == gv.samples_indices[gv.preset]:
-            self.set_globals_from_keywords()
-            self.set_global_fadeout()
-            print '################################'
-
-            self.pause_if_playingsounds_or_midi()
 
         if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset')  # Force the display to update
 

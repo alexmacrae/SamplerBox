@@ -1,6 +1,3 @@
-#################
-# MIXER CLASSES #
-#################
 import samplerbox_audio
 import struct
 import wave
@@ -8,12 +5,10 @@ from chunk import Chunk
 import numpy
 import sounddevice
 import globalvars as gv
-import exceptions
-import sys
+import exceptions_samplerbox
 import re
 if gv.IS_DEBIAN:
     import alsaaudio
-
 
 ############################################################
 # SLIGHT MODIFICATION OF PYTHON'S WAVE MODULE              #
@@ -30,9 +25,9 @@ class waveread(wave.Wave_read):
         self._ieee = False
         self._file = Chunk(file, bigendian=0)
         if self._file.getname() != 'RIFF':
-            raise exceptions.WaveReadError, 'file does not start with RIFF id'
+            raise exceptions_samplerbox.WaveReadError, 'file does not start with RIFF id'
         if self._file.read(4) != 'WAVE':
-            raise exceptions.WaveReadError, 'not a WAVE file'
+            raise exceptions_samplerbox.WaveReadError, 'not a WAVE file'
         self._fmt_chunk_read = 0
         self._data_chunk = None
         while 1:
@@ -47,7 +42,7 @@ class waveread(wave.Wave_read):
                 self._fmt_chunk_read = 1
             elif chunkname == 'data':
                 if not self._fmt_chunk_read:
-                    raise exceptions.WaveReadError, 'data chunk before fmt chunk'
+                    raise exceptions_samplerbox.WaveReadError, 'data chunk before fmt chunk'
                 self._data_chunk = chunk
                 self._nframes = chunk.chunksize // self._framesize
                 self._data_seek_needed = 0
@@ -65,7 +60,7 @@ class waveread(wave.Wave_read):
                     self._loops.append([start, end])
             chunk.skip()
         if not self._fmt_chunk_read or not self._data_chunk:
-            raise exceptions.WaveReadError, 'fmt chunk and/or data chunk missing'
+            raise exceptions_samplerbox.WaveReadError, 'fmt chunk and/or data chunk missing'
 
     def getmarkers(self):
         return self._cue
@@ -76,14 +71,14 @@ class waveread(wave.Wave_read):
 
 
 class PlayingSound:
-    def __init__(self, sound, note, vel, timestamp=None):
+    def __init__(self, sound, note, vel, ignore_loops=False):
         self.sound = sound
         self.pos = 0
         self.fadeoutpos = 0
         self.isfadeout = False
         self.note = note
         self.vel = vel
-        self.timestamp = timestamp
+        self.ignore_loops = ignore_loops
 
     def fadeout(self, i):
         if self.isfadeout:
@@ -102,7 +97,7 @@ class PlayingSound:
 
 
 class Sound:
-    def __init__(self, filename, midinote, velocity, seq, channel, release):
+    def __init__(self, filename, midinote, velocity, seq, channel, release, ignore_loops=False):
         wf = waveread(filename)
         self.fname = filename
         self.midinote = midinote
@@ -110,8 +105,9 @@ class Sound:
         self.seq = seq
         self.channel = channel
         self.release = release
+        self.ignore_loops = ignore_loops
 
-        if wf.getloops():
+        if wf.getloops() and ignore_loops == False:
             self.loop = wf.getloops()[0][0]
             self.nframes = wf.getloops()[0][1] + 2
         else:
@@ -120,8 +116,8 @@ class Sound:
         self.data = self.frames2array(wf.readframes(self.nframes), wf.getsampwidth(), wf.getnchannels())
         wf.close()
 
-    def play(self, note, vel, timestamp=None):
-        snd = PlayingSound(self, note, vel, timestamp)
+    def play(self, note, vel):
+        snd = PlayingSound(self, note, vel, self.ignore_loops)
         # print 'fname: ' + self.fname + ' note/vel: ' + str(note) + '/' + str(vel) + ' midinote: ' + str(self.midinote) + ' vel: ' + str(self.velocity)
         gv.playingsounds.append(snd)
         return snd
@@ -143,10 +139,6 @@ class Sound:
 def audio_callback(outdata, frame_count, time_info, status):
     rmlist = []
     gv.playingsounds = gv.playingsounds[-gv.MAX_POLYPHONY:]
-
-    # b = samplerbox_audio.mixaudiobuffers(gv.playingsounds, rmlist, frame_count,
-    #                                      gv.FADEOUT, gv.FADEOUTLENGTH, gv.SPEED,
-    #                                      gv.PITCHBEND, gv.PITCHSTEPS)
 
     b = samplerbox_audio.mixaudiobuffers(gv.playingsounds, rmlist, frame_count, gv.FADEOUT, gv.FADEOUTLENGTH,
                                          gv.PRERELEASE, gv.SPEED, gv.SPEEDRANGE, gv.PITCHBEND, gv.PITCHSTEPS)

@@ -52,7 +52,7 @@ class AudioControls(object):
                             m.fadeout(50)
                             # print 'clean sustain ' + str(playnote)
                     if gv.triggernotes[midichannel][playnote] < 128:  # cleanup in case of retrigger
-                        if playnote in gv.playingnotes[midichannel]:  # occurs in once/loops modes and chords)
+                        if playnote in gv.playingnotes[midichannel]:  # occurs in once/loops modes and chords
                             for m in gv.playingnotes[midichannel][playnote]:
                                 # print "clean note " + str(playnote)
                                 m.fadeout(50)
@@ -71,8 +71,7 @@ class AudioControls(object):
                     # End David Hilowitz
                     gv.triggernotes[midichannel][playnote] = midinote  # we are last playing this one
                     # print "start note " + str(playnote)
-                    gv.playingnotes[midichannel].setdefault(playnote, []).append(
-                        sample.play(playnote, velmixer))
+                    gv.playingnotes[midichannel].setdefault(playnote, []).append(sample.play(playnote, velmixer))
                     gv.lastplayedseq[playnote] = sample.seq  # David Hilowitz
         except:
             print 'Note error: check definition'
@@ -87,7 +86,7 @@ class AudioControls(object):
                 if gv.triggernotes[midichannel][playnote] == midinote:  # did we make this one play ?
                     if playnote in gv.playingnotes[midichannel]:
                         for m in gv.playingnotes[midichannel][playnote]:
-                            if gv.sustain:
+                            if gv.sustain or m.ignore_loops == True: # if the PlayingSound object has attribute ignore_loops, play the whole sample
                                 # print 'Sustain note ' + str(playnote)   # debug
                                 gv.sustainplayingnotes.append(m)
                             else:

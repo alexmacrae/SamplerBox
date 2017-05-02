@@ -46,11 +46,10 @@ class SystemFunctions:
             gv.displayer.disp_change(str_override='SamplerBox', line=3, is_priority=True)
             gv.displayer.disp_change(str_override=' ', line=4, is_priority=True)
 
-        time.sleep(0.1)
+        time.sleep(0.5)
 
         if gv.IS_DEBIAN:
-            import RPi.GPIO as GPIO
-            GPIO.cleanup()
+            gv.displayer.LCD_SYS.lcd.close(clear=False) # does GPIO.cleanup()
 
         # Python calls 2 command line commands in one line: kill all python scripts, and re-run samplerbox.py
         # subprocess.call('sudo killall python && sudo python ' + str(os.getcwd()) + '/samplerbox.py')
@@ -73,11 +72,10 @@ class SystemFunctions:
             gv.displayer.disp_change(str_override='System', line=3, is_priority=True)
             gv.displayer.disp_change(str_override=' ', line=4, is_priority=True)
 
-        time.sleep(0.1)
+        time.sleep(0.5)
 
         if gv.IS_DEBIAN:
-            import RPi.GPIO as GPIO
-            GPIO.cleanup()
+            gv.displayer.LCD_SYS.lcd.close(clear=False) # does GPIO.cleanup()
 
         subprocess.call('reboot')
 
@@ -90,14 +88,14 @@ class SystemFunctions:
         for i in xrange(gv.LCD_ROWS):
             gv.displayer.disp_change(str_override=shutdown_message, line=(i + 1), timeout=1, is_priority=True)
 
-        time.sleep(0.1)
+        time.sleep(0.5)
         gv.sound.close_stream()
 
         if log_file:
             log_file.close()
 
         if gv.IS_DEBIAN:
-            import RPi.GPIO as GPIO
-            GPIO.cleanup()
+            gv.displayer.LCD_SYS.lcd.close(clear=False) # does GPIO.cleanup()
+            print 'GPIO was cleaned up'
 
         exit()

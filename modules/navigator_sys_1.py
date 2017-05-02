@@ -753,115 +753,126 @@ def set_global_from_keyword(keyword, value):
             exec (gvar + '=value')  # set the global variable
 
 
-def clamp(n, minn, maxn):
-    return max(min(maxn, n), minn)
-
-
 class EditDefinition(Navigator):
     def __init__(self, preset):
+
         self.text_scroller.stop()
-        self.in_a_mode = False
-        self.mode = 0
-        self.selected_keyword = None
-        self.allowed_values = None
-        self.i = 0
-        self.selected_keyword_value = None
-        self.prev_state = SelectSong
         self.song_name = gv.SETLIST_LIST[gv.samples_indices[preset]]
         self.dp = definitionparser.DefinitionParser(self.song_name)
         self.keywords_dict = self.dp.keywords_dict
-        self.keywords_defaults_dict = self.dp.keywords_defaults_dict
+        self.in_a_mode = False
+        self.mode = 0
+        self.selected_kw_item = self.keywords_dict[self.mode] # selected keyword item (dict)
+        self.allowed_values = None
+        self.i = 0
+        self.selected_kw_value = None
+        self.prev_state = SelectSong
+        # self.keywords_defaults_dict = self.dp.keywords_defaults_dict
         self.display()
 
     def display(self):
+
+        keyword_str = self.selected_kw_item.get('name').strip('%%').title()
+
         if not self.in_a_mode:
-            keyword_str = self.keywords_dict[self.mode].items()[0][0].strip('%%').title()
+
             gv.displayer.disp_change(self.song_name.center(gv.LCD_COLS, ' '), line=1, timeout=0)
             gv.displayer.disp_change(keyword_str.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+
         elif self.in_a_mode:
-            keyword_str = self.keywords_dict[self.mode].items()[0][0].strip('%%').title()
-            if isinstance(self.allowed_values, list):
-                value_str = str(self.allowed_values[self.i])
-            elif isinstance(self.allowed_values, tuple):
-                num = self.i
-                if 'Release' in keyword_str:
-                    num = float(num) / 58.82  # convert to seconds
-                    value_str = '%ss' % str(num)[:4]  # display like: 1.23s
-                else:
-                    value_str = str(num)
+
+            value = self.selected_kw_value
+
+            if 'Release' in keyword_str:
+                value = float(value) / 58.82 # convert to seconds
+                value = '%ss' % str(value)[:4]  # display like: 1.23s
+                # value = '%sms' % str(int(value*1000))[:4]  # display like: 50ms
+            else:
+                value = str(value)
             gv.displayer.disp_change(keyword_str.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-            gv.displayer.disp_change(value_str.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+            gv.displayer.disp_change(value.center(gv.LCD_COLS, ' '), line=2, timeout=0)
 
     def left(self):
+
         if not self.in_a_mode:
             if not self.mode <= 0:
                 self.mode -= 1
-        else:
-            if isinstance(self.allowed_values, list):
+                self.selected_kw_item = self.keywords_dict[self.mode]
+
+        elif self.in_a_mode:
+
+            if self.selected_kw_item.get('type') == 'range':
+                min_val = self.selected_kw_item.get('min')
+                max_val = self.selected_kw_item.get('max')
+                increment = self.selected_kw_item.get('increment')
+                self.i = max(min(max_val, (self.i-increment)), min_val) # keeps value within min/max range
+                self.selected_kw_value = self.i
+            elif self.selected_kw_item.get('type') == 'options':
                 if not self.i <= 0:
                     self.i -= 1
-                    self.selected_keyword_value = self.allowed_values[self.i]
-            elif isinstance(self.allowed_values, tuple):
-                self.i = clamp(int(self.i) - 1, self.allowed_values[0], self.allowed_values[1])
-                self.selected_keyword_value = self.i
+                    self.selected_kw_value = self.selected_kw_item.get('options')[self.i]
 
-            set_global_from_keyword(self.selected_keyword, self.selected_keyword_value)
+            set_global_from_keyword(self.selected_kw_item.get('name'), self.selected_kw_value)
 
         self.display()
 
     def right(self):
+
         if not self.in_a_mode:
+
             if not self.mode >= len(self.keywords_dict) - 1:
                 self.mode += 1
-        else:
-            if isinstance(self.allowed_values, list):
-                if not self.i >= len(self.allowed_values) - 1:
-                    self.i += 1
-                    self.selected_keyword_value = self.allowed_values[self.i]
-            elif isinstance(self.allowed_values, tuple):
-                self.i = clamp(int(self.i) + 1, self.allowed_values[0], self.allowed_values[1])
-                self.selected_keyword_value = self.i
+                self.selected_kw_item = self.keywords_dict[self.mode]
 
-            set_global_from_keyword(self.selected_keyword, self.selected_keyword_value)
+        elif self.in_a_mode:
+
+            if self.selected_kw_item.get('type') == 'range':
+                min_val = self.selected_kw_item.get('min')
+                max_val = self.selected_kw_item.get('max')
+                increment = self.selected_kw_item.get('increment')
+                self.i = max(min(max_val, (self.i+increment)), min_val) # keeps value within min/max range
+                self.selected_kw_value = self.i
+            elif self.selected_kw_item.get('type') == 'options':
+                if not self.i >= len(self.selected_kw_item.get('options')) - 1:
+                    self.i += 1
+                    self.selected_kw_value = self.selected_kw_item.get('options')[self.i]
+
+            set_global_from_keyword(keyword=self.selected_kw_item.get('name'), value=self.selected_kw_value)
 
         self.display()
 
     def enter(self):
         if not self.in_a_mode:
             self.in_a_mode = True
-            self.selected_keyword = self.keywords_dict[self.mode].items()[0][0]
-            self.allowed_values = self.keywords_dict[self.mode].items()[0][1]
-            if self.dp.existing_patterns.has_key(self.selected_keyword):
-                self.selected_keyword_value = self.dp.existing_patterns[self.selected_keyword]
-                if isinstance(self.allowed_values, list):
-                    self.i = self.allowed_values.index(self.selected_keyword_value)
-                elif isinstance(self.allowed_values, tuple):
-                    self.i = self.selected_keyword_value
-                print '### %s exists with a value of %s ###' \
-                      % (self.selected_keyword.title(), str(self.selected_keyword_value).title())
-            else:
-                self.i = int(self.keywords_defaults_dict[self.selected_keyword])
-                if isinstance(self.allowed_values, list):
-                    self.selected_keyword_value = self.keywords_dict[self.i]
-                elif isinstance(self.allowed_values, tuple):
-                    self.selected_keyword_value = self.i
+            self.selected_kw_item = self.keywords_dict[self.mode]
+            if self.dp.existing_patterns.has_key(self.selected_kw_item.get('name')):
 
-                print '### %s does not exist. Set default: %d ###' \
-                      % (self.selected_keyword.title(), self.i)
+                self.selected_kw_value = self.dp.existing_patterns[self.selected_kw_item.get('name')]
+                print self.selected_kw_value
+
+                if self.selected_kw_item.get('type') == 'range':
+                    self.i = self.selected_kw_value
+                elif self.selected_kw_item.get('type') == 'options':
+                    self.i = definitionparser.get_option_index(item=self.selected_kw_item, option=self.selected_kw_value)
+
+                print '### %s exists with a value of %s ###' % (self.selected_kw_item.get('name').title(), str(self.selected_kw_value).title())
+            else:
+
+                self.selected_kw_value = definitionparser.get_default(self.selected_kw_item.get('name'))
+                self.i = definitionparser.get_option_index(item=self.selected_kw_item, option=self.selected_kw_value)
+                print '### %s does not exist. Set default: %d ###' % (self.selected_kw_item.get('name').title(), self.selected_kw_value)
 
             self.display()
+
         elif self.in_a_mode:
 
             # In a mode -> save to definition.txt
-            if isinstance(self.allowed_values, list):
-                self.dp.set_new_keyword(self.selected_keyword, str(self.selected_keyword_value))
-            elif isinstance(self.allowed_values, tuple):
-                self.dp.set_new_keyword(self.selected_keyword, int(self.selected_keyword_value))
+            self.dp.set_new_keyword(keyword=self.selected_kw_item.get('name'), value=self.selected_kw_value)
 
             self.dp.compare_existing_patterns()
             self.dp.write_definition_file()
             # Update existing patterns in memory
-            self.dp.existing_patterns = self.dp.get_patterns_from_file(self.dp.definitionfname, self.dp.keywords_dict)
+            self.dp.existing_patterns = self.dp.get_patterns_from_file()
             # self.load_state(EditDefinition)
 
             self.in_a_mode = False
@@ -912,7 +923,7 @@ class AudioDevice(Navigator):
 
     def enter(self):
         gv.cp.update_config('SAMPLERBOX CONFIG', 'AUDIO_DEVICE_NAME', self.device_name)
-        gv.AUDIO_DEVICE_ID = -1 # sound.py prioritises searching AUDIO_DEVICE_ID if it is 0 or greater
+        gv.AUDIO_DEVICE_ID = -1  # sound.py prioritises searching AUDIO_DEVICE_ID if it is 0 or greater
         gv.sound.set_audio_device(self.device_name)
         self.display(changed=True)
 
@@ -1049,7 +1060,7 @@ class SetRAMLimit(Navigator):
     def enter(self):
         gv.cp.update_config('SAMPLERBOX CONFIG', 'RAM_LIMIT_PERCENTAGE', str(self.ram_limit))
         gv.RAM_LIMIT_PERCENTAGE = self.ram_limit
-        gv.ls.load_samples() # perhaps we increased the RAM, so go ahead and load more samples now!
+        gv.ls.load_samples()  # perhaps we increased the RAM, so go ahead and load more samples now!
         self.cancel()
 
     def cancel(self):

@@ -242,7 +242,7 @@ VelocitySelectionOffset = 0
 # Constants
 
 PLAYLIVE = "Keyb"  # reacts on "keyboard" interaction
-PLAYBACK = "Once"  # ignores loop markers and note-off ("just play the sample")
+PLAYONCE = "Once"  # ignores loop markers and note-off ("just play the sample")
 PLAYSTOP = "On64"  # ignores loop markers with note-off by note+64 ("just play the sample with option to stop")
 PLAYLOOP = "Loop"  # recognize loop markers, note-off by note+64 ("just play the loop with option to stop")
 PLAYLO2X = "Loo2"  # recognize loop markers, note-off by same note ("just play the loop with option to stop")

@@ -3,17 +3,17 @@ menu = {
 
         0: {
             'name': 'Setlist',
-            'desc': 'Manage the presets in your setlist',
+            'desc': 'Change the order of your setlist',
             'submenu': {
                 0: {'name': 'Rearrange', 'desc': 'Select a preset to move to a different place in the setlist',
                     'fn': ['SelectSong', 'MoveSong']},
-                1: {'name': 'Remove missing', 'fn': 'SetlistRemoveMissing'},
-                2: {'name': 'Delete songs', 'fn': ['SelectSong', 'DeleteSong']}
+                # 1: {'name': 'Remove missing', 'fn': 'SetlistRemoveMissing'},
+                # 2: {'name': 'Delete songs', 'fn': ['SelectSong', 'DeleteSong']}
             }
         },
         1: {
             'name': 'Edit definitions',
-            'desc': 'Change sample-set definitions',
+            'desc': 'Modify sample-set definitions',
             'fn': ['SelectSong', 'EditDefinition']
             },
         2: {
@@ -243,7 +243,7 @@ menu = {
 
             },
         # 5: {'name': 'Restart', 'fn': 'gv.sysfunc.restart()'},
-        5: {'name': 'Reboot System', 'fn': 'gv.sysfunc.reboot()'},
+        5: {'name': 'Reboot System', 'fn': 'gv.sysfunc.reboot()', 'desc': 'Reboot Raspberry Pi'},
 
     }
 }
