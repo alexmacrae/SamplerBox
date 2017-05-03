@@ -139,6 +139,7 @@ if gv.USE_SERIALPORT_MIDI:
 
     def midi_serial_callback():
         message = [0, 0, 0]
+        runningstatus = 0
         while True:
             i = 0
             while i < 3:
@@ -146,6 +147,10 @@ if gv.USE_SERIALPORT_MIDI:
                 if data >> 7 != 0:
                     # status byte! this is the beginning of a midi message: http://www.midi.org/techspecs/midimessages.php
                     i = 0
+                    runningstatus = data
+                elif i == 0 and runningstatus > 0:  # use stored running status if available
+                    message[i] = runningstatus
+                    i += 1
                 message[i] = data
                 i += 1
                 if i == 2 and message[
