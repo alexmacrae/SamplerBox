@@ -164,6 +164,8 @@ if IS_DEBIAN:
 else:
     MIDIMAPS_FILE_PATH = 'midimaps.pkl'
 
+print MIDIMAPS_FILE_PATH, ' <--- MIDI maps path'
+
 ###################
 # SETLIST
 ###################
@@ -177,9 +179,9 @@ else:
 
 if not os.path.exists(SETLIST_FILE_PATH):
     print '>>>> SETLIST: %s does not exist. Creating an empty setlist file.' % SETLIST_FILE_PATH
-    sysfunc.mount_samples_rw()  # remount `/samples` as read-write (if using SD card)
+    if SAMPLES_DIR == '/samples': sysfunc.mount_samples_rw()  # remount `/samples` as read-write (if using SD card)
     f = open(SETLIST_FILE_PATH, 'w')
-    sysfunc.mount_samples_ro()  # remount as read-only
+    if SAMPLES_DIR == '/samples': sysfunc.mount_samples_ro()  # remount as read-only
     f.close()
 
 SETLIST_LIST = None  # open(SETLIST_FILE_PATH).read().splitlines()
