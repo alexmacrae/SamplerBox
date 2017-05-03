@@ -69,7 +69,7 @@ class DefinitionParser:
 
     def compare_existing_patterns(self):
         print '\r#### START COMPARING NEW AND INITAL PATTERNS ####'
-        print self.new_patterns, '<<<<<<<<<<<<<<<<<<<<<<<'
+        print 'New patterns to save: %s' % str(self.new_patterns)
         for n, value in self.new_patterns.iteritems():
 
             if n in self.existing_patterns:
@@ -109,7 +109,7 @@ class DefinitionParser:
     #########################
 
     def write_definition_file(self):
-        print '\r#### START WRITING definition.txt ####\r'
+        print '\r#### START WRITING %s/definition.txt ####\r' % self.basename
         f = open(self.definitionfname, 'w')
         for keyword, value in self.combined_patterns.iteritems():
             if 'wav_definition' not in keyword:
@@ -123,7 +123,7 @@ class DefinitionParser:
                     f.write(line)
                     print line.strip('\n')  # debug
         f.close()
-        print '\r#### END WRITING definition.txt ####\r'
+        print '\r#### END WRITING %s/definition.txt ####\r' % self.basename
 
     ##########################
     # GET PATTERNS FROM FILE #

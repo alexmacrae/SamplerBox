@@ -13,7 +13,7 @@ import configparser
 import globalvars as gv
 import menudict
 from textscroller import TextScroller
-
+from modules import definitionparser
 
 # ______________________________________________________________________________
 
@@ -740,24 +740,14 @@ class SampleRateConfig(Navigator):
 
 # _____________________________________________________________________________
 
-from modules import definitionparser
-
-
-def set_global_from_keyword(keyword, value):
-    keyword = keyword.strip('%%')
-    if isinstance(value, str): value = value.title()
-    for gvar, k in definitionparser.keywords_to_try:
-        if k == keyword:
-            # if 'release' in keyword: value = value * 10000
-            print '\r>>>> Setting global from keyword. %s: %s' % (keyword, str(value))  # debug
-            exec (gvar + '=value')  # set the global variable
 
 
 class EditDefinition(Navigator):
     def __init__(self, preset):
 
+        self.preset = preset
         self.text_scroller.stop()
-        self.song_name = gv.SETLIST_LIST[gv.samples_indices[preset]]
+        self.song_name = gv.SETLIST_LIST[gv.samples_indices[self.preset]]
         self.dp = definitionparser.DefinitionParser(self.song_name)
         self.keywords_dict = self.dp.keywords_dict
         self.in_a_mode = False
@@ -800,7 +790,7 @@ class EditDefinition(Navigator):
                 self.selected_kw_item = self.keywords_dict[self.mode]
 
         elif self.in_a_mode:
-
+            keyword = self.selected_kw_item.get('name')
             if self.selected_kw_item.get('type') == 'range':
                 min_val = self.selected_kw_item.get('min')
                 max_val = self.selected_kw_item.get('max')
@@ -812,7 +802,11 @@ class EditDefinition(Navigator):
                     self.i -= 1
                     self.selected_kw_value = self.selected_kw_item.get('options')[self.i]
 
-            set_global_from_keyword(self.selected_kw_item.get('name'), self.selected_kw_value)
+                    self.set_global_from_keyword(keyword, self.selected_kw_value)
+                    if keyword.lower() == '%%mode':
+                        gv.ls.kill_preset(preset=self.preset)
+                        self.save_definition()
+                        gv.ls.load_samples()
 
         self.display()
 
@@ -825,7 +819,7 @@ class EditDefinition(Navigator):
                 self.selected_kw_item = self.keywords_dict[self.mode]
 
         elif self.in_a_mode:
-
+            keyword = self.selected_kw_item.get('name')
             if self.selected_kw_item.get('type') == 'range':
                 min_val = self.selected_kw_item.get('min')
                 max_val = self.selected_kw_item.get('max')
@@ -837,11 +831,16 @@ class EditDefinition(Navigator):
                     self.i += 1
                     self.selected_kw_value = self.selected_kw_item.get('options')[self.i]
 
-            set_global_from_keyword(keyword=self.selected_kw_item.get('name'), value=self.selected_kw_value)
+                    self.set_global_from_keyword(keyword=keyword, value=self.selected_kw_value)
+                    if keyword.lower() == '%%mode':
+                        gv.ls.kill_preset(preset=self.preset)
+                        self.save_definition()
+                        gv.ls.load_samples()
 
         self.display()
 
     def enter(self):
+
         if not self.in_a_mode:
             self.in_a_mode = True
             self.selected_kw_item = self.keywords_dict[self.mode]
@@ -867,25 +866,32 @@ class EditDefinition(Navigator):
         elif self.in_a_mode:
 
             # In a mode -> save to definition.txt
-            self.dp.set_new_keyword(keyword=self.selected_kw_item.get('name'), value=self.selected_kw_value)
-
-            self.dp.compare_existing_patterns()
-            self.dp.write_definition_file()
-            # Update existing patterns in memory
-            self.dp.existing_patterns = self.dp.get_patterns_from_file()
+            self.save_definition()
             # self.load_state(EditDefinition)
-
             self.in_a_mode = False
-
             self.display()
 
     def cancel(self):
+
         if not self.in_a_mode:
             Navigator.state = self.prev_state(EditDefinition)  # go back up a menu tier
         elif self.in_a_mode:
             self.enter()  # save even if we have pressed cancel. Not saving requires to revert to initial value.
-            # self.in_a_mode = False
-            # self.display()
+
+    def set_global_from_keyword(self, keyword, value):
+        keyword = keyword.strip('%%')
+        if isinstance(value, str): value = value.title()
+        for gvar, k in definitionparser.keywords_to_try:
+            if k == keyword:
+                print '\r>>>> Setting global from keyword. %s: %s' % (keyword, str(value))  # debug
+                exec (gvar + '=value')  # set the global variable
+
+    def save_definition(self):
+        self.dp.set_new_keyword(keyword=self.selected_kw_item.get('name'), value=self.selected_kw_value)
+        self.dp.compare_existing_patterns()
+        self.dp.write_definition_file()
+        # Update existing patterns in memory
+        self.dp.existing_patterns = self.dp.get_patterns_from_file()
 
 
 class AudioDevice(Navigator):
