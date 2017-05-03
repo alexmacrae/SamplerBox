@@ -75,6 +75,7 @@ class Midi:
             ########################
             # Check if MIDI Mapped #
             ########################
+
             try:
 
                 # Check for MIDI map match from the config.ini
@@ -95,10 +96,14 @@ class Midi:
                     if len(self.cancel) == 2 or len(self.cancel) == 3 and self.cancel[2] in src:
                         gv.nav.state.cancel()
                         return
+            except:
+                #print "This MIDI message hasn't been assigned in config.ini -- skipping" # debug
+                pass
 
+            try:
                 # Now check for MIDI mappings that the user may have defined from within the menu system
 
-                elif midimaps.get(src).has_key(messageKey):
+                if midimaps.get(src).has_key(messageKey):
 
                     # Remap note/control to a function
 
@@ -124,7 +129,7 @@ class Midi:
                         note = midimaps.get(src).get(messageKey).get('note')
 
             except:
-                # print "MIDI message isn't mapped, or it is and it failed" # debug
+                #print "MIDI message isn't mapped, or it is and it failed" # debug
                 pass
 
         elif gv.SYSTEM_MODE == 2:
