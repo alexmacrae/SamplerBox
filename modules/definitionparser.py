@@ -14,7 +14,7 @@ keywords_dict = {
     2: {'name': '%%velmode', 'type': 'options', 'options': ['Sample', 'Accurate'], 'default': 1},
     3: {'name': '%%release', 'type': 'range', 'min': 0, 'max': 127, 'increment': 1, 'default': 30},
     4: {'name': '%%transpose', 'type': 'range', 'min': -48, 'max': 48, 'increment': 1, 'default': 0},
-    5: {'name': '%%pitchbend', 'type': 'range', 'min': 0, 'max': 24, 'increment': 1, 'default': 7},
+    5: {'name': '%%pitchbend', 'type': 'range', 'min': 0, 'max': 24, 'increment': 1, 'default': 0},
     6: {'name': '%%fillnote', 'type': 'options', 'options': ['Y','N'], 'default': 0}
 }
 
