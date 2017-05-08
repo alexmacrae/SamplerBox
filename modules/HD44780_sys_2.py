@@ -98,7 +98,7 @@ class LCD_SYS_2:
             s2 = s2 + ' ' * gv.LCD_COLS
 
         if gv.PRINT_LCD_MESSAGES:
-            message = "%s || %s" % (s1[:gv.LCD_COLS], s2[:gv.LCD_COLS])
+            message = "\r%s || %s" % (s1[:gv.LCD_COLS], s2[:gv.LCD_COLS])
             # print "display: %s \\ %s" % (s1[:gv.LCD_COLS], s2[:gv.LCD_COLS])
             sys.stdout.write(message)
             sys.stdout.flush()

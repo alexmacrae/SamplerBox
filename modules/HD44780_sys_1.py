@@ -56,11 +56,8 @@ class LCD_SYS_1:
                                    pins_data=[gv.GPIO_LCD_D4, gv.GPIO_LCD_D5, gv.GPIO_LCD_D6, gv.GPIO_LCD_D7],
                                    numbering_mode=GPIO.BCM, cols=gv.LCD_COLS, rows=gv.LCD_ROWS)
 
-                time.sleep(self.E_DELAY)
-                self.lcd.home()
-                time.sleep(self.E_DELAY)
-                self.lcd.clear()
-                time.sleep(self.E_DELAY)
+                for i in xrange(1, gv.LCD_ROWS+1):
+                    self.lcd_string(' ', i) # clear the display
 
                 # Write custom codes to the LCD
                 self.lcd.create_char(1, lcdcc.block)
@@ -107,7 +104,6 @@ class LCD_SYS_1:
                     self.reset_after_timeout()
 
                 if (self.temp_display or gv.displayer.menu_mode == gv.displayer.DISP_UTILS_MODE):
-
                     self.lcd_string(self.STRING_1, 1)
                     self.lcd_string(self.STRING_2, 2)
                     print_message = "\r%s||%s" % (self.STRING_1[:gv.LCD_COLS], self.STRING_2[:gv.LCD_COLS])
@@ -132,7 +128,6 @@ class LCD_SYS_1:
                         self.lcd_string(self.STRING_3_PRIORITY, 3)
                         self.lcd_string(self.STRING_4_PRIORITY, 4)
                         print_message = "\r%s||%s||%s" % (print_message, self.STRING_3_PRIORITY[:gv.LCD_COLS], self.STRING_4_PRIORITY[:gv.LCD_COLS])
-
                 if gv.PRINT_LCD_MESSAGES:
                     sys.stdout.write(print_message)
                     sys.stdout.flush()
@@ -144,12 +139,11 @@ class LCD_SYS_1:
 
     def lcd_string(self, message, line):
 
-        # if gv.PRINT_LCD_MESSAGES:
-        #     print '{line ' + str(line) + '} -->  ' + message[:gv.LCD_COLS]
-
+        message = message[:gv.LCD_COLS]
         message = message.ljust(gv.LCD_COLS, " ")
+
         if (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD) and gv.IS_DEBIAN:
-            self.lcd._set_cursor_pos((line - 1, 0))
+
             self.lcd.write_string(message[:gv.LCD_COLS])
 
     def display(self, message, line=1, is_priority=False, timeout_custom=None):
