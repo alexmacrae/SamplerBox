@@ -243,7 +243,8 @@ menu = {
 
             },
         # 5: {'name': 'Restart', 'fn': 'gv.sysfunc.restart()'},
-        5: {'name': 'Reboot System', 'fn': 'gv.sysfunc.reboot()', 'desc': 'Reboot Raspberry Pi'},
+        5: {'name': 'Invert Sustain', 'desc': 'If sustain pedal is acting up, reverse its polarity here', 'fn': 'InvertSustain'},
+        6: {'name': 'Reboot System', 'fn': 'gv.sysfunc.reboot()', 'desc': 'Reboot Raspberry Pi'},
 
     }
 }

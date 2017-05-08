@@ -21,6 +21,7 @@ configdefaults = {
     'RAM_LIMIT_PERCENTAGE': {'type': 'range', 'min': 0, 'max': 95, 'default': 40, 'section': 'SAMPLERBOX CONFIG'},
     'BOXRELEASE': {'type': 'range', 'min': 1, 'max': 128, 'default': 30, 'section': 'SAMPLERBOX CONFIG'},
     'USE_GUI': {'type': 'boolean', 'default': False, 'section': 'SAMPLERBOX CONFIG'},
+    'INVERT_SUSTAIN': {'type': 'boolean', 'default': True, 'section': 'SAMPLERBOX CONFIG'},
 
     'PRINT_MIDI_MESSAGES': {'type': 'boolean', 'default': True, 'section': 'MISC'},
     'PRINT_LCD_MESSAGES': {'type': 'boolean', 'default': True, 'section': 'MISC'},

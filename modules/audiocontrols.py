@@ -290,6 +290,11 @@ class Sustain:
 
         CCnum = message[1]
         CCval = message[2]
+        if gv.INVERT_SUSTAIN == True:
+            if CCval > 66:
+                CCval = 0
+            elif CCval < 60:
+                CCval = 127
 
         if gv.sample_mode == gv.PLAYLIVE:
             # NB: the microKEY conditionals are unique to Alex's modded keyboard. Remove in future.
@@ -311,7 +316,7 @@ class Sustain:
                     self.sustain_on()
 
 
-            ###################
+###################
 # TONE CONTROL
 # by Erik
 ###################
