@@ -1,41 +1,47 @@
+.. _config-ini:
+
 The config.ini
 **************
 
-The ``config.ini`` file contains settings for your SamplerBox.
+The :ref:`config.ini <config-ini>` file contains settings for your SamplerBox. It is found in the ``/boot/samplerbox`` directory. The ``/boot`` partition is also accessible via a Windows or Mac machine.
 
 .. note::
 
-    In :ref:`system-mode-1` many of these settings are configurable from the menu. However an initial setup of this
-    file is likely required.
+    In :ref:`system-mode-1` many of these settings are configurable from the menu system. However an initial setup of this file may be required.
 
 Main configuration
 ==================
 
 .. code-block:: text
 
-    MAX_POLYPHONY = 80
-    MIDI_CHANNEL = 0
-    CHANNELS = 2
-    BUFFERSIZE = 64
+    MAX_POLYPHONY = 40
+    MIDI_CHANNEL = 1
     SAMPLERATE = 44100
-    GLOBAL_VOLUME = 87
-    USE_BUTTONS = false
-    USE_HD44780_16X2_LCD = false
-    USE_HD44780_20x4_LCD = false
-    USE_I2C_7SEGMENTDISPLAY = false
-    USE_FREEVERB = true
-    USE_TONECONTROL = false
-    USE_SERIALPORT_MIDI = false
-    SAMPLES_DIR = /media/media
-    AUDIO_DEVICE_ID = 2
-    MIXER_CARD_ID = 0
-    MIXER_CONTROL = Speaker
-    USE_ALSA_MIXER = false
+    GLOBAL_VOLUME = 100
+    USE_FREEVERB = False
+    USE_I2C_7SEGMENTDISPLAY = False
+    USE_SERIALPORT_MIDI = False
+    USE_TONECONTROL = False
+    USE_HD44780_16X2_LCD = True
+    USE_HD44780_20X4_LCD = False
+    USE_BUTTONS = True
+    USE_GUI = False
+    SAMPLES_DIR = None
+    AUDIO_DEVICE_ID = -1
+    AUDIO_DEVICE_NAME = autodetect
+    BOXRELEASE = 30
     PRESET_BASE = 0
-    AUDIO_DEVICE_NAME = your_device_name
     SYSTEM_MODE = 1
-    MEMORY_LIMIT_PERCENTAGE = 10
+    RAM_LIMIT_PERCENTAGE = 40
+    INVERT_SUSTAIN = False
 
+
+.. note::
+
+    ``USE_FREEVERB`` may cause pops and clicks.
+
+    ``RAM_LIMIT_PERCENTAGE`` determines how much RAM can be used for loading samples. This allows for preloading of sample-sets following the current one and, depending on
+    the size of the library, seamless preset navigation.
 
 System messages
 ===============
@@ -44,8 +50,8 @@ Useful for debugging issues (when connected to a screen or via SSH) and seeing w
 
 .. code-block:: text
 
-    PRINT_MIDI_MESSAGES = true
-    PRINT_LCD_MESSAGES = true
+    PRINT_MIDI_MESSAGES = True
+    PRINT_LCD_MESSAGES = True
 
 
 System mode 1 controls
@@ -62,10 +68,10 @@ If MIDI controls and/or GPIO pins connected to buttons are known, you may define
 
 .. code-block:: text
 
-    BUTTON_LEFT_MIDI = 176, 48, <nanoKONTROL2>
-    BUTTON_RIGHT_MIDI = 176, 50, <nanoKONTROL2>
-    BUTTON_ENTER_MIDI = 176, 49, <nanoKONTROL2>
-    BUTTON_CANCEL_MIDI = 176, 65, <nanoKONTROL2>
+    BUTTON_LEFT_MIDI = 176, 48, <MIDI CONTROLLER NAME>
+    BUTTON_RIGHT_MIDI = 176, 50, <MIDI CONTROLLER NAME>
+    BUTTON_ENTER_MIDI = 176, 49, <MIDI CONTROLLER NAME>
+    BUTTON_CANCEL_MIDI = 176, 65, <MIDI CONTROLLER NAME>
 
     BUTTON_LEFT_GPIO = 26
     BUTTON_RIGHT_GPIO = 13
@@ -86,9 +92,9 @@ If MIDI controls and/or GPIO pins connected to buttons are known, you may define
 
 .. code-block:: text
 
-    BUTTON_UP_MIDI = 176, 50, <nanoKONTROL2>
-    BUTTON_DOWN_MIDI = 176, 48, <nanoKONTROL2>
-    BUTTON_FUNC_MIDI = 176, 49, <nanoKONTROL2>
+    BUTTON_UP_MIDI = 176, 50, <MIDI CONTROLLER NAME>
+    BUTTON_DOWN_MIDI = 176, 48, <MIDI CONTROLLER NAME>
+    BUTTON_FUNC_MIDI = 176, 49, <MIDI CONTROLLER NAME>
 
     BUTTON_UP_GPIO = 13
     BUTTON_DOWN_GPIO = 26

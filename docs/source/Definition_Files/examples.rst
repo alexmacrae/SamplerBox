@@ -1,8 +1,10 @@
+.. _definition-examples:
+
 1. Velocity
 ===========
 
-The original GrandPiano set uses multiple lines specifying the wav's to be
-selected and the corresponding fixed velocity value. Remember that default velocity is 127
+The original `GrandPiano <http://www.samplerbox.org/instruments>`_ set uses multiple lines specifying the wav's to be
+selected and the corresponding fixed velocity value. Remember that default velocity is 127.
 
 
 **File names:**
@@ -21,12 +23,25 @@ selected and the corresponding fixed velocity value. Remember that default veloc
 
 .. code-block:: text
 
-    %%mode=keyb
-    %%velmode=sample
+    %%mode=Keyb
+    %%velmode=Sample
     %notenamev4.wav,%velocity=40
     %notenamev7.wav,%velocity=60
     %notenamev11.wav,%velocity=80
     %notenamev14.wav,%velocity=100
+    %notenamev16.wav
+
+Alternatively, you can set the global velocity mode (``%%velmode``) to either ``Accurate`` (default) or ``Sample``.
+
+``Accurate`` will scale the volume of a sample based on the velocity of the note played.
+
+``Sample`` will look for velocity values in the ``definition.txt`` (as in the example above).
+
+.. code-block:: text
+
+    %%mode=Keyb
+    %%velmode=Accurate
+    %notenamev14.wav
     %notenamev16.wav
 
 
@@ -51,8 +66,8 @@ Directory on the left is interpreted correctly.
 
 .. code-block:: text
 
-    %%mode=loop
-    %%velmode=accurate
+    %%mode=Loop
+    %%velmode=Accurate
     %midinote*.wav
 
 3. Voices
@@ -78,9 +93,9 @@ Saw. The saw WAV's are renamed with midinumber prefixed with notename plus an "m
 
 .. code-block:: text
 
-    %%mode=keyb
+    %%mode=Keyb
     %%release=3
-    %%velmode=accurate
+    %%velmode=Accurate
     %notenamev*.wav
     %notenamem*.wav,%voice=2
 
@@ -112,7 +127,34 @@ different version of the kick or snare for every hit, thus giving a more realist
 
 .. code-block:: text
 
-    %%mode=once
-    %%velmode=accurate
-    %bonham-kick-%seq.wav
-    %bonham-snare-%seq.wav
+    %%mode=Once
+    %%velmode=Accurate
+    bonham-kick-%seq.wav
+    bonham-snare-%seq.wav
+
+.. note::
+
+    SamplerBox may randomize samples in an order like this: 3-6-2-1-8-7-2. Notice how there are no consecutive repeats.
+
+5. Playback mode
+================
+
+In this example the global ``%%mode`` is ``Keyb`` (normal playback), but 1 sample plays back from start to end ignoring the standard note-off.
+
+**File names:**
+
+.. code-block:: text
+
+    mellotron C1.wav
+    mellotron E1.wav
+    mellotron G1.wav
+    aeroplane-sample.wav
+
+**definition.txt:**
+
+.. code-block:: text
+
+    %%mode=Keyb
+    %%velmode=Accurate
+    mellotron %notename.wav
+    aeroplane-sample.wav, %mode=Once

@@ -15,12 +15,12 @@ the `config.ini` file correctly on their PC before usage with a SamplerBox.
 
     This feature assumes you have a `HD44780 LCD <https://en.wikipedia.org/wiki/Hitachi_HD44780_LCD_controller>`_
     module wired to your Raspberry Pi. You will need to manually define the GPIO pins it is connected
-    to in the ``config.ini`` file.
+    to in the :ref:`config.ini <config-ini>` file.
 
 Setup
 =====
 
-Three buttons (up, down and function) must be defined in the `config.ini`. They may be GPIO buttons and/or
+Three buttons (up, down and function) must be defined in the :ref:`config.ini <config-ini>`. They may be GPIO buttons and/or
 MIDI controls.
 
 .. image:: images/buttons.gif
@@ -108,8 +108,8 @@ This SamplerBox is configured to recognize next
 +---------------------+---------------------------------------------------------------------------+
 
 
-.. image:: images/display-simple.gif
+.. image:: images/LCD-display-areas---system-2---01.png
 *Loaded loop set without selecting further specials*
 
-.. image:: images/display-more.gif
+.. image:: images/LCD-display-areas---system-2---02.png
 *Selected a major-7 chord and voice#2 in the set "3 Voices"*
