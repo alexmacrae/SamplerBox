@@ -46,8 +46,6 @@ if os.path.isfile(CONFIG_FILE_PATH) == False or os.stat(CONFIG_FILE_PATH).st_siz
 SYSTEM_MODE = int(cp.get_option_by_name('SYSTEM_MODE'))
 MAX_POLYPHONY = int(cp.get_option_by_name('MAX_POLYPHONY'))
 MIDI_CHANNEL = int(cp.get_option_by_name('MIDI_CHANNEL'))
-CHANNELS = int(cp.get_option_by_name('CHANNELS'))
-BUFFERSIZE = int(cp.get_option_by_name('BUFFERSIZE'))
 SAMPLERATE = int(cp.get_option_by_name('SAMPLERATE'))
 BOXRELEASE = int(cp.get_option_by_name('BOXRELEASE'))
 RAM_LIMIT_PERCENTAGE = int(cp.get_option_by_name('RAM_LIMIT_PERCENTAGE'))
@@ -180,9 +178,9 @@ else:
 
 if not os.path.exists(SETLIST_FILE_PATH):
     print '>>>> SETLIST: %s does not exist. Creating an empty setlist file.' % SETLIST_FILE_PATH
-    if SAMPLES_DIR == '/samples': sysfunc.mount_samples_rw()  # remount `/samples` as read-write (if using SD card)
+    sysfunc.mount_samples_rw()  # remount `/samples` as read-write (if using SD card)
     f = open(SETLIST_FILE_PATH, 'w')
-    if SAMPLES_DIR == '/samples': sysfunc.mount_samples_ro()  # remount as read-only
+    sysfunc.mount_samples_ro()  # remount as read-only
     f.close()
 
 SETLIST_LIST = None  # open(SETLIST_FILE_PATH).read().splitlines()
@@ -203,7 +201,6 @@ for channel in xrange(16):
     triggernotes[channel + 1] = [128] * 128
     playingnotes[channel + 1] = {}
 fillnotes = {}
-fillnote = 'Y'  # by default we will fill/generate missing notes
 sustain = False
 playingsounds = []
 globaltranspose = 0
@@ -274,7 +271,7 @@ PRERELEASE = BOXRELEASE
 PITCHRANGE_DEFAULT = 12  # default range of the pitchwheel in semitones (max=12. Higher than 12 produces inaccurate pitching)
 PITCHRANGE_DEFAULT *= 2  # actually it is 12 up and 12 down
 PITCHBITS = 7  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
-PITCHBEND = 0
+PITCHBEND =0
 pitchnotes = PITCHRANGE_DEFAULT
 PITCHSTEPS = 2 ** PITCHBITS
 pitchneutral = PITCHSTEPS / 2

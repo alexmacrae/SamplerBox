@@ -50,14 +50,21 @@ class LCD_SYS_1:
 
             if gv.IS_DEBIAN:
                 import RPi.GPIO as GPIO
+                from RPLCD import CursorMode
                 from RPLCD import CharLCD
 
                 self.lcd = CharLCD(pin_rs=gv.GPIO_LCD_RS, pin_rw=None, pin_e=gv.GPIO_LCD_E,
                                    pins_data=[gv.GPIO_LCD_D4, gv.GPIO_LCD_D5, gv.GPIO_LCD_D6, gv.GPIO_LCD_D7],
                                    numbering_mode=GPIO.BCM, cols=gv.LCD_COLS, rows=gv.LCD_ROWS)
 
+                self.lcd.clear()
+
+                # Hide the cursor
+                self.lcd._set_cursor_mode(CursorMode.hide)
+
+                # Clear the display
                 for i in xrange(1, gv.LCD_ROWS+1):
-                    self.lcd_string(' ', i) # clear the display
+                    self.lcd_string(' ', i)
 
                 # Write custom codes to the LCD
                 self.lcd.create_char(1, lcdcc.block)

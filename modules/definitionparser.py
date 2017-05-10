@@ -1,12 +1,14 @@
 import os
 from modules import globalvars as gv
+from modules import systemfunctions as sysfunc
 
 keywords_to_try = (('gv.gain', 'gain'),
                    ('gv.globaltranspose', 'transpose'),
                    ('gv.PRERELEASE', 'release'),
                    ('gv.pitchnotes', 'pitchbend'),
                    ('gv.sample_mode', 'mode'),
-                   ('gv.velocity_mode', 'velmode'))
+                   ('gv.velocity_mode', 'velmode'),
+                   ('gv.fillnotes', 'fillnotes'))
 
 keywords_dict = {
     0: {'name': '%%gain', 'type': 'range', 'min': 0.1, 'max': 10.0, 'increment': 0.1, 'default': 1.0},
@@ -15,7 +17,7 @@ keywords_dict = {
     3: {'name': '%%release', 'type': 'range', 'min': 0, 'max': 127, 'increment': 1, 'default': 30},
     4: {'name': '%%transpose', 'type': 'range', 'min': -48, 'max': 48, 'increment': 1, 'default': 0},
     5: {'name': '%%pitchbend', 'type': 'range', 'min': 0, 'max': 24, 'increment': 1, 'default': 0},
-    6: {'name': '%%fillnote', 'type': 'options', 'options': ['Y','N'], 'default': 0}
+    6: {'name': '%%fillnotes', 'type': 'options', 'options': ['Y','N'], 'default': 0}
 }
 
 ###############################
@@ -110,6 +112,7 @@ class DefinitionParser:
 
     def write_definition_file(self):
         print '\r#### START WRITING %s/definition.txt ####\r' % self.basename
+        sysfunc.mount_samples_rw()  # remount `/samples` as read-write (if using SD card)
         f = open(self.definitionfname, 'w')
         for keyword, value in self.combined_patterns.iteritems():
             if 'wav_definition' not in keyword:
@@ -123,6 +126,7 @@ class DefinitionParser:
                     f.write(line)
                     print line.strip('\n')  # debug
         f.close()
+        sysfunc.mount_samples_ro()  # remount `/samples` back to read-only (if using SD card)
         print '\r#### END WRITING %s/definition.txt ####\r' % self.basename
 
     ##########################

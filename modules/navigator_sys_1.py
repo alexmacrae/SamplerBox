@@ -588,83 +588,83 @@ class MidiChannelConfig(Navigator):
 
 # ______________________________________________________________________________
 
-class ChannelsConfig(Navigator):
-    def __init__(self):
-        self.text_scroller.stop()
-        self.CHANNELS = gv.CHANNELS
-        self.options = [1, 2, 4, 6, 8]
-        self.i = 1
-        for x in self.options:
-            if x == self.CHANNELS:
-                self.i = self.options.index(x)
-        self.display()
-
-    def display(self):
-        gv.displayer.disp_change('AUDIO CHANNELS'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-        gv.displayer.disp_change(('[' + str(self.CHANNELS) + ']' + ' (1,2,4,6,8)').center(gv.LCD_COLS, ' '), line=2,
-                                 timeout=0)
-
-    def left(self):
-        if self.i > 0:
-            self.i -= 1
-        self.CHANNELS = max(self.options[self.i], self.options[0])
-        self.display()
-
-    def right(self):
-        if self.i < len(self.options) - 1:
-            self.i += 1
-        self.CHANNELS = min(self.options[self.i], self.options[-1])
-        self.display()
-
-    def enter(self):
-        gv.cp.update_config('SAMPLERBOX CONFIG', 'CHANNELS', str(self.CHANNELS))
-        gv.CHANNELS = self.CHANNELS
-        gv.sound.close_stream()
-        gv.sound.start_sounddevice_stream()
-        self.load_state(MenuNav)
-
-    def cancel(self):
-        self.load_state(MenuNav)
+# class ChannelsConfig(Navigator):
+#     def __init__(self):
+#         self.text_scroller.stop()
+#         self.CHANNELS = gv.CHANNELS
+#         self.options = [1, 2, 4, 6, 8]
+#         self.i = 1
+#         for x in self.options:
+#             if x == self.CHANNELS:
+#                 self.i = self.options.index(x)
+#         self.display()
+#
+#     def display(self):
+#         gv.displayer.disp_change('AUDIO CHANNELS'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+#         gv.displayer.disp_change(('[' + str(self.CHANNELS) + ']' + ' (1,2,4,6,8)').center(gv.LCD_COLS, ' '), line=2,
+#                                  timeout=0)
+#
+#     def left(self):
+#         if self.i > 0:
+#             self.i -= 1
+#         self.CHANNELS = max(self.options[self.i], self.options[0])
+#         self.display()
+#
+#     def right(self):
+#         if self.i < len(self.options) - 1:
+#             self.i += 1
+#         self.CHANNELS = min(self.options[self.i], self.options[-1])
+#         self.display()
+#
+#     def enter(self):
+#         gv.cp.update_config('SAMPLERBOX CONFIG', 'CHANNELS', str(self.CHANNELS))
+#         gv.CHANNELS = self.CHANNELS
+#         gv.sound.close_stream()
+#         gv.sound.start_sounddevice_stream()
+#         self.load_state(MenuNav)
+#
+#     def cancel(self):
+#         self.load_state(MenuNav)
 
 
 # ______________________________________________________________________________
 
-class BufferSizeConfig(Navigator):
-    def __init__(self):
-        self.text_scroller.stop()
-        self.BUFFERSIZE = gv.BUFFERSIZE
-        self.options = [16, 32, 64, 128, 256, 512, 1024, 2048]
-        self.i = 3
-        for x in self.options:
-            if x == self.BUFFERSIZE:
-                self.i = self.options.index(x)
-        self.display()
-
-    def display(self):
-        gv.displayer.disp_change('BUFFER SIZE'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-        gv.displayer.disp_change(str(self.BUFFERSIZE).center(gv.LCD_COLS, ' '), line=2, timeout=0)
-
-    def left(self):
-        if self.i > 0:
-            self.i -= 1
-        self.BUFFERSIZE = max(self.options[self.i], self.options[0])
-        self.display()
-
-    def right(self):
-        if self.i < len(self.options) - 1:
-            self.i += 1
-        self.BUFFERSIZE = min(self.options[self.i], self.options[-1])
-        self.display()
-
-    def enter(self):
-        gv.cp.update_config('SAMPLERBOX CONFIG', 'BUFFERSIZE', str(self.BUFFERSIZE))
-        gv.BUFFERSIZE = self.BUFFERSIZE
-        gv.sound.close_stream()
-        gv.sound.start_sounddevice_stream()
-        self.load_state(MenuNav)
-
-    def cancel(self):
-        self.load_state(MenuNav)
+# class BufferSizeConfig(Navigator):
+#     def __init__(self):
+#         self.text_scroller.stop()
+#         self.BUFFERSIZE = gv.BUFFERSIZE
+#         self.options = [16, 32, 64, 128, 256, 512, 1024, 2048]
+#         self.i = 3
+#         for x in self.options:
+#             if x == self.BUFFERSIZE:
+#                 self.i = self.options.index(x)
+#         self.display()
+#
+#     def display(self):
+#         gv.displayer.disp_change('BUFFER SIZE'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+#         gv.displayer.disp_change(str(self.BUFFERSIZE).center(gv.LCD_COLS, ' '), line=2, timeout=0)
+#
+#     def left(self):
+#         if self.i > 0:
+#             self.i -= 1
+#         self.BUFFERSIZE = max(self.options[self.i], self.options[0])
+#         self.display()
+#
+#     def right(self):
+#         if self.i < len(self.options) - 1:
+#             self.i += 1
+#         self.BUFFERSIZE = min(self.options[self.i], self.options[-1])
+#         self.display()
+#
+#     def enter(self):
+#         gv.cp.update_config('SAMPLERBOX CONFIG', 'BUFFERSIZE', str(self.BUFFERSIZE))
+#         gv.BUFFERSIZE = self.BUFFERSIZE
+#         gv.sound.close_stream()
+#         gv.sound.start_sounddevice_stream()
+#         self.load_state(MenuNav)
+#
+#     def cancel(self):
+#         self.load_state(MenuNav)
 
 
 # ______________________________________________________________________________
@@ -1067,6 +1067,39 @@ class SetRAMLimit(Navigator):
         gv.cp.update_config('SAMPLERBOX CONFIG', 'RAM_LIMIT_PERCENTAGE', str(self.ram_limit))
         gv.RAM_LIMIT_PERCENTAGE = self.ram_limit
         gv.ls.load_samples()  # perhaps we increased the RAM, so go ahead and load more samples now!
+        self.cancel()
+
+    def cancel(self):
+        self.load_state(MenuNav)
+
+
+class InvertSustain(Navigator):
+    def __init__(self):
+        self.text_scroller.stop()
+        self.invert_sustain = gv.INVERT_SUSTAIN
+        self.display()
+
+    def display(self):
+
+        if self.invert_sustain:
+            on_or_off_str = '[YES]/NO'
+        else:
+            on_or_off_str = 'YES/[NO]'
+
+        gv.displayer.disp_change('Invert Sustain'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change(on_or_off_str.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+
+    def left(self):
+        self.invert_sustain = True
+        self.display()
+
+    def right(self):
+        self.invert_sustain = False
+        self.display()
+
+    def enter(self):
+        gv.INVERT_SUSTAIN = self.invert_sustain
+        gv.cp.update_config('SAMPLERBOX CONFIG', 'INVERT_SUSTAIN', str(self.invert_sustain))
         self.cancel()
 
     def cancel(self):

@@ -31,23 +31,31 @@ class Displayer:
 
         self.LCD_SYS = None
 
-        self.voices_display_blocks = True
-
-    def display_preset_with_voices(self, preset_string=''):
+    def display_with_tray(self, preset_string=''):
         preset_string = preset_string + ' ' * gv.LCD_COLS  # fill with space chars
         preset_string_list = list(preset_string[:gv.LCD_COLS])  # limit to width of LCD's chars/columns
-        v_len = len(gv.voices)
-        if v_len > 1:
-            if self.voices_display_blocks:
-                buttons = list(unichr(5) * v_len)  # fill with custom block chars
-                buttons[gv.currvoice - 1] = unichr(1)
-                buttons.insert(0, ' ')  # add a space before the voices section
-                for i in xrange(v_len + 1):
-                    str_index = (v_len + 1) - i
-                    preset_string_list[-str_index] = buttons[i]
-            else:
-                v_str = ' v%d:%d' % (gv.currvoice, v_len)
-                preset_string_list[-5] = v_str
+
+        tray = []
+
+        if gv.ls:
+            if gv.ls.memory_limit_reached == False:
+                if gv.ls.all_presets_loaded == False:
+                    tray.append('S')
+
+
+        if len(gv.voices) > 1:
+            voice_blocks = list(unichr(5) * len(gv.voices))  # fill with custom block chars
+            voice_blocks[gv.currvoice - 1] = unichr(1)
+            for v in voice_blocks:
+                tray.append(v)
+
+        tray.insert(0, ' ')  # add a space before the voices section
+
+        if len(tray) > 0:
+            for i in xrange(len(tray)):
+                str_index = len(tray) - i
+                preset_string_list[-str_index] = tray[i]
+
         return ''.join(preset_string_list)
 
     def disp_change(self, changed_var=[], str_override='', line=1, is_priority=False, timeout=0, is_error=False):
@@ -114,9 +122,9 @@ class Displayer:
                             preset_num_name = str(next_preset - gv.PRESET_BASE + 1) + ' ' + preset_name
                             if len(gv.samples_indices) == 1: # if there's only 1 sample set
                                 # preset_line_2 = ''
-                                preset_line_2 = self.display_preset_with_voices()
+                                preset_line_2 = self.display_with_tray()
                             else:
-                                preset_line_2 = self.display_preset_with_voices(preset_num_name)
+                                preset_line_2 = self.display_with_tray(preset_num_name)
 
                             self.LCD_SYS.display(preset_line_2, line=2, is_priority=True, timeout_custom=timeout)
                             self.LCD_SYS.display('', 3, is_priority=True, timeout_custom=timeout)
@@ -126,16 +134,17 @@ class Displayer:
 
                         if 'volume' in changed_var:
                             i = int(gv.global_volume_percent / 100.0 * (gv.LCD_COLS - 1)) + 1
-                            vol_line = 'Volume'.upper().center(gv.LCD_COLS, ' ')
+                            vol_line = 'VOLUME %s%%'.center(gv.LCD_COLS, ' ') % str(int(gv.global_volume_percent))
                             self.LCD_SYS.display(vol_line, line=1 + n, is_priority=False, timeout_custom=timeout)
                             self.LCD_SYS.display((unichr(1) * i), line=2 + n, is_priority=False, timeout_custom=timeout)
                         elif 'loading' in changed_var:
-                            loading_line = 'Loading'.upper().center(gv.LCD_COLS, ' ')
+                            loading_line = 'LOADING %s%%'.center(gv.LCD_COLS, ' ') % str(int(gv.percent_loaded))
                             self.LCD_SYS.display(loading_line, line=1 + n, is_priority=False, timeout_custom=timeout)
                             self.LCD_SYS.display(unichr(1) * int(gv.percent_loaded * (gv.LCD_COLS / 100.0) + 1),
                                                  line=2 + n, is_priority=False, timeout_custom=timeout)
                         elif 'effect' in changed_var:
-                            effect_line = changed_var[1].upper().center(gv.LCD_COLS, ' ')
+                            effect_name = changed_var[1].upper()
+                            effect_line = (effect_name+' %s%%').center(gv.LCD_COLS, ' ') % str(int(gv.percent_effect))
                             self.LCD_SYS.display(effect_line, line=1 + n, is_priority=False, timeout_custom=timeout)
                             self.LCD_SYS.display(unichr(1) * int(gv.percent_effect * (gv.LCD_COLS / 100.0) + 1),
                                                  line=2 + n, is_priority=False, timeout_custom=timeout)

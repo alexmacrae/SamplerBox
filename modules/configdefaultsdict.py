@@ -1,9 +1,6 @@
 configdefaults = {
-    'MAX_POLYPHONY': {'type': 'range', 'min': 1, 'max': 128, 'default': 80, 'section': 'SAMPLERBOX CONFIG'},
+    'MAX_POLYPHONY': {'type': 'range', 'min': 1, 'max': 128, 'default': 40, 'section': 'SAMPLERBOX CONFIG'},
     'MIDI_CHANNEL': {'type': 'range', 'min': 1, 'max': 16, 'default': 1, 'section': 'SAMPLERBOX CONFIG'},
-    'CHANNELS': {'type': 'options', 'options': ['2', '4'], 'default': 2, 'section': 'SAMPLERBOX CONFIG'},
-    'BUFFERSIZE': {'type': 'options',
-                   'options': ['16', '32', '64', '128', '256', '512', '1024', '2048'], 'default': 64, 'section': 'SAMPLERBOX CONFIG'},
     'SAMPLERATE': {'type': 'options', 'options': ['44100', '48000', '96000'], 'default': 44100, 'section': 'SAMPLERBOX CONFIG'},
     'GLOBAL_VOLUME': {'type': 'range', 'min': '0', 'max': 100, 'default': 100, 'section': 'SAMPLERBOX CONFIG'},
     'USE_BUTTONS': {'type': 'boolean', 'default': True, 'section': 'SAMPLERBOX CONFIG'},

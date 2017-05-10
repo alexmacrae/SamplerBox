@@ -129,7 +129,6 @@ class Setlist:
             print '>>>> SETLIST: Is empty -> adding all foldings'
 
             for song_folder_name in self.song_folders_list:
-                i = 0
                 # check if entry is a dir, and not a system dir and that dir is not empty
                 if os.path.isdir(gv.SAMPLES_DIR + '/' + song_folder_name) \
                         and song_folder_name not in IGNORE_FOLDERS \
@@ -146,12 +145,14 @@ class Setlist:
     # ______________________________________________________________________________
 
     def remove_missing_setlist_songs(self):
+
         songs_in_setlist = open(gv.SETLIST_FILE_PATH).read().splitlines()
 
         # Remove * marked songs (list comprehension)
-        songs_in_setlist = [song for song in songs_in_setlist if '* ' not in song]
+        songs_in_setlist_updated = [song for song in songs_in_setlist if '* ' not in song]
 
-        self.write_setlist(songs_in_setlist)
+        # Only write setlist if a song has been removed
+        if len(songs_in_setlist) != len(songs_in_setlist_updated): self.write_setlist(songs_in_setlist_updated)
 
 
 if __name__ == "__main__":

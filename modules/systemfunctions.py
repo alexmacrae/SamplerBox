@@ -4,27 +4,27 @@ import os
 import subprocess
 
 def mount_samples_rw():
-    if gv.SAMPLES_DIR == '/samples': subprocess.call(['mount', '-o', 'remount,rw', '/samples'])
+    if gv.SAMPLES_DIR == '/samples': subprocess.call(['mount', '-vo', 'remount,rw', '/samples'])
     print '/samples has been remounted as READ-WRITE'
 
 def mount_samples_ro():
-    if gv.SAMPLES_DIR == '/samples': subprocess.call(['mount', '-o', 'remount,ro', '/samples'])
+    if gv.SAMPLES_DIR == '/samples': subprocess.call(['mount', '-vo', 'remount,ro', '/samples'])
     print '/samples has been remounted as READ-ONLY'
 
 def mount_boot_rw():
-    if gv.CONFIG_FILE_PATH == "/boot/samplerbox/config.ini": subprocess.call(['mount', '-o', 'remount,rw', '/boot'])
+    if gv.CONFIG_FILE_PATH == "/boot/samplerbox/config.ini": subprocess.call(['mount', '-vo', 'remount,rw', '/boot'])
     print '/boot has been remounted as READ-WRITE'
 
 def mount_boot_ro():
-    if gv.CONFIG_FILE_PATH == "/boot/samplerbox/config.ini": subprocess.call(['mount', '-o', 'remount,ro', '/boot'])
+    if gv.CONFIG_FILE_PATH == "/boot/samplerbox/config.ini": subprocess.call(['mount', '-vo', 'remount,ro', '/boot'])
     print '/boot has been remounted as READ-ONLY'
 
 def mount_root_rw():
-    subprocess.call(['mount', '-o', 'remount,rw', '/'])
+    subprocess.call(['mount', '-vo', 'remount,rw', '/'])
     print '/ has been remounted as READ-WRITE'
 
 def mount_root_ro():
-    subprocess.call(['mount', '-o', 'remount,ro', '/'])
+    subprocess.call(['mount', '-vo', 'remount,ro', '/'])
     print '/ has been remounted as READ-ONLY'
 
 class SystemFunctions:

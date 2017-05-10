@@ -54,8 +54,119 @@ menu = {
                     }
                 },
                 1: {
+                    'name': 'Voices',
+                    'desc': 'For presets that have samples allocated to voices',
+                    'submenu': {
+                        0: {
+                            'name': 'Voice 1',
+                            'desc': '',
+                            'function_to_map': 'gv.ac.voice.voice1',
+                            'submenu': {
+                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                            }
+                        },
+                        1: {
+                            'name': 'Voice 2',
+                            'desc': '',
+                            'function_to_map': 'gv.ac.voice.voice2',
+                            'submenu': {
+                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                            }
+                        },
+                        2: {
+                            'name': 'Voice 3',
+                            'desc': '',
+                            'function_to_map': 'gv.ac.voice.voice3',
+                            'submenu': {
+                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                            }
+                        },
+                        3: {
+                            'name': 'Voice 4',
+                            'desc': '',
+                            'function_to_map': 'gv.ac.voice.voice4',
+                            'submenu': {
+                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                            }
+                        },
+                    }
+                },
+                2: {
+                    'name': 'Pitch bend',
+                    'desc': 'Map to a control. Perhaps you don\'t have a pitch wheel',
+                    'function_to_map': 'gv.ac.pitchbend.set_pitch',
+                    'submenu': {
+                        0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                    }
+                },
+                # 4: { # remember to renumber indexes
+                #     'name': 'ModWheel:unavail',
+                #     'desc': 'Unavailable at this time',
+                #     'function_to_map': 'gv.ac.mod_wheel.set_modulation_disabled',
+                #     'submenu': {
+                #         0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                #         3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                #     }
+                # },
+                3: {
+                    'name': 'Sustain',
+                    'desc': 'Map an unconventional control to the sustain pedal',
+                    'function_to_map': 'gv.ac.sustain.set_sustain',
+                    'submenu': {
+                        0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                    }
+                },
+                4: {
+                    'name': 'System Navigation',
+                    'desc': 'Map additional system navigation controls',
+                    'submenu': {
+                        0: {
+                            'name': 'Left',
+                            'desc': 'Map system navigation LEFT to a MIDI control',
+                            'function_to_map': 'gv.nav.state.left',
+                            'submenu': {
+                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                            }
+                        },
+                        1: {
+                            'name': 'Right',
+                            'desc': 'Map system navigation RIGHT to a MIDI control',
+                            'function_to_map': 'gv.nav.state.right',
+                            'submenu': {
+                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                            }
+                        },
+                        2: {
+                            'name': 'Enter',
+                            'desc': 'Map system navigation ENTER to a MIDI control',
+                            'function_to_map': 'gv.nav.state.enter',
+                            'submenu': {
+                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                            }
+                        },
+                        3: {
+                            'name': 'Cancel',
+                            'desc': 'Map system navigation CANCEL to a MIDI control',
+                            'function_to_map': 'gv.nav.state.cancel',
+                            'submenu': {
+                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                            }
+                        }
+                    }
+                },
+                5: {
                     'name': 'Reverb',
-                    'desc': 'Map a MIDI control to each of the 5 reverb parameters',
+                    'desc': 'Map a MIDI control to each of the 5 reverb parameters. WARNING: experimental',
                     'submenu': {
                         0: {
                             'name': 'Room size',
@@ -114,117 +225,6 @@ menu = {
                         }
                     }
                 },
-                2: {
-                    'name': 'Voices',
-                    'desc': 'For presets that have samples allocated to voices',
-                    'submenu': {
-                        0: {
-                            'name': 'Voice 1',
-                            'desc': '',
-                            'function_to_map': 'gv.ac.voice.voice1',
-                            'submenu': {
-                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                            }
-                        },
-                        1: {
-                            'name': 'Voice 2',
-                            'desc': '',
-                            'function_to_map': 'gv.ac.voice.voice2',
-                            'submenu': {
-                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                            }
-                        },
-                        2: {
-                            'name': 'Voice 3',
-                            'desc': '',
-                            'function_to_map': 'gv.ac.voice.voice3',
-                            'submenu': {
-                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                            }
-                        },
-                        3: {
-                            'name': 'Voice 4',
-                            'desc': '',
-                            'function_to_map': 'gv.ac.voice.voice4',
-                            'submenu': {
-                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                            }
-                        },
-                    }
-                },
-                3: {
-                    'name': 'Pitch bend',
-                    'desc': 'Map to a control. Perhaps you don\'t have a pitch wheel',
-                    'function_to_map': 'gv.ac.pitchbend.set_pitch',
-                    'submenu': {
-                        0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                    }
-                },
-                # 4: { # remember to renumber indexes
-                #     'name': 'ModWheel:unavail',
-                #     'desc': 'Unavailable at this time',
-                #     'function_to_map': 'gv.ac.mod_wheel.set_modulation_disabled',
-                #     'submenu': {
-                #         0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                #         3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                #     }
-                # },
-                4: {
-                    'name': 'Sustain',
-                    'desc': 'Map an unconventional control to the sustain pedal',
-                    'function_to_map': 'gv.ac.sustain.set_sustain',
-                    'submenu': {
-                        0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                    }
-                },
-                5: {
-                    'name': 'System Navigation',
-                    'desc': 'Map additional system navigation controls',
-                    'submenu': {
-                        0: {
-                            'name': 'Left',
-                            'desc': 'Map system navigation LEFT to a MIDI control',
-                            'function_to_map': 'gv.nav.state.left',
-                            'submenu': {
-                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                            }
-                        },
-                        1: {
-                            'name': 'Right',
-                            'desc': 'Map system navigation RIGHT to a MIDI control',
-                            'function_to_map': 'gv.nav.state.right',
-                            'submenu': {
-                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                            }
-                        },
-                        2: {
-                            'name': 'Enter',
-                            'desc': 'Map system navigation ENTER to a MIDI control',
-                            'function_to_map': 'gv.nav.state.enter',
-                            'submenu': {
-                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                            }
-                        },
-                        3: {
-                            'name': 'Cancel',
-                            'desc': 'Map system navigation CANCEL to a MIDI control',
-                            'function_to_map': 'gv.nav.state.cancel',
-                            'submenu': {
-                                0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                                1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
-                            }
-                        }
-                    }
-                }
             }
             },
         4: {'name': 'System settings',
@@ -243,7 +243,7 @@ menu = {
 
             },
         # 5: {'name': 'Restart', 'fn': 'gv.sysfunc.restart()'},
-        5: {'name': 'Invert Sustain', 'desc': 'If sustain pedal is acting up, reverse its polarity here', 'fn': 'InvertSustain'},
+        5: {'name': 'Invert Sustain', 'desc': 'Reverse your sustain pedal\s polarity', 'fn': 'InvertSustain'},
         6: {'name': 'Reboot System', 'fn': 'gv.sysfunc.reboot()', 'desc': 'Reboot Raspberry Pi'},
 
     }
