@@ -30,6 +30,13 @@ class AudioControls(object):
             gv.triggernotes[channel + 1] = [128] * 128  # fill with unplayable note
             gv.playingnotes[channel + 1] = {}
 
+    def stop_mutegroup_sounds(self, sample):
+        # Mute groups. Default=0. If a sample shares a mutegroup with another playing sample(s), stop all others
+        if sample.mutegroup > 0:
+            for ps in gv.playingsounds:
+                if sample.mutegroup == ps.mutegroup and sample != ps:
+                    ps.fadeout(50)
+
     def noteon(self, midinote, midichannel, velocity):
         try:
             midinote += gv.globaltranspose
@@ -57,6 +64,7 @@ class AudioControls(object):
                                 # print "clean note " + str(playnote)
                                 m.fadeout(50)
                             gv.playingnotes[midichannel][playnote] = []  # housekeeping
+
                     # Start David Hilowitz
                     # Get the list of available samples for this note and velocity
                     notesamples = gv.samples[actual_preset][playnote, velocity, gv.currvoice, midichannel]
@@ -69,10 +77,14 @@ class AudioControls(object):
                         while sample.seq == gv.lastplayedseq[playnote]:
                             sample = random.choice(notesamples)
                     # End David Hilowitz
+
+                    self.stop_mutegroup_sounds(sample) # Mute groups
+
                     gv.triggernotes[midichannel][playnote] = midinote  # we are last playing this one
                     # print "start note " + str(playnote)
                     gv.playingnotes[midichannel].setdefault(playnote, []).append(sample.play(playnote, velmixer))
                     gv.lastplayedseq[playnote] = sample.seq  # David Hilowitz
+
         except:
             print 'Note error: check definition'
             gv.displayer.disp_change(str_override='NOTE ERROR', line=gv.LCD_ROWS-1, timeout=1)
@@ -86,15 +98,23 @@ class AudioControls(object):
                 if gv.triggernotes[midichannel][playnote] == midinote:  # did we make this one play ?
                     if playnote in gv.playingnotes[midichannel]:
                         for m in gv.playingnotes[midichannel][playnote]:
-                            if gv.sustain: # if the PlayingSound object has property ignore_loops, play the whole sample
+                            if gv.sustain:
                                 if m.mode == 'Once': # ignore samples that have the property %mode=Once
-                                    pass
+                                    if m.mutegroup > 0:
+                                        self.stop_mutegroup_sounds(m) # Mute groups
+                                    else:
+                                        pass
                                 else:
                                     # print 'Sustain note ' + str(playnote)   # debug
+                                    if m.mutegroup > 0:
+                                        self.stop_mutegroup_sounds(m) # Mute groups
                                     gv.sustainplayingnotes.append(m)
                             else:
                                 if m.mode == 'Once': # ignore samples that have the property %mode=Once
-                                    pass
+                                    if m.mutegroup > 0:
+                                        self.stop_mutegroup_sounds(m) # Mute groups
+                                    else:
+                                        pass
                                 else:
                                     # print "stop note " + str(playnote)
                                     m.fadeout(50)

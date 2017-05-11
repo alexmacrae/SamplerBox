@@ -390,7 +390,7 @@ class LoadingSamples:
 
                         defaultparams = {'midinote': '0', 'velocity': '127', 'notename': '',
                                          'voice': '1', 'seq': '1', 'channel': gv.MIDI_CHANNEL, 'release': '128',
-                                         'fillnote': 'D', 'mode': 'Keyb'}
+                                         'fillnote': 'D', 'mode': 'Keyb', 'mutegroup': '0'}
 
                         if len(pattern.split(',')) > 1:
                             defaultparams.update(dict([item.split('=') for item in pattern.split(',', 1)[1].replace(' ', '').replace('%', '').split(',')]))
@@ -406,6 +406,7 @@ class LoadingSamples:
                             .replace(r"\%mode", r"(?P<mode>\w+)") \
                             .replace(r"\%seq", r"(?P<seq>\d+)") \
                             .replace(r"\%notename", r"(?P<notename>[A-Ga-g]#?[0-9])") \
+                            .replace(r"\%mutegroup", r"(?P<mutegroup>\d+)") \
                             .replace(r"\*", r".*?").strip()  # .*? => non greedy
 
                         for fname in os.listdir(dirname):  # iterate over samples in the dir and ignore definition.txt
@@ -446,6 +447,7 @@ class LoadingSamples:
                                     seq = int(info.get('seq', defaultparams['seq']))
                                     notename = info.get('notename', defaultparams['notename'])
                                     mode = info.get('mode', defaultparams['mode']).rstrip()
+                                    mutegroup = int(info.get('mutegroup', defaultparams['mutegroup']))
                                     # next statement places note 60 on C3/C4/C5 with the +0/1/2. So now it is C4:
                                     if notename:
                                         midinote = gv.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
@@ -467,12 +469,12 @@ class LoadingSamples:
                                         else:
                                             if (midinote, velocity, voice, channel) in gv.samples[self.preset_current_loading]:
                                                 gv.samples[self.preset_current_loading][midinote, velocity, voice, channel] \
-                                                    .append(sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release, mode_prop))
+                                                    .append(sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release, mode_prop, mutegroup))
                                                 print 'Sample randomization: found seq:%i (%s) >> loading' % (seq, fname)
                                     else:
 
                                         gv.samples[self.preset_current_loading][midinote, velocity, voice, channel] = [
-                                            sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release, mode_prop)]
+                                            sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release, mode_prop, mutegroup)]
                                         # gv.fillnotes[midinote, voice] = fillnote
                                         gv.samples[self.preset_current_loading]['fillnotes'][midinote, voice] = fillnote
                                         # print "sample: %s, note: %d, voice: %d, channel: %d" %(fname, midinote, voice, channel)

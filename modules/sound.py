@@ -71,7 +71,7 @@ class waveread(wave.Wave_read):
 
 
 class PlayingSound:
-    def __init__(self, sound, note, vel, mode):
+    def __init__(self, sound, note, vel, mode, mutegroup):
         self.sound = sound
         self.pos = 0
         self.fadeoutpos = 0
@@ -79,6 +79,7 @@ class PlayingSound:
         self.note = note
         self.vel = vel
         self.mode = mode
+        self.mutegroup = mutegroup
 
     def fadeout(self, i):
         if self.isfadeout:
@@ -97,7 +98,7 @@ class PlayingSound:
 
 
 class Sound:
-    def __init__(self, filename, midinote, velocity, seq, channel, release, mode):
+    def __init__(self, filename, midinote, velocity, seq, channel, release, mode, mutegroup):
         wf = waveread(filename)
         self.fname = filename
         self.midinote = midinote
@@ -106,6 +107,7 @@ class Sound:
         self.channel = channel
         self.release = release
         self.mode = mode
+        self.mutegroup = mutegroup
 
         if wf.getloops() and self.mode != 'Once':
             self.loop = wf.getloops()[0][0]
@@ -117,7 +119,7 @@ class Sound:
         wf.close()
 
     def play(self, note, vel):
-        snd = PlayingSound(self, note, vel, self.mode)
+        snd = PlayingSound(self, note, vel, self.mode, self.mutegroup)
         # print 'fname: ' + self.fname + ' note/vel: ' + str(note) + '/' + str(vel) + ' midinote: ' + str(self.midinote) + ' vel: ' + str(self.velocity)
         gv.playingsounds.append(snd)
         return snd
