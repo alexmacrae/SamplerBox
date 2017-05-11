@@ -107,7 +107,7 @@ class Sound:
         self.release = release
         self.mode = mode
 
-        if wf.getloops() and self.mode == False:
+        if wf.getloops() and self.mode != 'Once':
             self.loop = wf.getloops()[0][0]
             self.nframes = wf.getloops()[0][1] + 2
         else:
