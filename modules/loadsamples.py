@@ -92,7 +92,7 @@ class LoadingSamples:
 
                     sys.stdout.write('\r[!] LOADING PAUSED: sounds or MIDI is playing')
                     sys.stdout.flush()
-                    time.sleep(self.pause_sleep)
+                    # time.sleep(self.pause_sleep)
             else:
                 # print '++ Keep loading ++'
                 return
@@ -451,9 +451,9 @@ class LoadingSamples:
                                         midinote = gv.NOTES.index(notename[:-1].lower()) + (int(notename[-1]) + 2) * 12
 
                                     # Ignore loops at the sample level, overriding the global sample_mode
-                                    ignore_loops = False
-                                    if mode.lower() == 'once' or gv.sample_mode.lower() == 'once':
-                                        ignore_loops = True
+                                    mode_prop = None
+                                    if mode.title() == 'Once' or gv.sample_mode.title() == 'Once':
+                                        mode_prop = mode.title()
 
                                     if gv.samples[self.preset_current_loading].has_key((midinote, velocity, voice, channel)):
                                         """
@@ -467,12 +467,12 @@ class LoadingSamples:
                                         else:
                                             if (midinote, velocity, voice, channel) in gv.samples[self.preset_current_loading]:
                                                 gv.samples[self.preset_current_loading][midinote, velocity, voice, channel] \
-                                                    .append(sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release, ignore_loops))
+                                                    .append(sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release, mode_prop))
                                                 print 'Sample randomization: found seq:%i (%s) >> loading' % (seq, fname)
                                     else:
 
                                         gv.samples[self.preset_current_loading][midinote, velocity, voice, channel] = [
-                                            sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release, ignore_loops)]
+                                            sound.Sound(os.path.join(dirname, fname), midinote, velocity, seq, channel, release, mode_prop)]
                                         # gv.fillnotes[midinote, voice] = fillnote
                                         gv.samples[self.preset_current_loading]['fillnotes'][midinote, voice] = fillnote
                                         # print "sample: %s, note: %d, voice: %d, channel: %d" %(fname, midinote, voice, channel)

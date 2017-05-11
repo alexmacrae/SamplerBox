@@ -71,14 +71,14 @@ class waveread(wave.Wave_read):
 
 
 class PlayingSound:
-    def __init__(self, sound, note, vel, ignore_loops=False):
+    def __init__(self, sound, note, vel, mode):
         self.sound = sound
         self.pos = 0
         self.fadeoutpos = 0
         self.isfadeout = False
         self.note = note
         self.vel = vel
-        self.ignore_loops = ignore_loops
+        self.mode = mode
 
     def fadeout(self, i):
         if self.isfadeout:
@@ -97,7 +97,7 @@ class PlayingSound:
 
 
 class Sound:
-    def __init__(self, filename, midinote, velocity, seq, channel, release, ignore_loops=False):
+    def __init__(self, filename, midinote, velocity, seq, channel, release, mode):
         wf = waveread(filename)
         self.fname = filename
         self.midinote = midinote
@@ -105,9 +105,9 @@ class Sound:
         self.seq = seq
         self.channel = channel
         self.release = release
-        self.ignore_loops = ignore_loops
+        self.mode = mode
 
-        if wf.getloops() and ignore_loops == False:
+        if wf.getloops() and self.mode == False:
             self.loop = wf.getloops()[0][0]
             self.nframes = wf.getloops()[0][1] + 2
         else:
@@ -117,7 +117,7 @@ class Sound:
         wf.close()
 
     def play(self, note, vel):
-        snd = PlayingSound(self, note, vel, self.ignore_loops)
+        snd = PlayingSound(self, note, vel, self.mode)
         # print 'fname: ' + self.fname + ' note/vel: ' + str(note) + '/' + str(vel) + ' midinote: ' + str(self.midinote) + ' vel: ' + str(self.velocity)
         gv.playingsounds.append(snd)
         return snd
@@ -199,7 +199,7 @@ class StartSound:
     def start_sounddevice_stream(self, latency='low'):
 
         try:
-            self.sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, latency=latency, samplerate=gv.SAMPLERATE, channels=gv.CHANNELS, dtype='int16', callback=audio_callback)
+            self.sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, latency=latency, samplerate=gv.SAMPLERATE, channels=2, dtype='int16', callback=audio_callback)
             self.sd.start()
             print '>>>> Opened audio device #%i (latency: %ims)' % (gv.AUDIO_DEVICE_ID, self.sd.latency * 1000)
         except:

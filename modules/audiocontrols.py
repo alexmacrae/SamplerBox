@@ -86,16 +86,20 @@ class AudioControls(object):
                 if gv.triggernotes[midichannel][playnote] == midinote:  # did we make this one play ?
                     if playnote in gv.playingnotes[midichannel]:
                         for m in gv.playingnotes[midichannel][playnote]:
-                            if gv.sustain or m.ignore_loops == True: # if the PlayingSound object has attribute ignore_loops, play the whole sample
-                                # print 'Sustain note ' + str(playnote)   # debug
-                                gv.sustainplayingnotes.append(m)
+                            if gv.sustain: # if the PlayingSound object has property ignore_loops, play the whole sample
+                                if m.mode == 'Once': # ignore samples that have the property %mode=Once
+                                    pass
+                                else:
+                                    # print 'Sustain note ' + str(playnote)   # debug
+                                    gv.sustainplayingnotes.append(m)
                             else:
-                                # print "stop note " + str(playnote)
-                                m.fadeout(50)
-                        # gv.playingnotes[playnote] = []
+                                if m.mode == 'Once': # ignore samples that have the property %mode=Once
+                                    pass
+                                else:
+                                    # print "stop note " + str(playnote)
+                                    m.fadeout(50)
                         gv.playingnotes[midichannel].pop(playnote)
                     gv.triggernotes[midichannel][playnote] = 128  # housekeeping
-
 
 class MasterVolume:
     def setvolume(self, vel):
@@ -297,23 +301,10 @@ class Sustain:
                 CCval = 127
 
         if gv.sample_mode == gv.PLAYLIVE:
-            # NB: the microKEY conditionals are unique to Alex's modded keyboard. Remove in future.
-            if ("microKEY" in src):
-                if ((messagetype == 14)
-                        and (CCnum == 64 or CCnum == 0)
-                        and (CCval <= 2)) \
-                        and (gv.sustain == True):  # sustain pedal off
-                    self.sustain_off()
-                elif ((messagetype == 14)
-                        and (CCnum == 64 or CCnum == 0)
-                        and (CCval >= 3)) \
-                        and (gv.sustain == False):  # sustain pedal on
-                    self.sustain_on()
-            else:
-                if CCval < 64:
-                    self.sustain_off()
-                elif CCval >= 64:
-                    self.sustain_on()
+            if CCval < 64:
+                self.sustain_off()
+            elif CCval >= 64:
+                self.sustain_on()
 
 
 ###################
