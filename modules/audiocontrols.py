@@ -32,10 +32,14 @@ class AudioControls(object):
 
     def stop_mutegroup_sounds(self, sample):
         # Mute groups. Default=0. If a sample shares a mutegroup with another playing sample(s), stop all others
-        if sample.mutegroup > 0:
+        if sample.mutegroup > 0 and len(gv.playingsounds) > 1:
             for ps in gv.playingsounds:
                 if sample.mutegroup == ps.mutegroup and sample != ps:
                     ps.fadeout(50)
+                    try:
+                        gv.playingsounds.remove(ps)
+                    except:
+                        pass
 
     def noteon(self, midinote, midichannel, velocity):
         try:
@@ -78,12 +82,13 @@ class AudioControls(object):
                             sample = random.choice(notesamples)
                     # End David Hilowitz
 
-                    self.stop_mutegroup_sounds(sample) # Mute groups
-
                     gv.triggernotes[midichannel][playnote] = midinote  # we are last playing this one
                     # print "start note " + str(playnote)
-                    gv.playingnotes[midichannel].setdefault(playnote, []).append(sample.play(playnote, velmixer))
+                    playingsample = sample.play(playnote, velmixer)
+                    gv.playingnotes[midichannel].setdefault(playnote, []).append(playingsample)
                     gv.lastplayedseq[playnote] = sample.seq  # David Hilowitz
+
+                    self.stop_mutegroup_sounds(playingsample)  # Mute groups
 
         except:
             print 'Note error: check definition'
