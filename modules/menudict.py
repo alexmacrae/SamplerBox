@@ -101,7 +101,7 @@ menu = {
                     'function_to_map': 'gv.ac.pitchbend.set_pitch',
                     'submenu': {
                         0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                        1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                     }
                 },
                 # 4: { # remember to renumber indexes
@@ -110,7 +110,7 @@ menu = {
                 #     'function_to_map': 'gv.ac.mod_wheel.set_modulation_disabled',
                 #     'submenu': {
                 #         0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                #         3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                #         1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                 #     }
                 # },
                 3: {
@@ -119,10 +119,19 @@ menu = {
                     'function_to_map': 'gv.ac.sustain.set_sustain',
                     'submenu': {
                         0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
-                        3: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                        1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
                     }
                 },
                 4: {
+                    'name': 'Panic key',
+                    'desc': 'Map a control to kill all sounds',
+                    'function_to_map': 'gv.ac.panic',
+                    'submenu': {
+                        0: {'name': 'Learn', 'desc': '', 'fn': 'MidiLearn'},
+                        1: {'name': 'Delete', 'fn': 'DeleteMidiMap'}
+                    }
+                },
+                5: {
                     'name': 'System Navigation',
                     'desc': 'Map additional system navigation controls',
                     'submenu': {
@@ -164,7 +173,7 @@ menu = {
                         }
                     }
                 },
-                5: {
+                6: {
                     'name': 'Reverb',
                     'desc': 'Map a MIDI control to each of the 5 reverb parameters. WARNING: experimental',
                     'submenu': {

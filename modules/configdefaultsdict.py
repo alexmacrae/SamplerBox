@@ -23,6 +23,8 @@ configdefaults = {
     'PRINT_MIDI_MESSAGES': {'type': 'boolean', 'default': True, 'section': 'MISC'},
     'PRINT_LCD_MESSAGES': {'type': 'boolean', 'default': True, 'section': 'MISC'},
 
+    'PANIC_KEY': {'type': 'midi', 'default': 'None', 'section': 'PANIC KEY'},
+
     'BUTTON_LEFT_MIDI': {'type': 'midi', 'default': 'None', 'section': 'MIDI BUTTON NAVIGATION FOR SYSTEM MODE 1'},
     'BUTTON_RIGHT_MIDI': {'type': 'midi', 'default': 'None', 'section': 'MIDI BUTTON NAVIGATION FOR SYSTEM MODE 1'},
     'BUTTON_ENTER_MIDI': {'type': 'midi', 'default': 'None', 'section': 'MIDI BUTTON NAVIGATION FOR SYSTEM MODE 1'},

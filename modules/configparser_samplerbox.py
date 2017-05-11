@@ -66,6 +66,13 @@ class Setup:
 '; Outputs LCD messages to the console on a single line. Line breaks are represented by a double pipe: || \r\
 ; Outputs MIDI messages to the console in this format: messagetype, note <DeviceName>. eg 176, 60, <LaunchKey 61>')
 
+        self.config.set('PANIC KEY',
+'; Assign A MIDI controls to a panic key - killing all playing sounds.\r\
+; MIDI message + device: with print_midi_messages set to True, you can see what messages your device is sending.\r\
+; eg button_left = 176, 60, <LaunchKey 61> (<devicename> is optional) \r\
+; Can use keyboard notes as navigation. This is not ideal, but useable if you have no alternative.\r\
+; eg button_left = F#2, <microKEY-61> (<devicename> is optional)')
+
         self.config.set('MIDI BUTTON NAVIGATION FOR SYSTEM MODE 1',
 '; Assign MIDI controls or notes to menu navigation in system mode 1.\r\
 ; MIDI message + device: with print_midi_messages set to True, you can see what messages your device is sending.\r\

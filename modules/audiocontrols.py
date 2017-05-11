@@ -20,7 +20,7 @@ class AudioControls(object):
         if gv.USE_TONECONTROL:
             self.tone_control = ToneControl()
 
-    def all_notes_off(self):
+    def panic(self):
         gv.playingsounds = []
         gv.playingnotes = {}
         gv.sustainplayingnotes = []
@@ -28,7 +28,7 @@ class AudioControls(object):
 
         for channel in xrange(16):
             gv.triggernotes[channel + 1] = [128] * 128  # fill with unplayable note
-            gv.playingnotes[channel +1 ] = {}
+            gv.playingnotes[channel + 1] = {}
 
     def noteon(self, midinote, midichannel, velocity):
         try:

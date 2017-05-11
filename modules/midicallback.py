@@ -17,6 +17,8 @@ class Midi:
         self.down = gv.BUTTON_DOWN_MIDI
         self.func = gv.BUTTON_FUNC_MIDI
 
+        self.panic_key = gv.PANIC_KEY
+
     def noteon(self, messagetype, note, vel):
         # print messagetype, note, vel
         pass
@@ -96,6 +98,10 @@ class Midi:
                     if len(self.cancel) == 2 or len(self.cancel) == 3 and self.cancel[2] in src:
                         gv.nav.state.cancel()
                         return
+                elif mk[0] == self.panic_key[0] and mk[1] == self.panic_key[1]:  # Panic key
+                    if len(self.panic_key) == 2 or len(self.panic_key) == 3 and self.panic_key[2] in src:
+                        gv.ac.panic()
+                        return
             except:
                 #print "This MIDI message hasn't been assigned in config.ini -- skipping" # debug
                 pass
@@ -113,10 +119,13 @@ class Midi:
                             # Runs method from class. ie ac.master_volume.setvolume(velocity).
                             # TODO: there must be a more elegant way to do this ;)
                             fn = midimaps.get(src).get(messageKey).get('fn')
-                            if (fn.split('.')[-1] == 'set_pitch'):
+                            fn_name = fn.split('.')[-1]
+                            if fn_name == 'set_pitch':
                                 eval(fn)(velocity, note)
-                            elif (fn.split('.')[-1] == 'set_sustain'):
+                            elif fn_name == 'set_sustain':
                                 eval(fn)(message, src, messagetype)
+                            elif fn_name == 'panic':
+                                eval(fn)()
                             else:
                                 eval(fn)(velocity)
                         except:
@@ -127,6 +136,8 @@ class Midi:
                                 # remap note to a key
                     elif isinstance(midimaps.get(src).get(messageKey).get('note'), int):
                         note = midimaps.get(src).get(messageKey).get('note')
+
+                    return # Stop here. Control has been mapped - don't perform any other MIDI functions below
 
             except:
                 #print "MIDI message isn't mapped, or it is and it failed" # debug
@@ -219,7 +230,7 @@ class Midi:
 
                 # "All sounds off" or "all notes off"
                 elif CCnum == 120 or CCnum == 123:
-                    gv.ac.all_notes_off()
+                    gv.ac.panic()
 
                 elif CCnum == 72:  # Sound controller 3 = release time
                     gv.PRERELEASE = CCval

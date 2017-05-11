@@ -131,6 +131,7 @@ def button_assign(midi_str):
     # returns: 176, 60, <devicename> or C#2, <devicename> or GPIO, 4
     return button_assign_list
 
+PANIC_KEY = button_assign(str(cp.get_option_by_name('PANIC_KEY')))
 
 # For system mode 1 (by Alex)
 BUTTON_LEFT_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_LEFT_MIDI')))
