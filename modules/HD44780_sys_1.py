@@ -14,14 +14,6 @@ class LCD_SYS_1:
 
         if gv.SYSTEM_MODE == 1 and (gv.USE_HD44780_16x2_LCD or gv.USE_HD44780_20x4_LCD):
 
-            self.LCD_CHR = True
-            self.LCD_CMD = False
-
-            self.LCD_LINE_1 = 0x80  # LCD RAM address for the 1st line
-            self.LCD_LINE_2 = 0xC0  # LCD RAM address for the 2nd line
-
-            self.LCD_CHARS = [0x40, 0x48, 0x50, 0x58, 0x60, 0x68, 0x70, 0x78]
-
             # Timing constants
             self.E_PULSE = 0.0005
             self.E_DELAY = 0.0005
@@ -55,14 +47,14 @@ class LCD_SYS_1:
 
                 self.lcd = CharLCD(pin_rs=gv.GPIO_LCD_RS, pin_rw=None, pin_e=gv.GPIO_LCD_E,
                                    pins_data=[gv.GPIO_LCD_D4, gv.GPIO_LCD_D5, gv.GPIO_LCD_D6, gv.GPIO_LCD_D7],
-                                   numbering_mode=GPIO.BCM, cols=gv.LCD_COLS, rows=gv.LCD_ROWS)
+                                   numbering_mode=GPIO.BCM, cols=gv.LCD_COLS, rows=gv.LCD_ROWS, charmap='A00')
 
                 self.lcd.clear()
 
                 # Hide the cursor
                 self.lcd._set_cursor_mode(CursorMode.hide)
 
-                # Clear the display
+                # Fill the display with blank spaces
                 for i in xrange(1, gv.LCD_ROWS+1):
                     self.lcd_string(' ', i)
 
