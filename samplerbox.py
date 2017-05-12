@@ -74,12 +74,13 @@ if isfile(samples_fs_resize_format_script):
     time.sleep(0.1)
     gv.displayer.disp_change(str_override='ExpandingStorage', timeout=60, line=1, is_priority=True)
     gv.displayer.disp_change(str_override='DO NOT TURN OFF!', timeout=60, line=2, is_priority=True)
-    time.sleep(0.5)
+    time.sleep(0.1)
     systemfunctions.mount_boot_rw()
     systemfunctions.mount_root_rw()
-    system('yes | sh ' + samples_fs_resize_format_script)
-    gv.displayer.disp_change(str_override='Rebooting'.center(gv.LCD_COLS, ' '), timeout=60, line=1, is_priority=True)
-    gv.displayer.disp_change(str_override='System'.center(gv.LCD_COLS, ' '), timeout=60, line=2, is_priority=True)
+    system('sh ' + samples_fs_resize_format_script)
+    print 'Finished expanding. Reboot now.'
+    systemfunctions.SystemFunctions().reboot()
+    exit()
 else:
     print '\r***********\r/SAMPLES/ HAS BEEN GROWN AND FORMATTED - READY TO GO\r***********\r'
 
