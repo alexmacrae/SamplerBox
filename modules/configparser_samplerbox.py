@@ -89,13 +89,16 @@ class Setup:
 
         self.config.set('GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 1',
 '; GPIO: The number of the GPIO pin the button is connected to. eg button_left = GPIO7\r\
-; For buttons connected to GPIO pins, USE_BUTTONS must be True')
+; For buttons connected to GPIO pins, USE_BUTTONS must be True\r\
+; If you\'re using official SamplerBox hardware, these default values will work.')
         self.config.set('GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 2',
 '; GPIO: The number of the GPIO pin the button is connected to. eg button_left = GPIO7\r\
-; For buttons connected to GPIO pins, USE_BUTTONS must be True')
+; For buttons connected to GPIO pins, USE_BUTTONS must be True\r\
+; If you\'re using official SamplerBox hardware, these default values will work.')
 
         self.config.set('GPIO LCD HD44780 PIN SETUP',
-'; If you\'re using a 16x2 or 20x4 character LCD module, define its GPIO pins here')
+'; If you\'re using a 16x2 or 20x4 character LCD module, define its GPIO pins here.\r\
+; If you\'re using official SamplerBox hardware, these default values will work.')
 
         self.config.set('GPIO FOR A 7 SEGMENT DISPLAY',
 '; If you\'re using a 7 segment display, define its GPIO pin here')

@@ -34,21 +34,21 @@ configdefaults = {
     'BUTTON_DOWN_MIDI': {'type': 'midi', 'default': 'None', 'section': 'MIDI BUTTON NAVIGATION FOR SYSTEM MODE 2'},
     'BUTTON_FUNC_MIDI': {'type': 'midi', 'default': 'None', 'section': 'MIDI BUTTON NAVIGATION FOR SYSTEM MODE 2'},
 
-    'BUTTON_LEFT_GPIO': {'type': 'int', 'default': 26, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 1'},
-    'BUTTON_RIGHT_GPIO': {'type': 'int', 'default': 13, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 1'},
-    'BUTTON_ENTER_GPIO': {'type': 'int', 'default': 6, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 1'},
-    'BUTTON_CANCEL_GPIO': {'type': 'int', 'default': 12, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 1'},
+    'BUTTON_LEFT_GPIO': {'type': 'int', 'default': 27, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 1'},
+    'BUTTON_RIGHT_GPIO': {'type': 'int', 'default': 23, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 1'},
+    'BUTTON_ENTER_GPIO': {'type': 'int', 'default': 17, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 1'},
+    'BUTTON_CANCEL_GPIO': {'type': 'int', 'default': 24, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 1'},
 
-    'BUTTON_UP_GPIO': {'type': 'int', 'default': 13, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 2'},
-    'BUTTON_DOWN_GPIO': {'type': 'int', 'default': 26, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 2'},
-    'BUTTON_FUNC_GPIO': {'type': 'int', 'default': 6, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 2'},
+    'BUTTON_UP_GPIO': {'type': 'int', 'default': 23, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 2'},
+    'BUTTON_DOWN_GPIO': {'type': 'int', 'default': 27, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 2'},
+    'BUTTON_FUNC_GPIO': {'type': 'int', 'default': 17, 'section': 'GPIO BUTTONS PIN SETUP FOR SYSTEM MODE 2'},
 
-    'GPIO_LCD_RS': {'type': 'int', 'default': 7, 'section': 'GPIO LCD HD44780 PIN SETUP'},
-    'GPIO_LCD_E': {'type': 'int', 'default': 8, 'section': 'GPIO LCD HD44780 PIN SETUP'},
-    'GPIO_LCD_D4': {'type': 'int', 'default': 27, 'section': 'GPIO LCD HD44780 PIN SETUP'},
-    'GPIO_LCD_D5': {'type': 'int', 'default': 17, 'section': 'GPIO LCD HD44780 PIN SETUP'},
-    'GPIO_LCD_D6': {'type': 'int', 'default': 18, 'section': 'GPIO LCD HD44780 PIN SETUP'},
-    'GPIO_LCD_D7': {'type': 'int', 'default': 4, 'section': 'GPIO LCD HD44780 PIN SETUP'},
+    'GPIO_LCD_RS': {'type': 'int', 'default': 5, 'section': 'GPIO LCD HD44780 PIN SETUP'},
+    'GPIO_LCD_E': {'type': 'int', 'default': 6, 'section': 'GPIO LCD HD44780 PIN SETUP'},
+    'GPIO_LCD_D4': {'type': 'int', 'default': 26, 'section': 'GPIO LCD HD44780 PIN SETUP'},
+    'GPIO_LCD_D5': {'type': 'int', 'default': 16, 'section': 'GPIO LCD HD44780 PIN SETUP'},
+    'GPIO_LCD_D6': {'type': 'int', 'default': 13, 'section': 'GPIO LCD HD44780 PIN SETUP'},
+    'GPIO_LCD_D7': {'type': 'int', 'default': 12, 'section': 'GPIO LCD HD44780 PIN SETUP'},
 
     'GPIO_7SEG': {'type': 'int', 'default': 1, 'section': 'GPIO FOR A 7 SEGMENT DISPLAY'}
 
