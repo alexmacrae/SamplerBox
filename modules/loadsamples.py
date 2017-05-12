@@ -22,6 +22,7 @@ class LoadingSamples:
         self.memory_limit_reached = False
         self.midi_detected = False
         self.pause_sleep = 0.02
+        self.last_memory_reading = 0
         # gv.setlist.update()
 
         # Create empty dicts for every sample-set. This is necessary for setlist rearrangement
@@ -64,7 +65,6 @@ class LoadingSamples:
     # there are sounds playing #
     ############################
 
-
     def pause_if_playingsounds_or_midi(self):
 
         pause_time = 0.2 #secs
@@ -101,12 +101,24 @@ class LoadingSamples:
     # Memory management #
     #####################
 
-    def is_memory_too_high(self):
+    def check_memory_usage(self):
         RAM_usage_percentage = psutil.virtual_memory().percent
+        self.last_memory_reading = RAM_usage_percentage
         if RAM_usage_percentage > gv.RAM_LIMIT_PERCENTAGE:
-            return True, RAM_usage_percentage
+
+            print '    RAM usage = %d%%' % RAM_usage_percentage
+            print '    RAM limit = %d%%' % gv.RAM_LIMIT_PERCENTAGE
+            print 'x   RAM usage has reached limit (in config.ini)'
+            print '    STOP LOADING PRESETS'
+            self.memory_limit_reached = True
+            return True
         else:
-            return False, RAM_usage_percentage
+
+            print '    RAM usage = %d%%' % RAM_usage_percentage
+            print '    RAM limit = %d%%' % gv.RAM_LIMIT_PERCENTAGE
+            print '+   RAM usage is OK - can load next preset'
+            self.memory_limit_reached = False
+            return False
 
     def kill_preset(self, preset):
 
@@ -206,22 +218,41 @@ class LoadingSamples:
         gv.currvoice = 1
         #### prevbase = gv.basename  # disp_changed from currbase
 
-    def set_global_fadeout(self):
-        # if not (gv.FADEOUTLENGTH) == gv.FADEOUTLENGTH_DEFAULT:
-        #     # print 'Fadeoutlength disp_changed to ' + str(gv.FADEOUTLENGTH)
-        #     gv.FADEOUT = numpy.linspace(1., 0., gv.FADEOUTLENGTH)  # by default, float64
-        #     gv.FADEOUT = numpy.power(gv.FADEOUT, 6)
-        #     gv.FADEOUT = numpy.append(gv.FADEOUT, numpy.zeros(gv.FADEOUTLENGTH, numpy.float32)).astype(
-        #         numpy.float32)
-        # print 'Preset loaded: ' + str(preset)
 
-        pass  # Temporary ban on fadeouts until we can figure what the hell is going on
+    def load_next_preset(self):
+
+        if len(gv.SETLIST_LIST) > 1:
+
+            if self.preset_current_loading == gv.samples_indices[gv.preset]:
+
+                if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset', timeout=0)
+                self.preset_next_to_load = self.get_next_preset(gv.preset)
+                self.preset_current_is_loaded = True
+
+            else:
+
+                self.preset_next_to_load = self.get_next_preset(self.preset_current_loading)
+
+                if self.preset_next_to_load == gv.preset:
+                    return True
+
+            self.preset_current_loading = self.preset_next_to_load
+            # time.sleep(0.05)  # allow a tiny pause before loading next preset for LCD
+
+            # if gv.displayer.menu_mode == 'preset':
+            #     gv.displayer.disp_change('preset') # force display to update
+
+            self.actually_load()  # load next preset
+
 
     ###################
     # The mother load #
     ###################
 
     def actually_load(self):
+
+        print 'RAM check at START of preset load'
+        self.check_memory_usage()
 
         if self.preset_current_loading == gv.samples_indices[gv.preset]:
             self.reset_global_defaults()
@@ -232,7 +263,6 @@ class LoadingSamples:
         if self.all_presets_loaded:
             print '\rLOADED NOTHING: all presets have been loaded into memory'
             self.set_globals_from_keywords()
-            self.set_global_fadeout()
             if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset')  # Force the display to update
             return  # all is loaded, no need to proceed further from here
 
@@ -243,9 +273,9 @@ class LoadingSamples:
             self.preset_current_is_loaded = False
             self.preset_change_triggered = False
 
-            if self.is_memory_too_high()[0] == True:
-                if self.kill_two_before() == False:  # Kill 2 presets previous (if exists)
-                    if self.kill_one_before() == False:  # Kill 1 preset previous (if exists)
+            if self.memory_limit_reached == True:
+                if self.kill_two_before() == False:  # Free up RAM - kill 2 presets previous (if exists)
+                    if self.kill_one_before() == False:  # Free up RAM - kill 1 preset previous (if exists)
                         pass
                 self.reset_global_defaults()
 
@@ -256,16 +286,22 @@ class LoadingSamples:
             if gv.samples[self.preset_current_loading].has_key('loaded'):
                 print '[%d: %s] has already been loaded. Skipping.' % (self.preset_current_loading, gv.SETLIST_LIST[self.preset_current_loading])
                 self.set_globals_from_keywords()
-                return
+                if gv.displayer.menu_mode == 'preset':
+                    gv.displayer.disp_change('preset')  # Force the display to update
+
+                if self.memory_limit_reached == False:
+                    self.load_next_preset()
+                    return
+                else:
+                    return
             else:
                 # Preset seems to have been partially loaded at some point.
                 # Stop all playing sounds to avoid pops and finish loading.
                 # gv.playingsounds = []  # clear/stop all currently playing samples
                 pass
         else:
-            # Preset has never been loaded. Initialize its dict and load samples.
+            # Preset has never been loaded, or has been unloaded at some point. Initialize its dict and load samples.
             self.init_sampleset_dict([self.preset_current_loading])
-            # gv.playingsounds = [] # clear/stop all currently playing samples
 
         # Reset defaults
         current_basename = gv.SETLIST_LIST[self.preset_current_loading]
@@ -280,9 +316,11 @@ class LoadingSamples:
         file_count = float(len(os.listdir(dirname)))
         file_current = 0.0
 
+        gv.samples[self.preset_current_loading]['keywords']['fillnotes'] = 'Y'  # set fillnotes global default because it's needed in this iteration later
+
         if os.path.isfile(definitionfname):
 
-            print '---- LOADING: [%d] %s' % (self.preset_current_loading, current_basename)  # debug
+            print 'START LOADING: [%d] %s' % (self.preset_current_loading, current_basename)  # debug
 
             file_count = file_count - 1  # One of the files is definition.txt
 
@@ -310,9 +348,6 @@ class LoadingSamples:
                         """
                         Add any found keywords to preset's samples dict without applying to globals
                         """
-
-                        # print pattern
-                        gv.samples[self.preset_current_loading]['keywords']['fillnotes'] = 'Y' # set fillnotes global default because it's needed in this iteration later
 
                         if r'%%gain' in pattern:
                             gv.samples[self.preset_current_loading]['keywords']['gain'] = abs(float(pattern.split('=')[1].strip()))
@@ -370,7 +405,6 @@ class LoadingSamples:
 
                 if self.preset_current_loading == gv.samples_indices[gv.preset]:
                     self.set_globals_from_keywords()
-                    self.set_global_fadeout()
                     print '################################'
 
                     self.pause_if_playingsounds_or_midi()
@@ -390,7 +424,7 @@ class LoadingSamples:
 
                         defaultparams = {'midinote': '0', 'velocity': '127', 'notename': '',
                                          'voice': '1', 'seq': '1', 'channel': gv.MIDI_CHANNEL, 'release': '128',
-                                         'fillnote': 'D', 'mode': 'Keyb', 'mutegroup': '0'}
+                                         'fillnote': 'G', 'mode': 'Keyb', 'mutegroup': '0'}
 
                         if len(pattern.split(',')) > 1:
                             defaultparams.update(dict([item.split('=') for item in pattern.split(',', 1)[1].replace(' ', '').replace('%', '').split(',')]))
@@ -402,7 +436,7 @@ class LoadingSamples:
                             .replace(r"\%velocity", r"(?P<velocity>\d+)") \
                             .replace(r"\%voice", r"(?P<voice>\d+)") \
                             .replace(r"\%release", r"(?P<release>[a-zA-Z0-9_])") \
-                            .replace(r"\%fillnote", r"(?P<fillnote>[YNDynd])") \
+                            .replace(r"\%fillnote", r"(?P<fillnote>[YNGyng])") \
                             .replace(r"\%mode", r"(?P<mode>\w+)") \
                             .replace(r"\%seq", r"(?P<seq>\d+)") \
                             .replace(r"\%notename", r"(?P<notename>[A-Ga-g]#?[0-9])") \
@@ -552,7 +586,7 @@ class LoadingSamples:
                         try:
                             if fillnotes.has_key((midinote, voice)):
                                 # can we use this note for filling? Look for: sample-level = Y, or sample-level = D (default) AND global = Y
-                                if fillnotes[midinote, voice] == 'Y' or (fillnotes[midinote, voice] == 'D' and fillnotes_global == 'Y'):
+                                if fillnotes[midinote, voice] == 'Y' or (fillnotes[midinote, voice] == 'G' and fillnotes_global == 'Y'):
                                     next_high = None  # passed next_high
                                     last_low = midinote  # but we got fresh low info
                         except Exception as e:
@@ -564,7 +598,7 @@ class LoadingSamples:
                             for m in xrange(midinote + 1, 128):
                                 if (m, 1, voice, gv.MIDI_CHANNEL) in initial_keys:
                                     # can we use this note for filling? Look for: sample-level = Y, or sample-level = D (default) AND global = Y
-                                    if fillnotes[m, voice] == 'Y' or (fillnotes[m, voice] == 'D' and fillnotes_global == 'Y'):
+                                    if fillnotes[m, voice] == 'Y' or (fillnotes[m, voice] == 'G' and fillnotes_global == 'Y'):
                                         if m < next_high:
                                             next_high = m
 
@@ -589,40 +623,15 @@ class LoadingSamples:
         gv.samples[self.preset_current_loading]['keywords']['voices'] = voices_local
         gv.samples[self.preset_current_loading]['loaded'] = True  # flag this preset's dict item as loaded
 
-        print '++++ LOADED: [%d] %s' % (self.preset_current_loading, current_basename)  # debug
+        print 'END LOADING: [%d] %s' % (self.preset_current_loading, current_basename)  # debug
 
         self.is_all_presets_loaded()
-        is_memory_too_high_bool = self.is_memory_too_high()[0]
-        is_memory_too_high_percentage = self.is_memory_too_high()[1]
 
-        if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset')  # Force the display to update
+        if gv.displayer.menu_mode == 'preset':
+            gv.displayer.disp_change('preset')  # Force the display to update
 
-        if is_memory_too_high_bool == False and len(gv.SETLIST_LIST) > 1:
+        print 'RAM check at END of preset load'
+        self.check_memory_usage() # check memory again to see if we can load the next preset
 
-            self.memory_limit_reached = False
-
-            if self.preset_current_loading == gv.samples_indices[gv.preset]:
-
-                if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset', timeout=0)
-                self.preset_next_to_load = self.get_next_preset(gv.preset)
-                self.preset_current_is_loaded = True
-
-            else:
-
-                self.preset_next_to_load = self.get_next_preset(self.preset_current_loading)
-
-                if self.preset_next_to_load == gv.preset: return
-
-            print '++ RAM usage is ok (%d%%) \r++ Load next preset' % is_memory_too_high_percentage  # debug
-
-            self.preset_current_loading = self.preset_next_to_load
-            time.sleep(0.05)  # allow a tiny pause before loading next preset for LCD
-            self.actually_load()  # load next preset
-
-        else:
-
-            self.memory_limit_reached = True
-            if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('preset', timeout=0)
-
-            print '-- RAM usage has reach limit (%d%%) \r-- Stop loading other presets' % is_memory_too_high_percentage  # debug
-            return
+        if self.memory_limit_reached == False:
+            self.load_next_preset()
