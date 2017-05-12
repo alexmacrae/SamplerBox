@@ -32,7 +32,7 @@ Getting Started
 
 2. Screw four enclosed stand-offs into SamplerBox PCB from the bottom in locations matching Raspberry Pi mounting holes.
 
-.. image:: images/mounting-standoff.jpg
+.. image:: images/mounting-standoff.JPG
 
 3. Align 40-pin connector and stand-offs with Raspberry Pi. Push PCBs together, applying force near standoffs, applying pressure to pin headers without bending the boards.
 

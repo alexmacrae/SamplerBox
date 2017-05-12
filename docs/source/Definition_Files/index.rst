@@ -125,31 +125,119 @@ In addition to global keywords, sample-level keywords can be used. Some of these
 
     saw2.wav, %midinote=60, %voice=2, %fillnote=N
 
-+-------------------+------------------------------------------------------------------------------+
-|Definition keyword |Description                                                                   |
-+===================+==============================================================================+
-|%notename          | | C1, C2, C3, D#3, F#4, etc.                                                 |
-+-------------------+------------------------------------------------------------------------------+
-|%midinote          | | 0-127. 60 corresponds with middle C = C4.                                  |
-+-------------------+------------------------------------------------------------------------------+
-|%channel           | | 0-16. 0 being all channels.                                                |
-+-------------------+------------------------------------------------------------------------------+
-|%velocity          | | 1-127. 127 is default. A velocity sample is used from its value upwards    |
-|                   | | till the next sample. Velocity values below lowest sample will use this    |
-|                   | | lowest one.                                                                |
-+-------------------+------------------------------------------------------------------------------+
-|%voice             | | 1-127. 1 is default. This enables loading different instruments in one     |
-|                   | | sample set, so that switching between them has no delay.                   |
-+-------------------+------------------------------------------------------------------------------+
-|%seq               | | If you have multiple versions of the same sample (eg different snare       |
-|                   | | samples) you can number them. On playback a random sample will             |
-|                   | | be selected.                                                               |
-+-------------------+------------------------------------------------------------------------------+
-|%fillnote          | | Y/N. Determines whether the sample at the specified note will fill         |
-|                   | | surrounding notes.                                                         |
-+-------------------+------------------------------------------------------------------------------+
-|%mode              | | Currently only accepts Once. See ``%%mode`` above for its functionality.   |
-+-------------------+------------------------------------------------------------------------------+
+
+%notename
+---------
+
+.. code-block:: text
+
+    Values = C1, C2, C3, D#3, F#4, etc.
+
+Define a sample's MIDI note by its note name.
+
+%midinote
+---------
+
+.. code-block:: text
+
+    Value range = 0-127
+
+Define a sample's MIDI note. For example 60 corresponds to middle C = C4.
+
+%channel
+--------
+
+.. code-block:: text
+
+    Value range = 0-16
+
+.. code-block:: text
+
+    Default = 0
+
+**NB:** 0 = all channels.
+
+%velocity
+---------
+
+.. code-block:: text
+
+    Value range = 1-127
+
+.. code-block:: text
+
+    Default = 127
+
+A velocity sample is used from its value upwards till the next sample. Velocity values below lowest sample will use this lowest one.
+
+%voice
+------
+
+.. code-block:: text
+
+    Value range = 1-4
+
+.. code-block:: text
+
+    Default = 1
+
+This enables loading different instruments in one sample set, so that switching between them has no delay.
+
+%seq
+----
+
+.. code-block:: text
+
+    Value range = 1-127
+
+.. code-block:: text
+
+    Default = 1
+
+If you have multiple versions of the same sample (eg different snare samples) you can number them. On playback a random sample will be selected.
+
+%fillnote
+---------
+
+.. code-block:: text
+
+    Values = Y, N, G
+
+.. code-block:: text
+
+    Default = G (use global setting)
+
+Determines whether the sample at the specified note will fill surrounding notes.
+
+
+%mode
+-----
+
+.. code-block:: text
+
+    Values = Once
+
+.. code-block:: text
+
+    Default = None
+
+Currently only accepts Once. See ``%%mode`` above for its functionality.
+
+%mutegroup
+----------
+
+.. code-block:: text
+
+    Value range = 0-127
+
+.. code-block:: text
+
+    Default = 0 (no mute group)
+
+Assign sample lines to a mutegroup. When performing a note from a mutegroup, any other sounds from the same
+group will be stopped/choked. Useful for instruments like hi-hats.
+
+
 
 -----------------------------------
 

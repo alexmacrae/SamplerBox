@@ -7,7 +7,7 @@ The :ref:`config.ini <config-ini>` file contains settings for your SamplerBox. I
 
 .. note::
 
-    In :ref:`system-mode-1` many of these settings are configurable from the menu system. However an initial setup of this file may be required.
+    In :ref:`system-mode-1`'s :ref:`system settings <system-settings>` many of these settings are configurable from the menu system. However an initial setup of this file may be required.
 
 Main configuration
 ==================

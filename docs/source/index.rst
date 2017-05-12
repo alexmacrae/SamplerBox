@@ -10,9 +10,14 @@ SamplerBox is a pocket-sized sound module based on `Raspberry Pi <https://www.ra
 It is completely open-source which means it is forever evolving, making it a formidable alternative to other commercial MIDI samplers and expanders on the market.
 
 
-
-
 .. image:: images/SamplerBoxPlayer.jpg
+
+*SamplerBox Player PCB (without LCD)*
+
+
+.. image:: images/LCD-loading-animation.gif
+
+*LCD loading and initial sample-set display. Line 1 = current sample-set, Line 2 = next sample-set*
 
 
 .. _how-it-works:

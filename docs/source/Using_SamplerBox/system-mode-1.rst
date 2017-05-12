@@ -93,6 +93,8 @@ MIDI Mapping
 |Sustain               || Map any control to the pedal sustain function. Useful if your          |
 |                      || keyboard doesn't have a sustain pedal input.                           |
 +----------------------+-------------------------------------------------------------------------+
+|Panic key             || Map a key to kill all sounds.                                          |
++----------------------+-------------------------------------------------------------------------+
 |SamplerBox Navigation || Map MIDI controls to each of the 4 navigation buttons (left, right,    |
 |                      || enter and cancel). Mapping a control to one of these functions will not|
 |                      || override any other controls mapped to the same function, thus allowing |

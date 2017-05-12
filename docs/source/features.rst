@@ -79,6 +79,11 @@ Auto-chords
 
 Builds and plays back a chord from a single note.
 
+Panic key
+=========
+
+Control change messages CC120 and CC123 will trigger the panic function, killing all playing sounds. This can also be :ref:`MIDI Mapped <midi-mapping>`.
+
 .. _menu-system:
 
 Menu system
