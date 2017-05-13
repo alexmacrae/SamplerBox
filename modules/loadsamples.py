@@ -21,7 +21,7 @@ class LoadingSamples:
         self.all_presets_loaded = False
         self.memory_limit_reached = False
         self.midi_detected = False
-        self.pause_sleep = 0.02
+        self.pause_sleep = 0.5
         self.last_memory_reading = 0
         # gv.setlist.update()
 
@@ -67,7 +67,7 @@ class LoadingSamples:
 
     def pause_if_playingsounds_or_midi(self):
 
-        pause_time = 0.2 #secs
+        pause_time = 0.5 #secs
 
         if self.LoadingInterrupt:
             return
@@ -75,7 +75,8 @@ class LoadingSamples:
         if self.preset_current_is_loaded and self.preset_current_loading != gv.samples_indices[gv.preset]:
             # if gv.playingsounds or self.midi_detected or gv.displayer.menu_mode != gv.displayer.DISP_PRESET_MODE: # menu_mode breaks definition editor. TODO: find better way
             if gv.playingsounds or self.midi_detected:  # are there sounds or midi playing?
-                print '########\r-- Initiate pause on sample loading --'
+                print '####################################'
+                print '# Initiate pause on sample loading #'
                 while True:
                     if not gv.playingsounds or self.preset_change_triggered:
 
@@ -84,7 +85,10 @@ class LoadingSamples:
                             for k in xrange(int(pause_time / self.pause_sleep)):
                                 time.sleep(self.pause_sleep)
 
-                        print 'No more playingsounds or MIDI (or new preset triggered)\rContinue loading\r########'
+                        print '#----------------------------------#'
+                        print '#   No more playingsounds or MIDI  #'
+                        print '#         Continue loading         #'
+                        print '####################################'
                         self.preset_change_triggered = False
                         self.midi_detected = False
                         time.sleep(pause_time)  # wait a short while before loading samples again
@@ -92,7 +96,7 @@ class LoadingSamples:
 
                     sys.stdout.write('\r[!] LOADING PAUSED: sounds or MIDI is playing')
                     sys.stdout.flush()
-                    # time.sleep(self.pause_sleep)
+                    time.sleep(self.pause_sleep)
             else:
                 # print '++ Keep loading ++'
                 return
@@ -514,7 +518,8 @@ class LoadingSamples:
                                         # print "sample: %s, note: %d, voice: %d, channel: %d" %(fname, midinote, voice, channel)
 
                                     # If this isn't the preset in focus, don't load samples so quickly - give the system more resources to do other things (eg navigate menu)
-                                    if self.preset_current_loading != gv.samples_indices[gv.preset]: time.sleep(0.01)
+                                    if self.preset_current_loading != gv.samples_indices[gv.preset]:
+                                        time.sleep(0.01)
 
                     except Exception as e:
                         if pattern != '':
@@ -524,7 +529,7 @@ class LoadingSamples:
                             # print exc_info
                             print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e), e)
 
-        # If no definition.txt file found in folder, look for numbered files (eg 64.wav, 65.wav etc)
+        # If no definition.txt file found in folder, look for numbered files (64.wav, 65.wav etc) or notenamed files (C1.wav, D3.wav etc)
         else:
 
             for midinote in range(0, 127):
@@ -534,16 +539,31 @@ class LoadingSamples:
                 voices_local.append(1)
                 if self.preset_current_loading == gv.samples_indices[gv.preset]: gv.voices = voices_local
 
-                file_ = os.path.join(dirname, "%d.wav" % midinote)
-                # print "Trying " + file_
-                if os.path.isfile(file_):
-                    # print "Processing " + file_
-                    gv.samples[self.preset_current_loading][midinote, 127, 1, channel] = sound.Sound(file_, midinote, 127, 1, channel, gv.BOXRELEASE)
+                file_midinote = os.path.join(dirname, "%d.wav" % midinote)
+
+                notename_index = midinote % 12
+                octave = str((midinote / 12) )
+                notename = gv.NOTES[notename_index] + octave
+                file_notename = os.path.join(dirname, "%s.wav" % notename)
+
+                if os.path.isfile(file_midinote):
+                    # print "Processing " + file_midinote
+                    gv.samples[self.preset_current_loading][midinote, 127, 1, channel] = [sound.Sound(file_midinote, midinote, 127, 1, channel, gv.BOXRELEASE, None, 0)]
+
+                elif os.path.isfile(file_notename):
+                    # print "Processing " + file_notename
+                    gv.samples[self.preset_current_loading][midinote, 127, 1, channel] = [sound.Sound(file_notename, midinote, 127, 1, channel, gv.BOXRELEASE, None, 0)]
+
+                gv.samples[self.preset_current_loading]['fillnotes'][midinote, 1] = 'Y'
 
                 percent_loaded = (file_current * 100) / file_count  # more accurate loading progress
                 gv.percent_loaded = percent_loaded
-                if gv.displayer.menu_mode == 'preset': gv.displayer.disp_change('loading')
+                if gv.displayer.menu_mode == 'preset':
+                    gv.displayer.disp_change('loading')
                 file_current += 1
+
+            if self.preset_current_loading != gv.samples_indices[gv.preset]:
+                time.sleep(0.01)
 
         ################
         # NOTE FILLING #
