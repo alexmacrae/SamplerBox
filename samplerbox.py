@@ -48,17 +48,26 @@ from modules import midicallback
 # Fix USB #
 ###########
 
-if ismount('/media'):
-    try:
-        subprocess.call(["fsck", "-yvp", "/media"])  # auto-repair USB drive in case of dirty bits (if connected/mounted)
-        path = gv.SAMPLES_DIR
-        if 'media' in path:
-            if path.endswith('/'): path = path[:-1]
-            subprocess.call(['rm', '-v', path + '/FSCK*.REC'])
+# if ismount('/media'):
+    # try:
+    #     subprocess.call(["fsck", "-yvp", "/media"])  # auto-repair USB drive in case of dirty bits (if connected/mounted)
+    #     path = gv.SAMPLES_DIR
+    #     if 'media' in path:
+    #         if path.endswith('/'): path = path[:-1]
+    #         subprocess.call(['rm', '-v', path + '/FSCK*.REC'])
+    #     else:
+    #         subprocess.call(['rm', '-v', '/media/FSCK*.REC'])
+    # except:
+    #     print 'USB repair failed'
+
+try:
+    if ismount('/media'):
+        if 'media' in gv.SAMPLES_DIR:
+            subprocess.call(['rm', '-v', gv.SAMPLES_DIR.rstrip('/') + '/FSCK*.REC'])
         else:
             subprocess.call(['rm', '-v', '/media/FSCK*.REC'])
-    except:
-        print 'USB repair failed'
+except:
+    pass
 
 ###########
 # Logging #
