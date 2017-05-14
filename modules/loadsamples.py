@@ -546,13 +546,16 @@ class LoadingSamples:
             sfz = SFZParser(sfzfname)
 
             # Set globals
-            release = float(sfz.sections[0][1].get('ampeg_release'))
+            release = int((float(sfz.sections[0][1].get('ampeg_release')) * 1000) / 17)
+            release = sorted([0, release, 127])[1] # limit value to within the range 0-127
             gain = float(sfz.sections[0][1].get('volume')) + 1.0
             sustain = int(sfz.sections[0][1].get('ampeg_sustain')) # unused
             decay = float(sfz.sections[0][1].get('ampeg_decay')) # unused
             attack = float(sfz.sections[0][1].get('ampeg_attack')) # unused
             gv.samples[self.preset_current_loading]['keywords']['release'] = release
             gv.samples[self.preset_current_loading]['keywords']['gain'] = gain
+            print '>>>> Global release:', release
+            print '>>>> Global gain:', gain
 
             if self.LoadingInterrupt:
                 return
