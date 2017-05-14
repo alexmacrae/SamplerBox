@@ -116,6 +116,8 @@ EOF
 
 cat <<EOF > sdcard/etc/fstab
 /dev/sda1       /media          auto    nofail                  0       0
+/dev/mmcblk0p1  /boot           vfat    ro,auto,exec            0       2
+/dev/mmcblk0p3  /samples        auto    ro,auto,exec            0       0
 EOF
 # /dev/mmcblk0p1  /boot           vfat    ro,auto,exec            0       2
 # /dev/mmcblk0p2  /               auto    defaults,noatime,ro     0       1
@@ -186,7 +188,7 @@ sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' sdcard/etc/ssh/
 
 ## Start wpa_supplicant
 #chroot sdcard sh -c "wpa_supplicant -B -i wlan0 -c /boot/networking/wireless_networks.conf" # only need if wpa_supplicant.conf lives somewhere other than the default. eg /boot/networking/wireless_networks.conf
-chroot sdcard sh -c "wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf" # only need if wpa_supplicant.conf lives somewhere other than the default. eg /boot/networking/wireless_networks.conf
+#chroot sdcard sh -c "wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf" # only need if wpa_supplicant.conf lives somewhere other than the default. eg /boot/networking/wireless_networks.conf
 #chroot sdcard systemctl enable wpa_supplicant # line may not be needed as package wpasupplicant seems to start service upon reboot
 #chroot sdcard systemctl enable dhcpcd # dhcpcd5 enables itself after install
 
@@ -261,8 +263,8 @@ set -e
 
 mount -vo remount,rw /
 mount -vo remount,rw /boot
-umount -v /dev/mmcblk0p3 &
-#apt-get install -y parted dosfstools
+umount -v /samples || true
+
 parted /dev/mmcblk0 <<EOF
 resizepart
 3
@@ -278,24 +280,19 @@ resizepart
 q
 $EOF
 
-mkfs.ext4 -L SAMPLES /dev/mmcblk0p3  # reformat
-mount -v -t ext4 -o sync /dev/mmcblk0p3 /samples/
+#mkfs.ext4 -L SAMPLES /dev/mmcblk0p3  # reformat
+mkfs.fat -n SAMPLES /dev/mmcblk0p3 # reformat
+mount -v -t vfat -o sync /dev/mmcblk0p3 /samples/
 
 # Move /Saw/ sample-set from original /SamplerBox/media/ to /samples/ (partition)
-cp -a /root/SamplerBox/media/. /samples/
-rm -r /root/SamplerBox/media/
+cp -a /root/SamplerBox/media/. /samples/ || true
+rm -r /root/SamplerBox/media/ || true
 # Make empty setlist.txt file
 touch /samples/setlist.txt
-rm -r /samples/lost+found/
-
-cat <<EOF >> /etc/fstab
-/dev/mmcblk0p1  /boot           vfat    ro,auto,exec            0       2
-/dev/mmcblk0p2  /               auto    defaults,noatime,ro     0       1
-/dev/mmcblk0p3  /samples        auto    ro,auto,exec            0       0
-$EOF
+rm -r /samples/lost+found/ ||true
 
 # Delete this file - we don't want to accidentally reformat our /samples/ partition!
-rm -- "$self" && reboot
+rm -- "$self" # && reboot # Rebooting without GPIO.cleanup() can send garbage chars to LCD. Scary for a user!
 
 exit 0
 EOF
@@ -305,7 +302,7 @@ sed -i 's/ENV{pvolume}:="-20dB"/ENV{pvolume}:="-10dB"/' sdcard/usr/share/alsa/in
 
 chroot sdcard date -s "Mon May 1 12:00:00 UTC 2017"
 
-chroot sdcard systemctl stop serial-getty@ttyAMA0.service
+#chroot sdcard systemctl stop serial-getty@ttyAMA0.service
 
 chroot sdcard systemctl enable /etc/systemd/system/samplerbox.service
 
@@ -318,8 +315,8 @@ echo 'snd_bcm2835' >> sdcard/etc/modules
 sync
 
 umount -v sdcard/boot
-umount -v sdcard
 umount -v sdcard/samples
+umount -v sdcard
 
 kpartx -dv $image_name
 
