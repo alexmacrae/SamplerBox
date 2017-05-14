@@ -1,11 +1,13 @@
 import time
 import os
+import glob
 import re
 import threading
 import psutil
 import globalvars as gv
 import sound
 from modules import definitionparser as dp
+from sfzparser import SFZParser
 import sys
 import gc  # garbage collector
 
@@ -317,6 +319,9 @@ class LoadingSamples:
         dirname = os.path.join(gv.SAMPLES_DIR, current_basename)
 
         definitionfname = os.path.join(dirname, "definition.txt")
+
+        sfzfname = glob.glob(os.path.join(dirname, '*.sfz'))[0].replace('\\', '/')
+
         file_count = float(len(os.listdir(dirname)))
         file_current = 0.0
 
@@ -529,7 +534,62 @@ class LoadingSamples:
                             # print exc_info
                             print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e), e)
 
-        # If no definition.txt file found in folder, look for numbered files (64.wav, 65.wav etc) or notenamed files (C1.wav, D3.wav etc)
+        ###############
+        # SFZ support #
+        ###############
+
+        elif os.path.isfile(sfzfname):
+
+            # SFZParser by SpotlightKid. https://github.com/SpotlightKid/sfzparser
+            # LICENCE: https://github.com/SpotlightKid/sfzparser/blob/master/LICENSE
+            sfz = SFZParser(sfzfname)
+
+            # Set globals
+            release = float(sfz.sections[0][1].get('ampeg_release'))
+            gain = float(sfz.sections[0][1].get('volume')) + 1.0
+            sustain = int(sfz.sections[0][1].get('ampeg_sustain')) # unused
+            decay = float(sfz.sections[0][1].get('ampeg_decay')) # unused
+            attack = float(sfz.sections[0][1].get('ampeg_attack')) # unused
+            gv.samples[self.preset_current_loading]['keywords']['release'] = release
+            gv.samples[self.preset_current_loading]['keywords']['gain'] = gain
+
+            if self.LoadingInterrupt:
+                return
+
+            voices_local.append(1)
+            if self.preset_current_loading == gv.samples_indices[gv.preset]:
+                gv.voices = voices_local
+
+            for section in sfz.sections:
+
+                self.pause_if_playingsounds_or_midi()
+
+                if type(section[0]) == unicode:
+                    if section[0] == 'region':
+
+                        sample_fname = section[1].get('sample')
+                        sample_path = os.path.join(dirname, sample_fname)
+                        hivel = int(section[1].get('hivel'))
+                        lovel = int(section[1].get('lovel')) # unused
+                        midinote = int(section[1].get('pitch_keycenter'))
+                        hikey = int(section[1].get('hikey')) # unused
+                        lokey = int(section[1].get('lokey')) # unused
+
+                        gv.samples[self.preset_current_loading][midinote, hivel, 1, 1] = [sound.Sound(sample_path, midinote, hivel, 1, 1, release, None, 0)]
+                        gv.samples[self.preset_current_loading]['fillnotes'][midinote, 1] = 'Y'
+
+                        percent_loaded = (file_current * 100) / file_count  # more accurate loading progress
+                        gv.percent_loaded = percent_loaded
+                        if gv.displayer.menu_mode == 'preset':
+                            gv.displayer.disp_change('loading')
+                        file_current += 1
+
+                    # If this isn't the preset in focus, don't load samples so quickly - give the system more resources to do other things (eg navigate menu)
+                if self.preset_current_loading != gv.samples_indices[gv.preset]:
+                    time.sleep(0.01)
+
+
+        # If no definition.txt or *.sfz file found in folder, look for numbered files (64.wav, 65.wav etc) or notenamed files (C1.wav, D3.wav etc)
         else:
 
             for midinote in range(0, 127):
