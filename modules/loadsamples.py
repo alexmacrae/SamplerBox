@@ -320,7 +320,8 @@ class LoadingSamples:
 
         definitionfname = os.path.join(dirname, "definition.txt")
 
-        sfzfname = glob.glob(os.path.join(dirname, '*.sfz'))[0].replace('\\', '/')
+        sfzfname = glob.glob(os.path.join(dirname, '*.sfz'))
+        sfzfname = sfzfname[0].replace('\\', '/') if sfzfname else ''
 
         file_count = float(len(os.listdir(dirname)))
         file_current = 0.0
