@@ -1,7 +1,7 @@
 .. _config-ini:
 
-The config.ini
-**************
+Configuration
+*************
 
 The :ref:`config.ini <config-ini>` file contains settings for your SamplerBox. It is found in the ``/boot/samplerbox`` directory. The ``/boot`` partition is also accessible via a Windows or Mac machine.
 

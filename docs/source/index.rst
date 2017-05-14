@@ -56,12 +56,12 @@ or filenames and rules defined in a :ref:`definition.txt file <definition-files>
    :caption: User Documentation
    :glob:
 
-   installation
-   hardware-assembly
    features
-   Using_SamplerBox/index
+   requirements-hardware
+   installation
    config
-   Definition_Files/index
+   Using_SamplerBox/index
+   Sample_Sets/index
 
 .. _other:
 
