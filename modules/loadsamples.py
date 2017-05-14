@@ -10,6 +10,10 @@ from modules import definitionparser as dp
 from sfzparser import SFZParser
 import sys
 import gc  # garbage collector
+# from sf2utils.sf2parse import Sf2File
+# from mingus.midi import fluidsynth
+# from mingus.containers import Note
+from mingus.midi import pyfluidsynth
 
 
 class LoadingSamples:
@@ -322,6 +326,27 @@ class LoadingSamples:
 
         sfzfname = glob.glob(os.path.join(dirname, '*.sfz'))
         sfzfname = sfzfname[0].replace('\\', '/') if sfzfname else ''
+
+        sf2fname = glob.glob(os.path.join(dirname, '*.sf2'))
+        sf2fname = sf2fname[0].replace('\\', '/') if sf2fname else ''
+        print sf2fname
+        # with open(sf2fname, 'rb') as sf2_file:
+        #     sf2 = Sf2File(sf2_file)
+        #     print sf2.samples[0]
+
+        pfs = pyfluidsynth.Synth()
+
+        pfs.sfload(sf2fname)
+
+        print pfs.get_samples()
+
+        # fluidsynth.init(sf2fname)
+
+        # fluidsynth.play_Note(40, 1, 127)
+
+        exit()
+
+
 
         file_count = float(len(os.listdir(dirname)))
         file_current = 0.0
