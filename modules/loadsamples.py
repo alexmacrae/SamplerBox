@@ -355,9 +355,7 @@ class LoadingSamples:
 
                     try:
 
-                        """
-                        Add any found keywords to preset's samples dict without applying to globals
-                        """
+                        # Add any found keywords to preset's samples dict without applying to globals
 
                         if r'%%gain' in pattern:
                             gv.samples[self.preset_current_loading]['keywords']['gain'] = abs(float(pattern.split('=')[1].strip()))
@@ -380,10 +378,7 @@ class LoadingSamples:
                                 continue
                         if r'%%pitchbend' in pattern:
                             pitchnotes = abs(int(pattern.split('=')[1].strip()))
-                            if pitchnotes > 12:
-                                print "Pitchbend of %d limited to 12 (higher values produce inaccurate pitching)" % pitchnotes
-                                pitchnotes = 12
-                            pitchnotes *= 2  # actually it is 12 up and 12 down
+                            pitchnotes = sorted([0, pitchnotes, 24])[1]  # limit value to within the range 0-24
                             gv.samples[self.preset_current_loading]['keywords']['pitchbend'] = pitchnotes
                             continue
                         if r'%%mode' in pattern:

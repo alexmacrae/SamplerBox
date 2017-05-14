@@ -269,10 +269,9 @@ gain = 1  # the input volume correction, change per set in definition.txt
 ###################
 
 PRERELEASE = BOXRELEASE
-PITCHRANGE_DEFAULT = 12  # default range of the pitchwheel in semitones (max=12. Higher than 12 produces inaccurate pitching)
-PITCHRANGE_DEFAULT *= 2  # actually it is 12 up and 12 down
-PITCHBITS = 7  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
-PITCHBEND =0
+PITCHRANGE_DEFAULT = 7  # default range of the pitchwheel in semitones (max=12. Higher than 12 produces inaccurate pitching)
+PITCHBITS = 10  # pitchwheel resolution, 0=disable, max=14 (=16384 steps) values below 7 will produce bad results
+PITCHBEND = 0
 pitchnotes = PITCHRANGE_DEFAULT
 PITCHSTEPS = 2 ** PITCHBITS
 pitchneutral = PITCHSTEPS / 2
