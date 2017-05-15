@@ -169,7 +169,7 @@ class Midi:
         # Do default MIDI operations #
         ##############################
 
-        # if (midichannel == gv.MIDI_CHANNEL or gv.MIDI_CHANNEL <= 0) and (gv.midi_mute == False):
+        # if (midichannel == gv.MIDI_CHANNEL or gv.MIDI_CHANNEL <= 0) and (gv.midi_mute == False): # MIDI_CHANNEL = 0 is omni mode (accepts all MIDI channels)
         if gv.midi_mute == False:
 
             if messagetype == 9:  # is a note-off hidden in this note-on ?

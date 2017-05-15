@@ -91,9 +91,14 @@ class AudioControls(object):
                     self.stop_mutegroup_sounds(playingsample)  # Mute groups
 
         except:
-            print 'Note error: check definition'
-            gv.displayer.disp_change(str_override='NOTE ERROR', line=gv.LCD_ROWS-1, timeout=1)
-            gv.displayer.disp_change(str_override='Check definition', line=gv.LCD_ROWS, timeout=1)
+            if gv.MIDI_CHANNEL != midichannel:
+                print 'Channel error: Keyboard note = channel %d. No samples are assigned to channel %d' % (midichannel)
+                gv.displayer.disp_change(str_override='CHANNEL ERROR', line=gv.LCD_ROWS - 1, timeout=1)
+                gv.displayer.disp_change(str_override='NoSamplesOn CH%d' % (midichannel), line=gv.LCD_ROWS, timeout=1)
+            else:
+                print 'Note error: check definition'
+                gv.displayer.disp_change(str_override='NOTE ERROR', line=gv.LCD_ROWS-1, timeout=1)
+                gv.displayer.disp_change(str_override='Check definition', line=gv.LCD_ROWS, timeout=1)
 
     def noteoff(self, midinote, midichannel):
 

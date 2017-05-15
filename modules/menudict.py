@@ -242,11 +242,12 @@ menu = {
                 0: {'name': 'Audio Device', 'desc': 'Select a different audio device', 'fn': 'AudioDevice'},
                 1: {'name': 'Max polyphony', 'desc': 'The max number of samples can be played simultaneously', 'fn': 'MaxPolyphonyConfig'},
                 2: {'name': 'MIDI channel', 'desc': '', 'fn': 'MidiChannelConfig'},
-                3: {'name': 'Sample rate', 'desc': '', 'fn': 'SampleRateConfig'},
-                4: {'name': 'Reverb ON/OFF', 'desc': '', 'fn': 'ToggleReverb'},
-                5: {'name': 'Set RAM limit', 'desc': 'Set the amount of RAM the system can use for samples', 'fn': 'SetRAMLimit'}
+                3: {'name': 'Buffer size', 'desc': '', 'fn': 'BufferSizeConfig'},
+                4: {'name': 'Sample rate', 'desc': '', 'fn': 'SampleRateConfig'},
+                5: {'name': 'Reverb ON/OFF', 'desc': '', 'fn': 'ToggleReverb'},
+                6: {'name': 'Set RAM limit', 'desc': 'Set the amount of RAM the system can use for samples', 'fn': 'SetRAMLimit'}
                 # 3: {'name': 'Audio channels', 'desc': '', 'fn': 'ChannelsConfig'},
-                # 4: {'name': 'Buffer size', 'desc': '', 'fn': 'BufferSizeConfig'}
+
 
             }
 
