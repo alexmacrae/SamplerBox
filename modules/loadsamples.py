@@ -24,7 +24,7 @@ class LoadingSamples:
         self.all_presets_loaded = False
         self.memory_limit_reached = False
         self.midi_detected = False
-        self.pause_sleep = 0.5
+        self.pause_sleep = 0.1
         self.last_memory_reading = 0
         # gv.setlist.update()
 
@@ -104,19 +104,19 @@ class LoadingSamples:
                         return
                     if not gv.playingsounds or self.preset_change_triggered:
 
-                        time_start = time.time()
-
-                        if self.midi_detected:
-
-                            while True:
-                                if self.LoadingInterrupt:
-                                    self.loading_paused = True
-                                    self.preset_change_triggered = False
-                                    self.midi_detected = False
-                                    return
-                                elif time.time() - time_start > pause_time:
-                                    time.sleep(self.pause_sleep)
-                                    break
+                        # time_start = time.time()
+                        #
+                        # if self.midi_detected:
+                        #
+                        #     while True:
+                        #         if self.LoadingInterrupt:
+                        #             self.loading_paused = True
+                        #             self.preset_change_triggered = False
+                        #             self.midi_detected = False
+                        #             return
+                        #         elif time.time() - time_start > pause_time:
+                        #             time.sleep(self.pause_sleep)
+                        #             break
 
                         print '\r\n#----------------------------------#'
                         print '#   No more playingsounds or MIDI  #'
@@ -124,6 +124,7 @@ class LoadingSamples:
                         print '####################################'
                         self.preset_change_triggered = False
                         self.midi_detected = False
+                        self.loading_paused = False
                         self.update_display('preset')
                         time.sleep(self.pause_sleep)
                         return
@@ -555,10 +556,6 @@ class LoadingSamples:
                                     gv.samples[self.preset_current_loading]['fillnotes'][midinote, voice] = fillnote
                                     # print "sample: %s, note: %d, voice: %d, channel: %d" %(fname, midinote, voice, channel)
 
-                                # If this isn't the preset in focus, don't load samples so quickly - give the system more resources to do other things (eg navigate menu)
-                                if self.preset_current_loading != gv.samples_indices[gv.preset]:
-                                    time.sleep(0.01)
-
                     except Exception as e:
                         if pattern != '':
                             print "Error in definition file, skipping line %s." % (i + 1)
@@ -634,14 +631,8 @@ class LoadingSamples:
 
                         ############################
 
-            # If this isn't the preset in focus, don't load samples so quickly - give the system more resources to do other things (eg navigate menu)
-            if self.preset_current_loading != gv.samples_indices[gv.preset]:
-                time.sleep(0.02)
-
-
         # If no definition.txt or *.sfz file found in folder, look for numbered files (64.wav, 65.wav etc) or notenamed files (C1.wav, D3.wav etc)
         else:
-
 
             for midinote in range(0, 127):
 

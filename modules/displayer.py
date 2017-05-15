@@ -42,7 +42,7 @@ class Displayer:
                 if gv.ls.all_presets_loaded == False:
                     if gv.ls.loading_paused == True:
                         # tray.append('P') # P for Paused loading
-                        tray.append(unichr(2)) # P for Paused loading
+                        tray.append(unichr(2)) # Pause custom character for Paused loading
                     else:
                         tray.append('S') # S for Samples loading
 
