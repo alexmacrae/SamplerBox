@@ -14,6 +14,7 @@ import globalvars as gv
 import menudict
 from textscroller import TextScroller
 from modules import definitionparser
+import configdefaultsdict as cdd
 
 # ______________________________________________________________________________
 
@@ -629,42 +630,43 @@ class MidiChannelConfig(Navigator):
 
 # ______________________________________________________________________________
 
-# class BufferSizeConfig(Navigator):
-#     def __init__(self):
-#         self.text_scroller.stop()
-#         self.BUFFERSIZE = gv.BUFFERSIZE
-#         self.options = [16, 32, 64, 128, 256, 512, 1024, 2048]
-#         self.i = 3
-#         for x in self.options:
-#             if x == self.BUFFERSIZE:
-#                 self.i = self.options.index(x)
-#         self.display()
-#
-#     def display(self):
-#         gv.displayer.disp_change('BUFFER SIZE'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-#         gv.displayer.disp_change(str(self.BUFFERSIZE).center(gv.LCD_COLS, ' '), line=2, timeout=0)
-#
-#     def left(self):
-#         if self.i > 0:
-#             self.i -= 1
-#         self.BUFFERSIZE = max(self.options[self.i], self.options[0])
-#         self.display()
-#
-#     def right(self):
-#         if self.i < len(self.options) - 1:
-#             self.i += 1
-#         self.BUFFERSIZE = min(self.options[self.i], self.options[-1])
-#         self.display()
-#
-#     def enter(self):
-#         gv.cp.update_config('SAMPLERBOX CONFIG', 'BUFFERSIZE', str(self.BUFFERSIZE))
-#         gv.BUFFERSIZE = self.BUFFERSIZE
-#         gv.sound.close_stream()
-#         gv.sound.start_sounddevice_stream()
-#         self.load_state(MenuNav)
-#
-#     def cancel(self):
-#         self.load_state(MenuNav)
+class BufferSizeConfig(Navigator):
+    def __init__(self):
+        self.text_scroller.stop()
+        self.BUFFERSIZE = gv.BUFFERSIZE
+        self.options = cdd.configdefaults.get('BUFFERSIZE').get('options')
+
+        self.i = cdd.configdefaults.get('BUFFERSIZE').get('default')
+        for x in self.options:
+            if int(x) == int(self.BUFFERSIZE):
+                self.i = self.options.index(x)
+        self.display()
+
+    def display(self):
+        gv.displayer.disp_change('BUFFER SIZE'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change(str(self.BUFFERSIZE).center(gv.LCD_COLS, ' '), line=2, timeout=0)
+
+    def left(self):
+        if self.i > 0:
+            self.i -= 1
+        self.BUFFERSIZE = max(int(self.options[self.i]), int(self.options[0]))
+        self.display()
+
+    def right(self):
+        if self.i < len(self.options) - 1:
+            self.i += 1
+        self.BUFFERSIZE = min(int(self.options[self.i]), int(self.options[-1]))
+        self.display()
+
+    def enter(self):
+        gv.cp.update_config('SAMPLERBOX CONFIG', 'BUFFERSIZE', str(self.BUFFERSIZE))
+        gv.BUFFERSIZE = self.BUFFERSIZE
+        gv.sound.close_stream()
+        gv.sound.start_sounddevice_stream()
+        self.load_state(MenuNav)
+
+    def cancel(self):
+        self.load_state(MenuNav)
 
 
 # ______________________________________________________________________________

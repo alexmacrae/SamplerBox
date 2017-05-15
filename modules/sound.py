@@ -190,7 +190,21 @@ class StartSound:
         self.mixer_id = 0
         self.mixer_control = 'PCM'
 
-        self.set_audio_device(gv.AUDIO_DEVICE_NAME)
+        device_name = self.set_audio_device(gv.AUDIO_DEVICE_NAME)
+
+        self.close_stream()  # close the audio stream in case it's open so we can start a new one
+
+        # if 'bcm2835' in device_name:
+        #     self.start_sounddevice_stream('high') # must be high latency for on-board
+        #     self.start_alsa_mixer()
+        if self.is_alsa_device(device_name):
+            latency = 'low'
+            if 'bcm2835' in device_name: latency = 'high'
+            self.start_sounddevice_stream(latency)
+            self.start_alsa_mixer()
+        else:
+            self.start_sounddevice_stream()
+
 
         print '\n#### END OF AUDIO DEVICES ####\n'
 
@@ -201,7 +215,7 @@ class StartSound:
     def start_sounddevice_stream(self, latency='low'):
 
         try:
-            self.sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, latency=latency, samplerate=gv.SAMPLERATE, channels=2, dtype='int16', callback=audio_callback)
+            self.sd = sounddevice.OutputStream(device=gv.AUDIO_DEVICE_ID, blocksize=gv.BUFFERSIZE, latency=latency, samplerate=gv.SAMPLERATE, channels=2, dtype='int16', callback=audio_callback)
             self.sd.start()
             print '>>>> Opened audio device #%i (latency: %ims)' % (gv.AUDIO_DEVICE_ID, self.sd.latency * 1000)
         except:
@@ -270,7 +284,7 @@ class StartSound:
 
     def close_stream(self):
         if self.sd:
-            print ">>>>> Closing sounddevice stream"
+            print ">>>> Closing sounddevice stream"
             self.sd.abort()
             self.sd.stop()
             self.sd.close()
@@ -294,10 +308,11 @@ class StartSound:
     def set_audio_device(self, device_name):
 
         device_found = False
+
         try:
             if gv.AUDIO_DEVICE_ID >= 0:
                 print '>>>> Using user-defined AUDIO_DEVICE_ID (%d)' % gv.AUDIO_DEVICE_ID
-                pass
+                return
             else:
                 i = 0
                 for d in sounddevice.query_devices():
@@ -321,7 +336,7 @@ class StartSound:
                             gv.AUDIO_DEVICE_ID = i
                             device_name = d['name']
                             gv.AUDIO_DEVICE_NAME = device_name
-                            print '\r>>>>> Device selected by name: [%i]: %s\r' % (i, device_name)
+                            print '\r>>>> Device selected by name: [%i]: %s\r' % (i, device_name)
                             device_found = True
                             break
                         i += 1
@@ -336,24 +351,15 @@ class StartSound:
                             gv.AUDIO_DEVICE_ID = i
                             device_name = d['name']
                             gv.AUDIO_DEVICE_NAME = device_name
-                            print '\r>>>>> Default RPi audio device selected: [%i]: %s\r' % (i, device_name)
+                            print '\r>>>> Default RPi audio device selected: [%i]: %s\r' % (i, device_name)
                             device_found = True
                             break
                         i += 1
+
+                return device_name
 
         except:
             print "There was an error setting the audio device"
             pass
 
-        self.close_stream()  # close the audio stream in case it's open so we can start a new one
 
-        # if 'bcm2835' in device_name:
-        #     self.start_sounddevice_stream('high') # must be high latency for on-board
-        #     self.start_alsa_mixer()
-        if self.is_alsa_device(device_name):
-            latency = 'low'
-            if 'bcm2835' in device_name: latency = 'high'
-            self.start_sounddevice_stream(latency)
-            self.start_alsa_mixer()
-        else:
-            self.start_sounddevice_stream()
