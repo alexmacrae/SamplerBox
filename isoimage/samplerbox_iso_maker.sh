@@ -106,6 +106,7 @@ boot_delay=0
 disable_splash=1
 disable_audio_dither=1
 dtparam=audio=on
+dtoverlay=iqaudio-dac
 dtoverlay=pi3-disable-bt
 dtparam=uart0_clkrate=3000000
 EOF
@@ -115,7 +116,7 @@ EOF
 
 
 cat <<EOF > sdcard/etc/fstab
-/dev/sda1       /media          auto    nofail                  0       0
+/dev/sda1       /media          auto    ro,nofail               0       0
 /dev/mmcblk0p1  /boot           vfat    ro,auto,exec            0       2
 /dev/mmcblk0p3  /samples        auto    ro,auto,exec            0       0
 EOF
@@ -241,14 +242,14 @@ cat <<EOF > sdcard/etc/motd
 Welcome to SamplerBox!
 ######################
 * The filesystem is read-only, see http://www.samplerbox.org/faq#readonly
-  To remount a partition as read-write: rw_root / rw_boot / rw_samples
-  To remount a partition as read-only:  ro_root / ro_boot / ro_samples
+  To remount a partition as read-write: mount -o remount,rw /
 * The SamplerBox program (/root/SamplerBox/samplerbox.py) should be
   up and running. If not, try:  systemctl status samplerbox
 * To see SamplerBox print statements, you need to restart the program:
   systemctl stop samplerbox ; cd ; cd SamplerBox/ ; python samplerbox.py
 * The SamplerBox configuration file is found at /boot/samplerbox/config.ini
-  Use this file to define system navigation MIDI/GPIO and LCD GPIO
+  Use this file to define system navigation MIDI/GPIO and LCD GPIO as well
+  as enabling feedback of MIDI messages.
 ######################
 
 EOF
