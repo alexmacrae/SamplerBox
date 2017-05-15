@@ -302,11 +302,9 @@ exit 0
 EOF
 
 sed -i 's/ENV{pvolume}:="-20dB"/ENV{pvolume}:="-10dB"/' sdcard/usr/share/alsa/init/default
-#sed -i '$ i\ntpdate &' sdcard/etc/rc.local
-
-chroot sdcard date -s "Mon May 1 12:00:00 UTC 2017"
 
 #chroot sdcard systemctl stop serial-getty@ttyAMA0.service
+#chroot sdcard systemctl disable serial-getty@ttyAMA0.service
 
 chroot sdcard systemctl enable /etc/systemd/system/samplerbox.service
 
