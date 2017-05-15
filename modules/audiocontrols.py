@@ -139,7 +139,7 @@ class MasterVolume:
         # if gv.USE_ALSA_MIXER: # if using on-board audio or USB DAC
         #     gv.sound.set_alsa_volume(gv.global_volume_percent)
 
-        gv.displayer.disp_change(changed_var='volume', timeout=2)
+        gv.displayer.disp_change(changed_var='volume', timeout=1)
 
 
 ########################

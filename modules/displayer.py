@@ -40,8 +40,11 @@ class Displayer:
         if gv.ls:
             if gv.ls.memory_limit_reached == False:
                 if gv.ls.all_presets_loaded == False:
-                    tray.append('S')
-
+                    if gv.ls.loading_paused == True:
+                        # tray.append('P') # P for Paused loading
+                        tray.append(unichr(2)) # P for Paused loading
+                    else:
+                        tray.append('S') # S for Samples loading
 
         if len(gv.voices) > 1:
             voice_blocks = list(unichr(5) * len(gv.voices))  # fill with custom block chars
@@ -140,14 +143,12 @@ class Displayer:
                         elif 'loading' in changed_var:
                             loading_line = 'LOADING %s%%'.center(gv.LCD_COLS, ' ') % str(int(gv.percent_loaded))
                             self.LCD_SYS.display(loading_line, line=1 + n, is_priority=False, timeout_custom=timeout)
-                            self.LCD_SYS.display(unichr(1) * int(gv.percent_loaded * (gv.LCD_COLS / 100.0) + 1),
-                                                 line=2 + n, is_priority=False, timeout_custom=timeout)
+                            self.LCD_SYS.display((unichr(1) * int(gv.percent_loaded * (gv.LCD_COLS / 100.0) + 1)), line=2 + n, is_priority=False, timeout_custom=timeout)
                         elif 'effect' in changed_var:
                             effect_name = changed_var[1].upper()
                             effect_line = (effect_name+' %s%%').center(gv.LCD_COLS, ' ') % str(int(gv.percent_effect))
                             self.LCD_SYS.display(effect_line, line=1 + n, is_priority=False, timeout_custom=timeout)
-                            self.LCD_SYS.display(unichr(1) * int(gv.percent_effect * (gv.LCD_COLS / 100.0) + 1),
-                                                 line=2 + n, is_priority=False, timeout_custom=timeout)
+                            self.LCD_SYS.display(unichr(1) * int(gv.percent_effect * (gv.LCD_COLS / 100.0) + 1), line=2 + n, is_priority=False, timeout_custom=timeout)
 
                     if self.menu_mode == self.DISP_UTILS_MODE:
                         if 'util' in changed_var:

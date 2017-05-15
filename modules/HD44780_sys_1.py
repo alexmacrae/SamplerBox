@@ -60,7 +60,7 @@ class LCD_SYS_1:
 
                 # Write custom codes to the LCD
                 self.lcd.create_char(1, lcdcc.block)
-                self.lcd.create_char(2, lcdcc.arrow_right_01)
+                self.lcd.create_char(2, lcdcc.pause)
                 self.lcd.create_char(3, lcdcc.voice_button_on)
                 self.lcd.create_char(4, lcdcc.voice_button_off)
                 self.lcd.create_char(5, lcdcc.block2)
@@ -97,6 +97,7 @@ class LCD_SYS_1:
 
         while self.loop_alive:
             if self.display_called:
+
                 now = time.time()
 
                 if (now - self.timeout_start) > self.timeout_length:
@@ -147,7 +148,7 @@ class LCD_SYS_1:
 
     def display(self, message, line=1, is_priority=False, timeout_custom=None):
 
-        message += '                '
+        message += ' ' * gv.LCD_COLS
 
         # Send string to display
 
