@@ -1,8 +1,11 @@
 #!/bin/bash -v
 # CREATE A RASPBIAN JESSIE IMAGE FOR SAMPLERBOX
-# 2017-03-30
+# 2017-05-15
 #
-# USAGE: sudo chmod 777 samplerbox_iso_maker.sh ; nohup sudo samplerbox_iso_maker.sh &
+# CLEAN: sudo rm *.img ; sudo rm *.zip ; sudo rm -rf sdcard ; sudo rm nohup.out
+# USAGE: sudo chmod 777 samplerbox_iso_maker.sh ; nohup sudo ./samplerbox_iso_maker.sh & tail -f nohup.out
+# SEE LOG AFTER REBOOT: cat SamplerBox-master/isoimage/nohup.out
+#
 # Append " | tee -a output.log" to the end of the sh run line to output console lines to output.log
 # To print additions to output.log in realtime from another machine "tail -f output.log". Perhaps you want to
 # monitor progress or errors from another machine or remotely from your mobile!
@@ -309,6 +312,9 @@ chroot sdcard systemctl enable /etc/systemd/system/samplerbox.service
 
 echo 'i2c-dev' >> sdcard/etc/modules
 echo 'snd_bcm2835' >> sdcard/etc/modules
+
+ln -s /proc/mounts sdcard/etc/mtab                             # because of https://bpaste.net/show/397df349ccf3
+ln -nsf /run/resolvconf/resolv.conf sdcard/etc/resolv.conf     # to prevent DNS problems and no internet connection issue
 
 #############################
 
