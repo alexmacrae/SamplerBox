@@ -19,14 +19,11 @@ print '\n#### START CONFIG IMPORT ####\n'
 config_exists = True
 
 if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
-    CONFIG_FILE_PATH = "/media/config.ini"
-    print '>>>> CONFIG: using config.ini found in /media/'
-    if not os.path.exists(CONFIG_FILE_PATH):
         CONFIG_FILE_PATH = "/boot/samplerbox/config.ini"
-        print '>>>> CONFIG: using config.ini found in /boot/samplerbox/'
+        print '>>>> CONFIG: Looking for config.ini in /boot/samplerbox/'
         if not os.path.exists(CONFIG_FILE_PATH):
             CONFIG_FILE_PATH = "./config.ini"
-            print '>>>> CONFIG: using config.ini found in /SamplerBox/'
+            print '>>>> CONFIG: looking for config.ini in /SamplerBox/'
             # try:
             #     file = open(CONFIG_FILE_PATH, 'r') # test if exists
             # except:
@@ -34,6 +31,7 @@ if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
             #     config_exists = False
             #     print 'Creating empty config.ini'
             # file.close()
+        print '>>>> CONFIG used: %s' % CONFIG_FILE_PATH
 else:
     CONFIG_FILE_PATH = "../config.ini"
     print '>>>> CONFIG: using config.ini in ../'
@@ -58,14 +56,15 @@ global_volume = (10.0 ** (-12.0 / 20.0)) * (float(global_volume) / 100.0)
 SAMPLES_DIR = str(cp.get_option_by_name('SAMPLES_DIR'))
 if path.basename(sys.modules['__main__'].__file__) == "samplerbox.py":
     if not os.path.isdir(SAMPLES_DIR):
-        print '>>>> SAMPLES WARNING: dir', SAMPLES_DIR, 'not found. Using USB drive: /media'
+        print '>>>> SAMPLES WARNING: dir', SAMPLES_DIR, 'not found. Looking for USB drive: /media'
         SAMPLES_DIR = '/media'
         if not os.path.isdir(SAMPLES_DIR) or not os.path.ismount(SAMPLES_DIR): # check if USB is mounted
-            print '>>>> SAMPLES WARNING: USB (', SAMPLES_DIR, ') not found or not mounted. Using SD card dir: /samples'
+            print '>>>> SAMPLES WARNING: USB (', SAMPLES_DIR, ') not found or not mounted. Looking for SD card dir: /samples'
             SAMPLES_DIR = '/samples'
             if not os.path.isdir(SAMPLES_DIR) or not os.path.ismount(SAMPLES_DIR):
-                print '>>>> SAMPLES WARNING: dir', SAMPLES_DIR, 'not found. Using default: ./media' # use /media/ in /SamplerBox/ if /samples/ doesn't exist
+                print '>>>> SAMPLES WARNING: dir', SAMPLES_DIR, 'not found. Looking for default: ./media' # use /media/ in /SamplerBox/ if /samples/ doesn't exist
                 SAMPLES_DIR = './media'
+    print '>>>> SAMPLES DIR: %s' % SAMPLES_DIR
 else:
     print '>>>> SAMPLES: Using default: ../media' # dev env
     SAMPLES_DIR = '../media'

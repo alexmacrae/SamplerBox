@@ -105,7 +105,7 @@ if isfile(samples_fs_resize_format_script):
     systemfunctions.SystemFunctions().reboot()
     exit()
 else:
-    print '\r***********\r/SAMPLES/ HAS BEEN GROWN AND FORMATTED - READY TO GO\r***********\r'
+    print '\r\n***********\r\n/SAMPLES/ HAS BEEN GROWN AND FORMATTED - READY TO GO\r\n***********\r\n'
 
 print '#### START SETLIST ####'
 gv.setlist = setlist.Setlist()
@@ -192,7 +192,7 @@ except:
 # Test initial script load time
 time_end = time.time()
 time_total = float(time_end - time_start)
-print '\rINIT LOAD TIME: %d seconds (before sample loading)\r' % time_total
+print '\r\nINIT LOAD TIME: %d seconds (before sample loading)\r\n' % time_total
 
 ##########################
 # MIDI DEVICES DETECTION #
