@@ -198,7 +198,7 @@ class Midi:
                 # print 'Program change ' + str(note)
                 if gv.preset != note:
                     gv.preset = note
-                    gv.ls.load_samples()
+                    gv.ls.load_preset()
 
             elif messagetype == 14:  # Pitch Bend
 

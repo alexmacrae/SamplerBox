@@ -146,7 +146,7 @@ if gv.USE_GUI and not gv.IS_DEBIAN: gv.gui = gui.SamplerBoxGUI()  # Start the GU
 # LOAD FIRST SAMPLE-SET/PRESET #
 ################################
 
-gv.ls.load_samples()
+gv.ls.load_preset()
 
 ################################################################
 # MIDI IN via SERIAL PORT                                      #

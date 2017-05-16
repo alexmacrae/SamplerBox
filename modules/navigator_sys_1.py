@@ -73,8 +73,8 @@ class PresetNav(Navigator):
         if gv.preset >= len(gv.samples_indices):
             gv.preset = 0
         gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE  # need to set if interrupted by utils left/right
-        gv.ls.load_samples()
-        # gv.displayer.disp_change('preset') # load_samples calls this
+        gv.ls.load_preset()
+        # gv.displayer.disp_change('preset') # load_preset calls this
 
     def left(self):
         gv.preset -= 1
@@ -83,8 +83,8 @@ class PresetNav(Navigator):
         if gv.preset < 0:
             gv.preset = len(gv.samples_indices) - 1
         gv.displayer.menu_mode = gv.displayer.DISP_PRESET_MODE  # need to set if interrupted by utils left/right
-        gv.ls.load_samples()
-        # gv.displayer.disp_change('preset') # load_samples calls this
+        gv.ls.load_preset()
+        # gv.displayer.disp_change('preset') # load_preset calls this
 
     def enter(self):
         self.load_state(MenuNav)
@@ -322,7 +322,7 @@ class MoveSong(Navigator):
         gv.ls.all_presets_loaded = False
         gv.samples_indices = self.samples_indices
         gv.setlist.write_setlist(self.setlist_list)
-        gv.ls.load_samples()
+        gv.ls.load_preset()
         self.cancel()
 
     def cancel(self):
@@ -808,7 +808,7 @@ class EditDefinition(Navigator):
                     if keyword.lower() == '%%mode':
                         gv.ls.kill_preset(preset=self.preset)
                         self.save_definition()
-                        gv.ls.load_samples()
+                        gv.ls.load_preset()
 
         self.display()
 
@@ -837,7 +837,7 @@ class EditDefinition(Navigator):
                     if keyword.lower() == '%%mode':
                         gv.ls.kill_preset(preset=self.preset)
                         self.save_definition()
-                        gv.ls.load_samples()
+                        gv.ls.load_preset()
 
         self.display()
 
@@ -1068,7 +1068,7 @@ class SetRAMLimit(Navigator):
     def enter(self):
         gv.cp.update_config('SAMPLERBOX CONFIG', 'RAM_LIMIT_PERCENTAGE', str(self.ram_limit))
         gv.RAM_LIMIT_PERCENTAGE = self.ram_limit
-        gv.ls.load_samples()  # perhaps we increased the RAM, so go ahead and load more samples now!
+        gv.ls.load_preset()  # perhaps we increased the RAM, so go ahead and load more samples now!
         self.cancel()
 
     def cancel(self):

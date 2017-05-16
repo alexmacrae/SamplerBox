@@ -118,14 +118,14 @@ def button_assign(config_option_name):
         button_assign_list.extend(['GPIO', gpio_pin])
     # For MIDI messages (eg 176, 60)
     elif 'none' in midi_str.lower():
-        print 'No MIDI control has been assigned to %s' % config_option_name
+        print ' [!] Warning: No MIDI control has been assigned to %s' % config_option_name
     else:
         midi_value = midi_str.replace(' ', '')
         midi_value = midi_value[0:midi_value.find('<')].split(',')
         try:
             button_assign_list.extend([int(midi_value[0]), int(midi_value[1])])
         except:
-            print 'Invalid MIDI navigation assignment: %s ' % midi_value
+            print ' [!] Warning: Invalid MIDI navigation assignment: %s ' % midi_value
     # For if a device was specified
     if '<' in midi_str:
         midi_device = re.split('[<>]+', midi_str)[1]
