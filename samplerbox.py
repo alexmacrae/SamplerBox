@@ -69,6 +69,17 @@ try:
 except:
     pass
 
+###################
+# Fix MIDI Serial #
+###################
+
+try:
+    subprocess.call(['systemctl', 'stop', 'serial-getty@ttyAMA0.service'])
+    subprocess.call(['systemctl', 'disable', 'serial-getty@ttyAMA0.service'])
+except:
+    print 'Failed to stop MIDI serial'
+    pass
+
 ###########
 # Logging #
 ###########
