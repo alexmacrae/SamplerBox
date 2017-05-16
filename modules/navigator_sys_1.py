@@ -15,6 +15,7 @@ import menudict
 from textscroller import TextScroller
 from modules import definitionparser
 import configdefaultsdict as cdd
+import systemfunctions as sysfunc
 
 # ______________________________________________________________________________
 
@@ -843,6 +844,11 @@ class EditDefinition(Navigator):
 
     def enter(self):
 
+        if 'media' in  gv.SAMPLES_DIR:
+            sysfunc.mount_media_rw()
+        elif '/samples' in gv.SAMPLES_DIR:
+            sysfunc.mount_samples_rw()
+
         if not self.in_a_mode:
             self.in_a_mode = True
             self.selected_kw_item = self.keywords_dict[self.mode]
@@ -855,7 +861,6 @@ class EditDefinition(Navigator):
                     self.i = self.selected_kw_value
                 elif self.selected_kw_item.get('type') == 'options':
                     self.i = definitionparser.get_option_index(item=self.selected_kw_item, option=self.selected_kw_value)
-
                 print '### %s exists with a value of %s ###' % (self.selected_kw_item.get('name').title(), str(self.selected_kw_value).title())
             else:
 
@@ -872,6 +877,11 @@ class EditDefinition(Navigator):
             # self.load_state(EditDefinition)
             self.in_a_mode = False
             self.display()
+
+        if 'media' in  gv.SAMPLES_DIR:
+            sysfunc.mount_media_ro()
+        elif '/samples' in gv.SAMPLES_DIR:
+            sysfunc.mount_samples_ro()
 
     def cancel(self):
 

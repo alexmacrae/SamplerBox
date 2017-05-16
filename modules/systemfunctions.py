@@ -4,11 +4,13 @@ import os
 import subprocess
 
 def mount_samples_rw():
-    if gv.SAMPLES_DIR == '/samples': subprocess.call(['mount', '-vo', 'remount,rw', '/samples'])
+    if gv.SAMPLES_DIR == '/samples':
+        subprocess.call(['mount', '-vo', 'remount,rw', '/samples'])
     print '/samples has been remounted as READ-WRITE'
 
 def mount_samples_ro():
-    if gv.SAMPLES_DIR == '/samples': subprocess.call(['mount', '-vo', 'remount,ro', '/samples'])
+    if gv.SAMPLES_DIR == '/samples':
+        subprocess.call(['mount', '-vo', 'remount,ro', '/samples'])
     print '/samples has been remounted as READ-ONLY'
 
 def mount_boot_rw():
@@ -26,6 +28,15 @@ def mount_root_rw():
 def mount_root_ro():
     subprocess.call(['mount', '-vo', 'remount,ro', '/'])
     print '/ has been remounted as READ-ONLY'
+
+def mount_media_rw():
+    subprocess.call(['mount', '-vo', 'remount,rw', '/media'])
+    print '/media has been remounted as READ-WRITE'
+
+def mount_media_ro():
+    subprocess.call(['mount', '-vo', 'remount,ro', '/media'])
+    print '/media has been remounted as READ-ONLY'
+
 
 class SystemFunctions:
     def __init__(self):
