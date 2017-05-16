@@ -211,6 +211,7 @@ playingsounds = []
 globaltranspose = 0
 basename = "<Empty>"
 midicallback = None
+midiserial = None
 
 # LCD screen character dimensions
 if USE_HD44780_16x2_LCD:
