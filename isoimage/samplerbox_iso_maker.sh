@@ -1,6 +1,6 @@
 #!/bin/bash -v
 # CREATE A RASPBIAN JESSIE IMAGE FOR SAMPLERBOX
-# 2017-05-15
+# 2017-05-16
 #
 # CLEAN: sudo rm *.img ; sudo rm *.zip ; sudo rm -rf sdcard ; sudo rm nohup.out
 # USAGE: sudo chmod 777 samplerbox_iso_maker.sh ; nohup sudo ./samplerbox_iso_maker.sh & tail -f nohup.out
@@ -95,27 +95,29 @@ chroot sdcard locale-gen LANG="en_GB.UTF-8"
 chroot sdcard dpkg-reconfigure -f noninteractive locales
 
 cat <<EOF > sdcard/boot/cmdline.txt
-root=/dev/mmcblk0p2 ro rootwait console=tty1 selinux=0 plymouth.enable=0 smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 elevator=noop bcm2708.uart_clock=3000000 init=/bin/systemd
+root=/dev/mmcblk0p2 ro rootwait console=tty1 selinux=0 plymouth.enable=0 smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 elevator=noop init=/bin/systemd
 EOF
+# removed: bcm2708.uart_clock=3000000, this hack was only useful for Linux kernel <= 4.4
 # http://k3a.me/how-to-make-raspberrypi-truly-read-only-reliable-and-trouble-free/ @ 4.4 Disable filesystem check and swap
 # added: fastboot noswap
 
 cat <<EOF > sdcard/boot/config.txt
 device_tree_param=i2c_arm=on
-init_uart_clock=2441406
-init_uart_baud=38400
+enable_uart=1
+dtoverlay=pi3-miniuart-bt
+dtoverlay=midi-uart0            # since Linux kernel 4.5
 gpu_mem=64
 boot_delay=0
 disable_splash=1
 disable_audio_dither=1
 dtparam=audio=on
 dtoverlay=iqaudio-dac
-dtoverlay=pi3-disable-bt
-dtparam=uart0_clkrate=3000000
 EOF
-# Following lines added per issue @ https://github.com/josephernest/SamplerBox/issues/24#issuecomment-278706313
-# dtoverlay=pi3-disable-bt
-# dtparam=uart0_clkrate=3000000
+
+#init_uart_clock=2441406        # this hack for having 31500 baud for MIDI works only for Linux <= 4.4
+#init_uart_baud=38400
+#dtoverlay=pi3-disable-bt
+#dtparam=uart0_clkrate=3000000  # see https://github.com/josephernest/SamplerBox/issues/24#issuecomment-278706313
 
 
 cat <<EOF > sdcard/etc/fstab
@@ -247,7 +249,7 @@ Welcome to SamplerBox!
 * The filesystem is read-only, see http://www.samplerbox.org/faq#readonly
   To remount a partition as read-write: mount -o remount,rw /
 * The SamplerBox program (/root/SamplerBox/samplerbox.py) should be
-  up and running. If not, try:  systemctl status samplerbox
+  up and running. If not, try: systemctl status samplerbox
 * To see SamplerBox print statements, you need to restart the program:
   systemctl stop samplerbox ; cd ; cd SamplerBox/ ; python samplerbox.py
 * The SamplerBox configuration file is found at /boot/samplerbox/config.ini
@@ -302,9 +304,6 @@ exit 0
 EOF
 
 sed -i 's/ENV{pvolume}:="-20dB"/ENV{pvolume}:="-10dB"/' sdcard/usr/share/alsa/init/default
-
-#chroot sdcard systemctl stop serial-getty@ttyAMA0.service
-#chroot sdcard systemctl disable serial-getty@ttyAMA0.service
 
 chroot sdcard systemctl enable /etc/systemd/system/samplerbox.service
 
