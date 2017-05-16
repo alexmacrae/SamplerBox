@@ -100,7 +100,10 @@ NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
 
 #########################################
 
-def button_assign(midi_str):
+def button_assign(config_option_name):
+
+    midi_str = str(cp.get_option_by_name(config_option_name))
+
     button_assign_list = []
     li = midi_str.split(',')
 
@@ -114,13 +117,15 @@ def button_assign(midi_str):
         gpio_pin = midi_str.lower().replace('gpio', '')
         button_assign_list.extend(['GPIO', gpio_pin])
     # For MIDI messages (eg 176, 60)
+    elif 'none' in midi_str.lower():
+        print 'No MIDI control has been assigned to %s' % config_option_name
     else:
         midi_value = midi_str.replace(' ', '')
         midi_value = midi_value[0:midi_value.find('<')].split(',')
         try:
             button_assign_list.extend([int(midi_value[0]), int(midi_value[1])])
         except:
-            print 'MIDI navigation assignment error: %s is invalid' % midi_value
+            print 'Invalid MIDI navigation assignment: %s ' % midi_value
     # For if a device was specified
     if '<' in midi_str:
         midi_device = re.split('[<>]+', midi_str)[1]
@@ -130,21 +135,21 @@ def button_assign(midi_str):
     # returns: 176, 60, <devicename> or C#2, <devicename> or GPIO, 4
     return button_assign_list
 
-PANIC_KEY = button_assign(str(cp.get_option_by_name('PANIC_KEY')))
+PANIC_KEY = button_assign('PANIC_KEY')
 
 # For system mode 1 (by Alex)
-BUTTON_LEFT_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_LEFT_MIDI')))
-BUTTON_RIGHT_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_RIGHT_MIDI')))
-BUTTON_ENTER_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_ENTER_MIDI')))
-BUTTON_CANCEL_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_CANCEL_MIDI')))
+BUTTON_LEFT_MIDI = button_assign('BUTTON_LEFT_MIDI')
+BUTTON_RIGHT_MIDI = button_assign('BUTTON_RIGHT_MIDI')
+BUTTON_ENTER_MIDI = button_assign('BUTTON_ENTER_MIDI')
+BUTTON_CANCEL_MIDI = button_assign('BUTTON_CANCEL_MIDI')
 BUTTON_LEFT_GPIO = int(cp.get_option_by_name('BUTTON_LEFT_GPIO'))
 BUTTON_RIGHT_GPIO = int(cp.get_option_by_name('BUTTON_RIGHT_GPIO'))
 BUTTON_ENTER_GPIO = int(cp.get_option_by_name('BUTTON_ENTER_GPIO'))
 BUTTON_CANCEL_GPIO = int(cp.get_option_by_name('BUTTON_CANCEL_GPIO'))
 # For system mode 2 (by Hans)
-BUTTON_UP_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_UP_MIDI')))
-BUTTON_DOWN_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_DOWN_MIDI')))
-BUTTON_FUNC_MIDI = button_assign(str(cp.get_option_by_name('BUTTON_FUNC_MIDI')))
+BUTTON_UP_MIDI = button_assign('BUTTON_UP_MIDI')
+BUTTON_DOWN_MIDI = button_assign('BUTTON_DOWN_MIDI')
+BUTTON_FUNC_MIDI = button_assign('BUTTON_FUNC_MIDI')
 BUTTON_UP_GPIO = int(cp.get_option_by_name('BUTTON_UP_GPIO'))
 BUTTON_DOWN_GPIO = int(cp.get_option_by_name('BUTTON_DOWN_GPIO'))
 BUTTON_FUNC_GPIO = int(cp.get_option_by_name('BUTTON_FUNC_GPIO'))

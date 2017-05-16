@@ -92,7 +92,7 @@ class AudioControls(object):
 
         except:
             if gv.MIDI_CHANNEL != midichannel:
-                print 'Channel error: Keyboard note = channel %d. No samples are assigned to channel %d' % (midichannel)
+                print 'Channel error: no samples are assigned to channel %d' % (midichannel)
                 gv.displayer.disp_change(str_override='CHANNEL ERROR', line=gv.LCD_ROWS - 1, timeout=1)
                 gv.displayer.disp_change(str_override='NoSamplesOn CH%d' % (midichannel), line=gv.LCD_ROWS, timeout=1)
             else:
