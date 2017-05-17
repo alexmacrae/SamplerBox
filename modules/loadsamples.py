@@ -84,12 +84,9 @@ class LoadingSamples:
         if self.LoadingInterrupt:
             return
 
-        # pause_time = 1 #secs
-        # print gv.samples[self.preset_current_loading].get('samples_loaded'),gv.samples[self.preset_current_loading].get('notes_filled')
         if gv.samples[self.preset_current_selected].get('samples_loaded') == True and gv.samples[self.preset_current_selected].get('notes_filled') == True:
 
-            # if gv.playingsounds or self.midi_detected or gv.displayer.menu_mode != gv.displayer.DISP_PRESET_MODE: # menu_mode breaks definition editor. TODO: find better way
-            if gv.playingsounds or self.midi_detected:  # are there sounds or midi playing?
+            if gv.playingsounds or self.midi_detected or gv.displayer.menu_mode != gv.displayer.DISP_PRESET_MODE:  # are there sounds or midi playing, or are we in the menu?
 
                 print '####################################'
                 print '# Initiate pause on sample loading #'
@@ -100,31 +97,33 @@ class LoadingSamples:
 
                 while True:
 
-                    if not gv.playingsounds or self.LoadingInterrupt: # playing sounds or preset changed
+                    if gv.displayer.menu_mode == gv.displayer.DISP_PRESET_MODE: # not in menu
 
-                        # time_start = time.time()
-                        #
-                        # if self.midi_detected:
-                        #
-                        #     while True:
-                        #         if self.LoadingInterrupt:
-                        #             self.midi_detected = False
-                        #             return
-                        #         elif time.time() - time_start > pause_time:
-                        #             time.sleep(self.pause_sleep)
-                        #             break
+                        if not gv.playingsounds or self.LoadingInterrupt: # no playing sounds or preset changed
 
-                        print '\r\n#----------------------------------#'
-                        print '#   No more playingsounds or MIDI  #'
-                        print '#         Continue loading         #'
-                        print '####################################'
-                        self.midi_detected = False
-                        self.loading_paused = False
-                        self.update_display('preset')
-                        time.sleep(self.pause_sleep)
-                        return
+                            # time_start = time.time()
+                            #
+                            # if self.midi_detected:
+                            #
+                            #     while True:
+                            #         if self.LoadingInterrupt:
+                            #             self.midi_detected = False
+                            #             return
+                            #         elif time.time() - time_start > pause_time:
+                            #             time.sleep(self.pause_sleep)
+                            #             break
 
-                    sys.stdout.write('\r[!] LOADING PAUSED: sounds or MIDI is playing')
+                            print '\r\n#----------------------------------#'
+                            print '#   No more playingsounds or MIDI  #'
+                            print '#         Continue loading         #'
+                            print '####################################'
+                            self.midi_detected = False
+                            self.loading_paused = False
+                            self.update_display('preset')
+                            time.sleep(self.pause_sleep)
+                            return
+
+                    sys.stdout.write('\r[!] LOADING PAUSED: sounds or MIDI is playing, or in menu')
                     sys.stdout.flush()
                     time.sleep(self.pause_sleep)
 

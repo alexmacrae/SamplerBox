@@ -748,20 +748,19 @@ class SampleRateConfig(Navigator):
 class EditDefinition(Navigator):
     def __init__(self, preset):
 
-        self.preset = preset
+        self.preset = gv.samples_indices[preset]
         self.text_scroller.stop()
-        self.song_name = gv.SETLIST_LIST[gv.samples_indices[self.preset]]
+        self.song_name = gv.SETLIST_LIST[self.preset]
         self.dp = definitionparser.DefinitionParser(self.song_name)
         self.keywords_dict = self.dp.keywords_dict
         self.in_a_mode = False
         self.mode = 0
         self.selected_kw_item = self.keywords_dict[self.mode] # selected keyword item (dict)
-        self.allowed_values = None
-        self.i = 0
         self.selected_kw_value = None
         self.prev_state = SelectSong
         # self.keywords_defaults_dict = self.dp.keywords_defaults_dict
         self.display()
+
 
     def display(self):
 
@@ -774,14 +773,14 @@ class EditDefinition(Navigator):
 
         elif self.in_a_mode:
 
-            value = self.selected_kw_value
+            value = self.dp.existing_patterns[self.selected_kw_item.get('name')]
 
             if 'Release' in keyword_str:
                 value = float(value) / 58.82 # convert to seconds
                 value = '%ss' % str(value)[:4]  # display like: 1.23s
                 # value = '%sms' % str(int(value*1000))[:4]  # display like: 50ms
             else:
-                value = str(value)
+                value = str(value).title()
             gv.displayer.disp_change(keyword_str.center(gv.LCD_COLS, ' '), line=1, timeout=0)
             gv.displayer.disp_change(value.center(gv.LCD_COLS, ' '), line=2, timeout=0)
 
@@ -793,23 +792,8 @@ class EditDefinition(Navigator):
                 self.selected_kw_item = self.keywords_dict[self.mode]
 
         elif self.in_a_mode:
-            keyword = self.selected_kw_item.get('name')
-            if self.selected_kw_item.get('type') == 'range':
-                min_val = self.selected_kw_item.get('min')
-                max_val = self.selected_kw_item.get('max')
-                increment = self.selected_kw_item.get('increment')
-                self.i = max(min(max_val, (self.i-increment)), min_val) # keeps value within min/max range
-                self.selected_kw_value = self.i
-            elif self.selected_kw_item.get('type') == 'options':
-                if not self.i <= 0:
-                    self.i -= 1
-                    self.selected_kw_value = self.selected_kw_item.get('options')[self.i]
 
-                    self.set_global_from_keyword(keyword, self.selected_kw_value)
-                    if keyword.lower() == '%%mode':
-                        gv.ls.kill_preset(preset=self.preset)
-                        self.save_definition()
-                        gv.ls.load_preset()
+            self.dp.change_item_value(preset=self.preset, item=self.selected_kw_item, direction='DOWN')
 
         self.display()
 
@@ -822,88 +806,52 @@ class EditDefinition(Navigator):
                 self.selected_kw_item = self.keywords_dict[self.mode]
 
         elif self.in_a_mode:
-            keyword = self.selected_kw_item.get('name')
-            if self.selected_kw_item.get('type') == 'range':
-                min_val = self.selected_kw_item.get('min')
-                max_val = self.selected_kw_item.get('max')
-                increment = self.selected_kw_item.get('increment')
-                self.i = max(min(max_val, (self.i+increment)), min_val) # keeps value within min/max range
-                self.selected_kw_value = self.i
-            elif self.selected_kw_item.get('type') == 'options':
-                if not self.i >= len(self.selected_kw_item.get('options')) - 1:
-                    self.i += 1
-                    self.selected_kw_value = self.selected_kw_item.get('options')[self.i]
 
-                    self.set_global_from_keyword(keyword=keyword, value=self.selected_kw_value)
-                    if keyword.lower() == '%%mode':
-                        gv.ls.kill_preset(preset=self.preset)
-                        self.save_definition()
-                        gv.ls.load_preset()
+            self.dp.change_item_value(preset=self.preset, item=self.selected_kw_item, direction='UP')
 
         self.display()
 
     def enter(self):
 
-        if 'media' in  gv.SAMPLES_DIR:
-            sysfunc.mount_media_rw()
-        elif '/samples' in gv.SAMPLES_DIR:
-            sysfunc.mount_samples_rw()
-
         if not self.in_a_mode:
             self.in_a_mode = True
+
             self.selected_kw_item = self.keywords_dict[self.mode]
             if self.dp.existing_patterns.has_key(self.selected_kw_item.get('name')):
 
-                self.selected_kw_value = self.dp.existing_patterns[self.selected_kw_item.get('name')]
-                print self.selected_kw_value
+                value = self.dp.existing_patterns[self.selected_kw_item.get('name')]
+                if type(value) == str:
+                    value = value.title()
 
-                if self.selected_kw_item.get('type') == 'range':
-                    self.i = self.selected_kw_value
-                elif self.selected_kw_item.get('type') == 'options':
-                    self.i = definitionparser.get_option_index(item=self.selected_kw_item, option=self.selected_kw_value)
-                print '### %s exists with a value of %s ###' % (self.selected_kw_item.get('name').title(), str(self.selected_kw_value).title())
+                print '### %s exists with a value of %s ###' % (self.selected_kw_item.get('name').title(), str(value))
             else:
 
-                self.selected_kw_value = definitionparser.get_default(self.selected_kw_item.get('name'))
-                self.i = definitionparser.get_option_index(item=self.selected_kw_item, option=self.selected_kw_value)
-                print '### %s does not exist. Set default: %d ###' % (self.selected_kw_item.get('name').title(), self.selected_kw_value)
+                value = definitionparser.get_default(self.selected_kw_item.get('name'))
+                if type(value) == str:
+                    value = value.title()
+
+                self.dp.change_item_value(preset=self.preset, item=self.selected_kw_item, direction=None) # direction=None will set the default
+
+                print '### %s does not exist. Set default: %s ###' % (self.selected_kw_item.get('name').title(), str(value))
 
             self.display()
 
         elif self.in_a_mode:
-
             # In a mode -> save to definition.txt
-            self.save_definition()
-            # self.load_state(EditDefinition)
+            self.dp.write_definition_file()
             self.in_a_mode = False
             self.display()
 
-        if 'media' in  gv.SAMPLES_DIR:
-            sysfunc.mount_media_ro()
-        elif '/samples' in gv.SAMPLES_DIR:
-            sysfunc.mount_samples_ro()
 
     def cancel(self):
 
-        if not self.in_a_mode:
-            Navigator.state = self.prev_state(EditDefinition)  # go back up a menu tier
-        elif self.in_a_mode:
-            self.enter()  # save even if we have pressed cancel. Not saving requires to revert to initial value.
+        if self.in_a_mode:
+            # If we've been editing a keyword entry, revert to original settings
+            self.dp.revert_to_original_settings(preset=self.preset, keyword=self.selected_kw_item.get('name'))
 
-    def set_global_from_keyword(self, keyword, value):
-        keyword = keyword.strip('%%')
-        if isinstance(value, str): value = value.title()
-        for gvar, k in definitionparser.keywords_to_try:
-            if k == keyword:
-                print '\r>>>> Setting global from keyword. %s: %s' % (keyword, str(value))  # debug
-                exec (gvar + '=value')  # set the global variable
+        Navigator.state = self.prev_state(EditDefinition)  # go back up a menu tier
 
-    def save_definition(self):
-        self.dp.set_new_keyword(keyword=self.selected_kw_item.get('name'), value=self.selected_kw_value)
-        self.dp.compare_existing_patterns()
-        self.dp.write_definition_file()
-        # Update existing patterns in memory
-        self.dp.existing_patterns = self.dp.get_patterns_from_file()
+
 
 
 class AudioDevice(Navigator):

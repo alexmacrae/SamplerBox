@@ -51,13 +51,13 @@ class Setlist:
 
     def write_setlist(self, list_to_write):
         print('>>>> SETLIST: Writing the setlist to setlist.txt')
-        sysfunc.mount_samples_rw()  # remount `/samples` as read-write (if using SD card)
+        sysfunc.mount_samples_dir_rw()  # remount `/samples` as read-write (if using SD card)
         setlist = open(gv.SETLIST_FILE_PATH, "w")
         list_to_write = list(filter(None, list_to_write))  # remove empty strings / empty lines
         for song in list_to_write:
             setlist.write(song + '\n')
         setlist.close()
-        sysfunc.mount_samples_ro()  # remount as read-only
+        sysfunc.mount_samples_dir_ro()  # remount as read-only
         # Let's keep SETLIST_LIST the same as before any rearrangements. We let the samples_indices find the name
         # self.update()
 

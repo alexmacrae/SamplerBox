@@ -32,8 +32,8 @@ class TextScroller:
         self.s_all_others = padding + self.s_first_run  # Second onwards comes in from the right
         self.s = self.s_first_run
 
-
     def stop(self):
+        self.s = ''
         self.change_triggered = True
         self.loop_alive = False
         self.is_looping = False
@@ -56,5 +56,5 @@ class TextScroller:
                     else:
                         time.sleep(self.delay)
             else:
-                time.sleep(0.05)
+                time.sleep(0.001)
 

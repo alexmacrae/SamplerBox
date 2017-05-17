@@ -183,9 +183,9 @@ else:
 
 if not os.path.exists(SETLIST_FILE_PATH):
     print '>>>> SETLIST: %s does not exist. Creating an empty setlist file.' % SETLIST_FILE_PATH
-    sysfunc.mount_samples_rw()  # remount `/samples` as read-write (if using SD card)
+    sysfunc.mount_samples_dir_rw()  # remount `/samples` as read-write (if using SD card)
     f = open(SETLIST_FILE_PATH, 'w')
-    sysfunc.mount_samples_ro()  # remount as read-only
+    sysfunc.mount_samples_dir_ro()  # remount as read-only
     f.close()
 
 SETLIST_LIST = None  # open(SETLIST_FILE_PATH).read().splitlines()
