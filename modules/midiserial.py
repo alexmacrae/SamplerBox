@@ -12,6 +12,8 @@ class MIDISerial:
         try:
             # see hack in /boot/cmline.txt : 38400 is 31250 baud for MIDI!
             ser = serial.Serial('/dev/ttyAMA0', baudrate=38400)
+            ser.close()
+            ser = serial.Serial('/dev/ttyAMA0', baudrate=38400)  # this solves problem when MIDI are already arriving during RPi boot
             def midi_serial_callback():
                 message = [0, 0, 0]
                 runningstatus = 0
