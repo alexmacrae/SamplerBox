@@ -295,3 +295,7 @@ This SamplerBox is configured to recognize next
 *Selected a major-7 chord and voice#2 in the set "3 Voices"*
 
 
+SamplerBox Player (beta)
+========================
+
+[Information about the official PCB]

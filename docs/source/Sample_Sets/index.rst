@@ -58,6 +58,17 @@ In the case of SamplerBox this is the ``/boot/`` partition. There are ways to ga
 
 --------------------------------------
 
+Download sample-sets
+====================
+
+There are a number of free instruments available for download on the `SamplerBox website <http://www.samplerbox.org/instruments>`_.
+
+SFZ SoundFont packages currently have limited support, but they should work. There are many free downloads available on the web.
+
+
+--------------------------------------
+
+
 Make your own samples
 =====================
 
@@ -88,11 +99,11 @@ Once you have a collection of samples you must first put them in a directory int
 
 Now you need to prepare the directory in a way that SamplerBox can read the samples. There are 4 ways to do this:
 
-1) Name every sample file by its note name. eg C1.wav, F#1.wav, C2.wav, F#2.wav etc
+1) Name every sample file by its note name. eg C1.wav, F#1.wav, C2.wav, F#2.wav etc, or
 
-2) Name every sample file by its corresponding MIDI number. eg 40.wav, 45.wav, 50.wav, 55.wav etc
+2) Name every sample file by its corresponding MIDI number. eg 40.wav, 45.wav, 50.wav, 55.wav etc, or
 
-3) Create a text file named ``definition.txt`` in your sample-set's directory. :ref:`Instructions below <definition-files>`.
+3) Create a text file named ``definition.txt`` in your sample-set's directory. :ref:`Instructions below <definition-files>`, or
 
 4) Use a sample-set with a accompanying SFZ definition file, or create your own if you prefer (instructions not covered here).
 
@@ -183,7 +194,7 @@ Time to fadeout playback volume from the sample level to zero after the key is r
 .. code-block:: text
 
     Default = 30 (~0.5s)
-    Allowed values: 0-127 (range of 0-2s)
+    Allowed range: 0-127 (range of 0-2s)
 
 %%gain
 ^^^^^^
@@ -194,6 +205,7 @@ SamplerBox input without actually changing the wav files.
 .. code-block:: text
 
     Default = 1.0
+    Allowed range: 0.1-10.0
 
 .. warning::
 
@@ -214,11 +226,26 @@ Transpose up or down a desired number of semitones.
 
 The depth of the pitchbend in semitones.
 
-Possible values: 0-12, where 12 means range is 1 octave up and down and zero disables the pitch wheel/joystick.
+A value of 12 means the pitch range is 1 octave up and down. Zero will disable the pitch wheel/joystick.
 
 .. code-block:: text
 
     Default = 7
+    Allowed values: 0-24
+
+%%fillnotes
+^^^^^^^^^^^
+
+Determines whether SamplerBox should attempt to fill notes that haven't been assigned a sample.
+
+For instance, you might have 2 samples in a directory: ``40.wav`` and ``60.wav``. If ``%%fillnotes=Y``, the program will attempt to fill all missing notes (0-127)
+with the appropriate sample. Otherwise if ``%%fillnotes=N`` only midinotes 40 and 60 will be assigned a sample. All other keys will play nothing.
+
+.. code-block:: text
+
+    Default = Y
+    Allowed values: Y,N
+
 
 -----------------------------------
 

@@ -62,6 +62,7 @@ or filenames and rules defined in a :ref:`definition.txt file <definition-files>
    config
    Using_SamplerBox/index
    Sample_Sets/index
+   network
 
 .. _other:
 

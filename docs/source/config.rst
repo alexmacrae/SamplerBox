@@ -5,6 +5,11 @@ Configuration
 
 The :ref:`config.ini <config-ini>` file contains settings for your SamplerBox. It is found in the ``/boot/samplerbox`` directory. The ``/boot`` partition is also accessible via a Windows or Mac machine.
 
+
+.. note::
+
+    If you have purchased a SamplerBox Player Pi HAT, the default configuration settings will work out of the box.
+
 .. note::
 
     In :ref:`system-mode-1`'s :ref:`system settings <system-settings>` many of these settings are configurable from the menu system. However an initial setup of this file may be required.
@@ -53,6 +58,19 @@ Useful for debugging issues (when connected to a screen or via SSH) and seeing w
     PRINT_MIDI_MESSAGES = True
     PRINT_LCD_MESSAGES = True
 
+GPIO pin setup for HD44780 LCD modules
+======================================
+
+If you're using a HD44780 LCD module (16x2 or 20x4) you must define the numbers of the GPIO pins they are connected to here.
+
+.. code-block:: text
+
+    GPIO_LCD_RS = 7
+    GPIO_LCD_E = 8
+    GPIO_LCD_D7 = 4
+    GPIO_LCD_D6 = 18
+    GPIO_LCD_D5 = 17
+    GPIO_LCD_D4 = 27
 
 System mode 1 controls
 ======================
@@ -100,24 +118,12 @@ If MIDI controls and/or GPIO pins connected to buttons are known, you may define
     BUTTON_DOWN_GPIO = 26
     BUTTON_FUNC_GPIO = 6
 
-GPIO pin setup for HD44780 LCD modules
-======================================
 
-If you're using a HD44780 LCD module (16x2 or 20x4) you must define the numbers of the GPIO pins they are connected to here.
-
-.. code-block:: text
-
-    GPIO_LCD_RS = 7
-    GPIO_LCD_E = 8
-    GPIO_LCD_D4 = 27
-    GPIO_LCD_D5 = 17
-    GPIO_LCD_D6 = 18
-    GPIO_LCD_D7 = 4
 
 GPIO pin setup for a 7 segment display
 ======================================
 
-If you're using a 7 segment display you must define the number of the GPIO pin it is connected to here.
+If you're using a 7 segment display you must define the number of the GPIO pin it is connected to here. This is not recommended as navigating the system menus with feedback is (near) impossible.
 
 .. code-block:: text
 
