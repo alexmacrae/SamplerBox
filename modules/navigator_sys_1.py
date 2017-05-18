@@ -15,7 +15,7 @@ import menudict
 from textscroller import TextScroller
 from modules import definitionparser
 import configdefaultsdict as cdd
-import systemfunctions as sysfunc
+import network
 
 # ______________________________________________________________________________
 
@@ -1064,3 +1064,102 @@ class InvertSustain(Navigator):
 
     def cancel(self):
         self.load_state(MenuNav)
+
+class WirelessNetwork(Navigator):
+
+
+    def __init__(self):
+
+        self.text_scroller.stop()
+
+        self.MENU_MODE = 'ssid_selection'
+
+        self.w = network.Wifi()
+        print self.w.ssids
+
+        self.ss = network.SSIDSelector(self.w.ssids)
+
+        print 'init SSID (@ [0]):', self.ss.get_selected_ssid_name()
+
+        self.pi = None
+
+        self.line1 = 'Select network'
+        self.line2 = self.ss.get_selected_ssid_name()
+
+        self.display()
+
+    def display(self):
+
+        gv.displayer.disp_change(self.line1.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change(self.line2.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+
+    def right(self):
+
+        if self.MENU_MODE == 'ssid_selection':
+
+            self.ss.next_ssid()
+            self.line2 = self.ss.get_selected_ssid_name()
+            # self.line1 = self.ss.get_selected_ssid_name()
+
+
+        elif self.MENU_MODE == 'password_input':
+
+            self.line1 = self.pi.get_next_char()
+            self.line2 = self.pi.psk
+
+        self.display()
+
+
+    def left(self):
+
+        if self.MENU_MODE == 'ssid_selection':
+
+            self.ss.prev_ssid()
+            self.line2 = self.ss.get_selected_ssid_name()
+
+        elif self.MENU_MODE == 'password_input':
+
+            self.line1 = self.pi.get_prev_char()
+            self.line2 = self.pi.psk
+
+        self.display()
+
+    def enter(self):
+
+        if self.MENU_MODE == 'ssid_selection':
+
+            self.pi = network.PasswordInputer(self.ss.get_selected_ssid_name())
+            self.MENU_MODE = 'password_input'
+            self.line1 = ''
+            self.line2 = ''.join(self.pi.strings)
+
+        elif self.MENU_MODE == 'password_input':
+
+            if self.pi.strings_pos == 0:
+
+                self.pi.enter()
+                self.MENU_MODE = 'ssid_selection'
+                self.line1 = 'Select network'
+                self.line2 = self.ss.get_selected_ssid_name()
+
+            else:
+                self.pi.enter()
+                self.line1 = self.pi.psk
+                self.line2 = self.line2 = ''.join(self.pi.strings)
+
+
+        self.display()
+
+    def cancel(self):
+
+        if self.MENU_MODE == 'ssid_selection':
+
+            self.load_state(MenuNav)
+
+        elif self.MENU_MODE == 'password_input':
+
+            self.MENU_MODE = 'ssid_selection'
+            self.line1 = 'Select network'
+            self.line2 = self.ss.get_selected_ssid_name()
+
+            self.display()

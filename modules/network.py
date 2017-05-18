@@ -2,15 +2,21 @@ from wifi import Cell, Scheme
 import os
 import subprocess
 import string
+import time
 
 class Wifi():
     def __init__(self):
+
         self.ssids = None
         self.networksd = '/etc/wpa_config/networks.d/'
+        self.get_ssids()
 
     def get_ssids(self):
+
         # get all cells from the air and make a list
+
         self.ssids = [cell.ssid for cell in Cell.all('wlan0')]
+
         return self.ssids
 
     def readwrite(self):
@@ -23,8 +29,8 @@ class Wifi():
 
     def readonly(self):
         if __name__ == '__main__':
-            subprocess.call(['mount', '-vo', 'remount,ro', '/'])
-            subprocess.call(['mount', '-vo', 'remount,ro', '/boot'])
+            subprocess.call(['mount', '-vfo', 'remount,ro', '/'])
+            subprocess.call(['mount', '-vfo', 'remount,ro', '/boot'])
         else:
             sysfunc.mount_boot_ro()
             sysfunc.mount_root_ro()
@@ -33,15 +39,16 @@ class Wifi():
         # using wpa_config save the ssid to /etc/wpa_supplicant/wpa_supplicant.conf
         # -f forces overwrite of entry if it exists
         self.readwrite()
-        wpa_config_str = ['wpa_config', 'add', '-f', '\"'+ssid+'\"', '\"'+psk+'\"']
+        wpa_config_str = ['wpa_config', 'add', '-f', ssid, psk]
         subprocess.call(['wpa_config','migrate'])  # migrate any networks that may have been manually inputted into wpa_supplicant.conf to wpa_config
         subprocess.call(wpa_config_str)  # add to wpa_config (but not to wpa_supplicant.conf yet)
         subprocess.call(['wpa_config', 'make'])  # write to wpa_supplicant.conf
+        time.sleep(0.5)
         self.readonly()
 
     def delete(self, ssid):
         self.readwrite()
-        subprocess.call(['wpa_config', 'del', '\"' + ssid + '\"'])
+        subprocess.call(['wpa_config', 'del', ssid])
         self.readonly()
 
     def exists(self, ssid):
@@ -62,44 +69,96 @@ class Wifi():
 
 
 class SSIDSelector(Wifi):
-    def __init__(self, wifi_obj):
+    def __init__(self, ssids):
 
-        self.wifi_obj = wifi_obj
-        self.get_ssids()
-        self.strings = ' ' + string.digits + ' ' + string.letters + string.punctuation
+        # Wifi.__init__(self)
+
+        self.ssids = ssids
+        self.ssid_pos = 0
+        self.selected_ssid_name = None
+
+
+    def get_selected_ssid_name(self):
+
+        ssid_name = self.ssids[self.ssid_pos]
+
+        return str(ssid_name)
+
+    def next_ssid(self):
+
+        if self.ssid_pos < len(self.ssids):
+
+            self.ssid_pos += 1
+
+            self.selected_ssid_name = self.get_selected_ssid_name()
+
+            return self.selected_ssid_name
+
+        else:
+
+            return
+
+    def prev_ssid(self):
+
+        if self.ssid_pos > 0:
+
+            self.ssid_pos -= 1
+
+            self.selected_ssid_name = self.get_selected_ssid_name()
+
+            return self.selected_ssid_name
+
+        else:
+
+            return
+
+    def enter(self):
+        pass
+
+
+class PasswordInputer(SSIDSelector):
+
+    def __init__(self, ssid):
+
+        # Wifi.__init__(self)
+        # SSIDSelector.__init__(self)
+        self.selected_ssid = ssid
+        self.strings = list(' ' + string.letters + string.digits + string.punctuation)
+        self.strings.insert(0, 'SAVE')
         # string.printable # digits + letters + punctuation + whitespace. ie 0123...abcd...ABCD...!"#$%&\'...\t\n\r\x0b
-        self.strings_pos = -1
+        self.strings_pos = 0
         self.psk = ''
-
-
-    def get_ssid(self, i=0):
-
-        ssid_name = self.ssids[i]
-
-        return ssid_name
 
     def enter(self):
 
-        if self.strings_pos >= 0:
+        if self.strings_pos > 0:
+
             self.psk += self.get_current_char()
+
             self.strings_pos = 0 # reset position in strings var
-        # self.select_next_char()
 
+            return self.psk
 
-    # def select_next_char(self):
+        elif self.strings_pos == 0 and self.psk != None:
 
+            if len(self.psk) >= 8 and len(self.psk) < 64:
+
+                print self.selected_ssid, self.psk,'<<<<'
+
+                self.save(ssid=self.selected_ssid, psk=self.psk)
+
+                return 'Saving network: SSID="%s" Password="%s"' % (self.selected_ssid, self.psk)
+
+            else:
+
+                print 'Password is not long enough. Must be 8...63 characters'
 
 
 
     def get_current_char(self):
 
-        if self.strings_pos >= 0:
+        return self.strings[self.strings_pos]
 
-            return self.strings[self.strings_pos]
-
-        else:
-
-            return 'SAVE'
 
     def get_next_char(self):
 
@@ -118,41 +177,74 @@ class SSIDSelector(Wifi):
 
             return self.strings[self.strings_pos]
 
-        else:
-
-            return 'SAVE'
-
-    def get_strings(self):
-
-        for i in self.strings:
-            print i
-
-        # return string.printable[30]
-
 
 
 if __name__ == '__main__':
+
+    print '----START TESTING WIFI----'
+
     w = Wifi()
-    ssid_selector = SSIDSelector(w)
-    # print w.get_ssids()
+    print w.ssids
 
-    ssid_selector.get_next_char()
-    ssid_selector.get_next_char()
-    ssid_selector.enter()
-    ssid_selector.get_next_char()
-    ssid_selector.enter()
-    ssid_selector.get_next_char()
-    ssid_selector.get_next_char()
-    ssid_selector.enter()
-    ssid_selector.get_next_char()
-    ssid_selector.get_next_char()
-    ssid_selector.get_next_char()
-    ssid_selector.get_next_char()
-    ssid_selector.enter()
-    print ssid_selector.psk
+    ss = SSIDSelector(w.ssids)
 
+    print 'init SSID:',ss.get_selected_ssid_name()
 
-    # w.save('New_SSID', 'New_password')
+    ss.next_ssid()
+    ss.next_ssid()
+    ss.next_ssid()
+
+    print 'selected SSID:', ss.get_selected_ssid_name()
+
+    pi = PasswordInputer(ss.get_selected_ssid_name())
+
+    pi.get_next_char()
+    pi.get_next_char()
+    print pi.enter()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    print pi.enter()
+    pi.get_next_char()
+    pi.get_next_char()
+    print pi.enter()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    print pi.enter()
+    pi.get_next_char()
+    pi.get_next_char()
+    print pi.enter()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    print pi.enter()
+    pi.get_next_char()
+    pi.get_next_char()
+    print pi.enter()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    pi.get_next_char()
+    print pi.enter()
+
+    print pi.enter()
 
 else:
     import systemfunctions as sysfunc

@@ -255,6 +255,17 @@ menu = {
         # 5: {'name': 'Restart', 'fn': 'gv.sysfunc.restart()'},
         5: {'name': 'Invert Sustain', 'desc': 'Reverse your sustain pedal\s polarity', 'fn': 'InvertSustain'},
         6: {'name': 'Reboot System', 'fn': 'gv.sysfunc.reboot()', 'desc': 'Reboot Raspberry Pi'},
+        7: {'name': 'Wireless Network',
+            'desc': 'Connect to a wireless network',
+            'fn': 'WirelessNetwork'
+            # 'submenu': {
+            #     0: {
+            #         'name': 'SELECT NETWORK',
+            #         'fn': 'WirelessNetwork'
+            #     },
+            # }
+        }
+
 
     }
 }
