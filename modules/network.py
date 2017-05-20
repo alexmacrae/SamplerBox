@@ -4,6 +4,7 @@ import subprocess
 import string
 import time
 
+
 class Wifi():
     def __init__(self):
 
@@ -40,7 +41,7 @@ class Wifi():
         # -f forces overwrite of entry if it exists
         self.readwrite()
         wpa_config_str = ['wpa_config', 'add', '-f', ssid, psk]
-        subprocess.call(['wpa_config','migrate'])  # migrate any networks that may have been manually inputted into wpa_supplicant.conf to wpa_config
+        subprocess.call(['wpa_config', 'migrate'])  # migrate any networks that may have been manually inputted into wpa_supplicant.conf to wpa_config
         subprocess.call(wpa_config_str)  # add to wpa_config (but not to wpa_supplicant.conf yet)
         subprocess.call(['wpa_config', 'make'])  # write to wpa_supplicant.conf
         time.sleep(0.5)
@@ -59,13 +60,11 @@ class Wifi():
         else:
             return False
 
-        # subprocess.call('wpa_config show \"' + ssid + '\"')
-
+            # subprocess.call('wpa_config show \"' + ssid + '\"')
 
     def enable(self, ssid):
         subprocess.call(['ifup', 'wlan0'])
         subprocess.call(['dhcpcd', 'wlan0'])
-
 
 
 class SSIDSelector(Wifi):
@@ -77,7 +76,6 @@ class SSIDSelector(Wifi):
         self.ssid_pos = 0
         self.selected_ssid_name = None
 
-
     def get_selected_ssid_name(self):
 
         ssid_name = self.ssids[self.ssid_pos]
@@ -86,7 +84,7 @@ class SSIDSelector(Wifi):
 
     def next_ssid(self):
 
-        if self.ssid_pos < len(self.ssids):
+        if self.ssid_pos < len(self.ssids) - 1:
 
             self.ssid_pos += 1
 
@@ -117,7 +115,6 @@ class SSIDSelector(Wifi):
 
 
 class PasswordInputer(SSIDSelector):
-
     def __init__(self, ssid):
 
         # Wifi.__init__(self)
@@ -135,7 +132,7 @@ class PasswordInputer(SSIDSelector):
 
             self.psk += self.get_current_char()
 
-            self.strings_pos = 0 # reset position in strings var
+            self.strings_pos = 0  # reset position in strings var
 
             return self.psk
 
@@ -143,7 +140,7 @@ class PasswordInputer(SSIDSelector):
 
             if len(self.psk) >= 8 and len(self.psk) < 64:
 
-                print self.selected_ssid, self.psk,'<<<<'
+                print self.selected_ssid, self.psk, '<<<<'
 
                 self.save(ssid=self.selected_ssid, psk=self.psk)
 
@@ -153,30 +150,23 @@ class PasswordInputer(SSIDSelector):
 
                 print 'Password is not long enough. Must be 8...63 characters'
 
-
-
     def get_current_char(self):
 
         return self.strings[self.strings_pos]
 
-
     def get_next_char(self):
 
         if self.strings_pos < len(self.strings):
-
             self.strings_pos += 1
 
             return self.strings[self.strings_pos]
 
-
     def get_prev_char(self):
 
         if self.strings_pos > 0:
-
             self.strings_pos -= 1
 
             return self.strings[self.strings_pos]
-
 
 
 if __name__ == '__main__':
@@ -188,7 +178,7 @@ if __name__ == '__main__':
 
     ss = SSIDSelector(w.ssids)
 
-    print 'init SSID:',ss.get_selected_ssid_name()
+    print 'init SSID:', ss.get_selected_ssid_name()
 
     ss.next_ssid()
     ss.next_ssid()
