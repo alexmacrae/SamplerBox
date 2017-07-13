@@ -57,7 +57,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'SamplerBox'
-copyright = u'2016, Alex MacRae'
+copyright = u'2017, Joseph Ernest and Alex MacRae'
 author = u'Alex MacRae'
 
 # The version info for the project you're documenting, acts as replacement for
