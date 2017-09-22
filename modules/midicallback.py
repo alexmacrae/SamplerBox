@@ -1,5 +1,13 @@
 import globalvars as gv
+from re import search
 
+def remove_number_dash_space(str):
+    # removes the pattern "[0-9]- " from start. eg "5- LaunchKey" = "LaunchKey". When the system numbers devices like
+    # this, mapped controls are not found. This function solves the issue.
+    reobj = search('(?<=[0-9]- ).*', str)
+    if reobj:
+        str = reobj.group()
+    return str
 
 class Midi:
     def __init__(self):
@@ -37,6 +45,7 @@ class Midi:
 
         midimaps = gv.midimaps
         src = src[:src.rfind(" "):]  # remove the port number from the end
+        src = remove_number_dash_space(src) # remove the pattern "[0-9]- " from start. eg "5- LaunchKey" = "LaunchKey"
 
         messagetype = message[0] >> 4
         midichannel = (message[0] & 15) + 1
@@ -83,23 +92,23 @@ class Midi:
                 # Check for MIDI map match from the config.ini
 
                 if mk[0] == self.enter[0] and mk[1] == self.enter[1] and velocity > 0:  # Enter button
-                    if len(self.enter) == 2 or len(self.enter) == 3 and self.enter[2] in src:
+                    if len(self.enter) == 2 or len(self.enter) == 3 and src in self.enter[2]:
                         gv.nav.state.enter()
                         return
                 elif mk[0] == self.left[0] and mk[1] == self.left[1] and velocity > 0:  # Left button
-                    if len(self.left) == 2 or len(self.left) == 3 and self.left[2] in src:
+                    if len(self.left) == 2 or len(self.left) == 3 and src in self.left[2]:
                         gv.nav.state.left()
                         return
                 elif mk[0] == self.right[0] and mk[1] == self.right[1] and velocity > 0:  # Right button
-                    if len(self.right) == 2 or len(self.right) == 3 and self.right[2] in src:
+                    if len(self.right) == 2 or len(self.right) == 3 and src in self.right[2]:
                         gv.nav.state.right()
                         return
                 elif mk[0] == self.cancel[0] and mk[1] == self.cancel[1] and velocity > 0:  # Cancel button
-                    if len(self.cancel) == 2 or len(self.cancel) == 3 and self.cancel[2] in src:
+                    if len(self.cancel) == 2 or len(self.cancel) == 3 and src in self.cancel[2]:
                         gv.nav.state.cancel()
                         return
                 elif mk[0] == self.panic_key[0] and mk[1] == self.panic_key[1]:  # Panic key
-                    if len(self.panic_key) == 2 or len(self.panic_key) == 3 and self.panic_key[2] in src:
+                    if len(self.panic_key) == 2 or len(self.panic_key) == 3 and src in self.panic_key[2]:
                         gv.ac.panic()
                         return
             except:
