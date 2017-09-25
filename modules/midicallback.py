@@ -210,8 +210,6 @@ class Midi:
                     gv.ls.load_preset()
 
             elif messagetype == 14:  # Pitch Bend
-
-                if 'microKEY-61' not in src:  # Removed pitch temporarily for Alex's modified microKEY
                     gv.ac.pitchbend.set_pitch(velocity, note)
 
             elif messagetype == 11:  # control change (CC, sometimes called Continuous Controllers)
@@ -247,6 +245,3 @@ class Midi:
                 elif CCnum == 82:  # Pitch bend sensitivity (my controller cannot send RPN)
                     gv.pitchnotes = (24 * CCval + 100) / 127
 
-                # Temporary pitchbend on microKEY-61 modwheel
-                elif CCnum == 1 and 'nanoKONTROL2' in src:
-                    gv.ac.pitchbend.set_pitch(velocity + 64, note)
