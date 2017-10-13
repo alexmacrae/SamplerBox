@@ -41,10 +41,9 @@ class Displayer:
             if gv.ls.memory_limit_reached == False:
                 if gv.ls.all_presets_loaded == False:
                     if gv.ls.loading_paused == True:
-                        # tray.append('P') # P for Paused loading
                         tray.append(unichr(2)) # Pause custom character for Paused loading
                     else:
-                        tray.append('S') # S for Samples loading
+                        tray.append(unichr(6)) # Loading custom hour glass character
 
         if len(gv.voices) > 1:
             voice_blocks = list(unichr(5) * len(gv.voices))  # fill with custom block chars

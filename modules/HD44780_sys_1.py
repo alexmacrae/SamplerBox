@@ -64,9 +64,7 @@ class LCD_SYS_1:
                 self.lcd.create_char(3, lcdcc.voice_button_on)
                 self.lcd.create_char(4, lcdcc.voice_button_off)
                 self.lcd.create_char(5, lcdcc.block2)
-                self.lcd.create_char(6, lcdcc.loading_1)
-                self.lcd.create_char(7, lcdcc.loading_2)
-                self.lcd.create_char(0, lcdcc.loading_3)
+                self.lcd.create_char(6, lcdcc.loading_hour_glass)
 
         self.LCDThread = threading.Thread(target=self.lcd_main)
         self.LCDThread.daemon = True
