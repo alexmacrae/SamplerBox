@@ -761,12 +761,11 @@ class EditDefinition(Navigator):
         self.keywords_dict = self.dp.keywords_dict
         self.in_a_mode = False
         self.mode = 0
-        self.selected_kw_item = self.keywords_dict[self.mode] # selected keyword item (dict)
+        self.selected_kw_item = self.keywords_dict[self.mode]  # selected keyword item (dict)
         self.selected_kw_value = None
         self.prev_state = SelectSong
         # self.keywords_defaults_dict = self.dp.keywords_defaults_dict
         self.display()
-
 
     def display(self):
 
@@ -782,7 +781,7 @@ class EditDefinition(Navigator):
             value = self.dp.existing_patterns[self.selected_kw_item.get('name')]
 
             if 'Release' in keyword_str:
-                value = float(value) / 58.82 # convert to seconds
+                value = float(value) / 58.82  # convert to seconds
                 value = '%ss' % str(value)[:4]  # display like: 1.23s
                 # value = '%sms' % str(int(value*1000))[:4]  # display like: 50ms
             else:
@@ -836,7 +835,7 @@ class EditDefinition(Navigator):
                 if type(value) == str:
                     value = value.title()
 
-                self.dp.change_item_value(preset=self.preset, item=self.selected_kw_item, direction=None) # direction=None will set the default
+                self.dp.change_item_value(preset=self.preset, item=self.selected_kw_item, direction=None)  # direction=None will set the default
 
                 print '### %s does not exist. Set default: %s ###' % (self.selected_kw_item.get('name').title(), str(value))
 
@@ -848,7 +847,6 @@ class EditDefinition(Navigator):
             self.in_a_mode = False
             self.display()
 
-
     def cancel(self):
 
         if self.in_a_mode:
@@ -856,8 +854,6 @@ class EditDefinition(Navigator):
             self.dp.revert_to_original_settings(preset=self.preset, keyword=self.selected_kw_item.get('name'))
 
         Navigator.state = self.prev_state(EditDefinition)  # go back up a menu tier
-
-
 
 
 class AudioDevice(Navigator):
@@ -1069,7 +1065,131 @@ class InvertSustain(Navigator):
         self.cancel()
 
     def cancel(self):
-        self.load_state(MenuNav)class SetInputVelocityCurve(Navigator):
+        self.load_state(MenuNav)
+        self.load_state(MenuNav)
+
+
+class WirelessNetwork(Navigator):
+    def __init__(self):
+
+        self.text_scroller.stop()
+
+        self.MENU_MODE = 'ssid_selection'
+
+        self.w = network.Wifi()
+        print self.w.ssids
+
+        self.ss = network.SSIDSelector(self.w.ssids)
+
+        print 'init SSID (@ [0]):', self.ss.get_selected_ssid_name()
+
+        self.pi = None
+
+        self.line1 = 'Select network'
+        self.line2 = self.ss.get_selected_ssid_name()
+
+        self.display()
+
+    def display(self):
+
+        gv.displayer.disp_change(self.line1.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change(self.line2.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+
+    def right(self):
+
+        if self.MENU_MODE == 'ssid_selection':
+
+            self.ss.next_ssid()
+            self.line2 = self.ss.get_selected_ssid_name()
+
+
+        elif self.MENU_MODE == 'password_input':
+
+            if self.pi.strings_pos < 3:
+                self.line1 = self.pi.get_next_char()
+            elif self.pi.strings_pos == 1:
+                self.line1 = 'None/no password'
+            else:
+                self.line1 = self.pi.psk + self.pi.get_next_char()
+
+            if self.pi.page == 0:
+                self.line2 = ''.join(self.pi.strings)
+            else:
+                start_char = (self.pi.page * gv.LCD_COLS) + gv.LCD_COLS
+                end_char = start_char + (gv.LCD_COLS * 2)
+                self.line2 = ''.join(self.pi.strings[start_char:end_char])
+
+        self.display()
+
+    def left(self):
+
+        if self.MENU_MODE == 'ssid_selection':
+
+            self.ss.prev_ssid()
+            self.line2 = self.ss.get_selected_ssid_name()
+
+        elif self.MENU_MODE == 'password_input':
+
+            if self.pi.strings_pos < 3:
+                self.line1 = self.pi.get_prev_char()
+            elif self.pi.strings_pos == 1:
+                self.line1 = 'None/no password'
+            else:
+                self.line1 = self.pi.psk + self.pi.get_prev_char()
+
+            if self.pi.page == 0:
+                self.line2 = ''.join(self.pi.strings)
+            else:
+                start_char = (self.pi.page * gv.LCD_COLS) + gv.LCD_COLS
+                end_char = start_char + (gv.LCD_COLS * 2)
+                self.line2 = ''.join(self.pi.strings[start_char:end_char])
+
+        self.display()
+
+    def enter(self):
+
+        if self.MENU_MODE == 'ssid_selection':
+
+            self.pi = network.PasswordInputer(self.ss.get_selected_ssid_name())
+            self.MENU_MODE = 'password_input'
+            self.pi.strings_pos = 3
+            self.line1 = self.pi.get_current_char()
+            self.line2 = ''.join(self.pi.strings)
+
+        elif self.MENU_MODE == 'password_input':
+
+            if self.pi.strings_pos == 0 or self.pi.strings_pos == 1:  # SAVE or Save with no password (open network)
+
+                self.pi.enter()
+                self.MENU_MODE = 'ssid_selection'
+                self.line1 = 'Select network'
+                self.line2 = self.ss.get_selected_ssid_name()
+
+            else:
+
+                self.pi.enter()
+                self.pi.strings_pos = 3
+                self.line1 = self.pi.psk + self.pi.get_current_char()
+                self.line2 = ''.join(self.pi.strings)
+
+        self.display()
+
+    def cancel(self):
+
+        if self.MENU_MODE == 'ssid_selection':
+
+            self.load_state(MenuNav)
+
+        elif self.MENU_MODE == 'password_input':
+
+            self.MENU_MODE = 'ssid_selection'
+            self.line1 = 'Select network'
+            self.line2 = self.ss.get_selected_ssid_name()
+
+            self.display()
+
+
+class SetInputVelocityCurve(Navigator):
     def __init__(self):
 
         self.text_scroller.stop()
@@ -1101,6 +1221,41 @@ class InvertSustain(Navigator):
         gv.INVERT_SUSTAIN = self.invert_sustain
         gv.cp.update_config('SAMPLERBOX CONFIG', 'INVERT_SUSTAIN', str(self.invert_sustain))
         self.cancel()
+
+    def cancel(self):
+        self.load_state(MenuNav)
+
+
+class IpCheck(Navigator):
+    def __init__(self):
+
+        self.text_scroller.stop()
+
+        eth0 = network.NetworkInfo().get_ip_address('eth0')
+        wlan0 = network.NetworkInfo().get_ip_address('wlan0')
+
+        self.interfaces = [('Wireless', wlan0), ('Ethernet', eth0)]
+        self.interface_index = 0
+        self.display()
+
+    def display(self):
+        first_line = self.interfaces[self.interface_index][0]
+        second_line = self.interfaces[self.interface_index][1]
+
+        gv.displayer.disp_change(first_line.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change(second_line.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+
+    def left(self):
+
+        if self.interface_index > 0:
+            self.interface_index -= 1
+            self.display()
+
+    def right(self):
+
+        if self.interface_index < len(self.interfaces):
+            self.interface_index += 1
+            self.display()
 
     def cancel(self):
         self.load_state(MenuNav)
