@@ -39,22 +39,24 @@ class TextScroller:
         self.is_looping = False
 
     def loop_thread(self):
+
         while True:
             if self.is_looping:
                 for i in range(len(self.s) - self.num_cols + 1):
-                    if self.change_triggered:
+                    if self.change_triggered or self.is_looping == False:
                         self.change_triggered = False
                         break
                     framebuffer = self.s[i:i + self.num_cols]
                     gv.displayer.disp_change(framebuffer, line=self.line, timeout=0, is_error=self.is_error)
                     if i == 0:
                         for k in range(int(self.init_sleep / self.delay)):
-                            if self.change_triggered:
+                            if self.change_triggered or self.is_looping == False:
                                 self.change_triggered = False
                                 break
                             time.sleep(self.delay)
                     else:
                         time.sleep(self.delay)
             else:
-                time.sleep(0.001)
+                time.sleep(0.005)
 
+            time.sleep(0.005)
