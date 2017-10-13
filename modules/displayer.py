@@ -140,14 +140,20 @@ class Displayer:
                             self.LCD_SYS.display(vol_line, line=1 + n, is_priority=False, timeout_custom=timeout)
                             self.LCD_SYS.display((unichr(1) * i), line=2 + n, is_priority=False, timeout_custom=timeout)
                         elif 'loading' in changed_var:
-                            loading_line = 'LOADING %s%%'.center(gv.LCD_COLS, ' ') % str(int(gv.percent_loaded))
-                            self.LCD_SYS.display(loading_line, line=1 + n, is_priority=False, timeout_custom=timeout)
-                            self.LCD_SYS.display((unichr(1) * int(gv.percent_loaded * (gv.LCD_COLS / 100.0) + 1)), line=2 + n, is_priority=False, timeout_custom=timeout)
+                            preset_name = gv.SETLIST_LIST[gv.samples_indices[gv.preset]]
+                            preset_num_name = str(gv.preset - gv.PRESET_BASE + 1) + ' ' + preset_name
+                            preset_line_1 = preset_num_name
+                            loading_line = 'LOADING%s'.ljust(gv.LCD_COLS, ' ') % (unichr(1) * int(gv.percent_loaded * ((gv.LCD_COLS - 7) / 100.0) + 1))
+                            self.LCD_SYS.display(preset_line_1, line=1, is_priority=True, timeout_custom=timeout)
+                            self.LCD_SYS.display(loading_line, line=2 + n, is_priority=False, timeout_custom=timeout)
                         elif 'effect' in changed_var:
                             effect_name = changed_var[1].upper()
                             effect_line = (effect_name+' %s%%').center(gv.LCD_COLS, ' ') % str(int(gv.percent_effect))
                             self.LCD_SYS.display(effect_line, line=1 + n, is_priority=False, timeout_custom=timeout)
                             self.LCD_SYS.display(unichr(1) * int(gv.percent_effect * (gv.LCD_COLS / 100.0) + 1), line=2 + n, is_priority=False, timeout_custom=timeout)
+                        elif 'freeingmemory' in changed_var:
+                            self.LCD_SYS.display(('FREEING MEMORY..').center(gv.LCD_COLS, ' '),line=2+n, is_priority=False, timeout_custom=timeout)
+
 
                     if self.menu_mode == self.DISP_UTILS_MODE:
                         if 'util' in changed_var:

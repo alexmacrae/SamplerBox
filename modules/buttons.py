@@ -18,15 +18,19 @@ class Buttons():
 
                         if channel == gv.BUTTON_LEFT_GPIO:
                             print '\rLEFT GPIO button pressed'  # debug
+                            gv.ls.button_pressed = True
                             gv.nav.state.left()
                         elif channel == gv.BUTTON_RIGHT_GPIO:
                             print '\rRIGHT GPIO button pressed' # debug
+                            gv.ls.button_pressed = True
                             gv.nav.state.right()
                         elif channel == gv.BUTTON_ENTER_GPIO:
                             print '\rENTER GPIO button pressed' # debug
+                            gv.ls.button_pressed = True
                             gv.nav.state.enter()
                         elif channel == gv.BUTTON_CANCEL_GPIO:
                             print '\rCANCEL GPIO button pressed' # debug
+                            gv.ls.button_pressed = True
                             gv.nav.state.cancel()
 
                 GPIO.setmode(GPIO.BCM)

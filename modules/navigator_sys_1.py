@@ -29,6 +29,7 @@ class Navigator:
     text_scroller = None
 
     def __init__(self, state_init):
+        self.nav_pressed = False
         Navigator.state = state_init
         Navigator.text_scroller = TextScroller()
         self.load_state(self.state)
@@ -69,6 +70,7 @@ class PresetNav(Navigator):
 
     def right(self):
         gv.preset += 1
+        gv.nav.nav_pressed = True
         gv.displayer.LCD_SYS.reset_after_timeout()
         gv.currvoice = 1
         if gv.preset >= len(gv.samples_indices):
@@ -79,6 +81,7 @@ class PresetNav(Navigator):
 
     def left(self):
         gv.preset -= 1
+        gv.nav.nav_pressed = True
         gv.displayer.LCD_SYS.reset_after_timeout()
         gv.currvoice = 1
         if gv.preset < 0:
