@@ -16,6 +16,9 @@ from textscroller import TextScroller
 from modules import definitionparser
 import configdefaultsdict as cdd
 import systemfunctions as sysfunc
+import network
+from inputvelocitycurves import InputVelocityCurves
+
 
 # ______________________________________________________________________________
 
@@ -1059,6 +1062,40 @@ class InvertSustain(Navigator):
     def right(self):
         self.invert_sustain = False
         self.display()
+
+    def enter(self):
+        gv.INVERT_SUSTAIN = self.invert_sustain
+        gv.cp.update_config('SAMPLERBOX CONFIG', 'INVERT_SUSTAIN', str(self.invert_sustain))
+        self.cancel()
+
+    def cancel(self):
+        self.load_state(MenuNav)class SetInputVelocityCurve(Navigator):
+    def __init__(self):
+
+        self.text_scroller.stop()
+        self.ivc = InputVelocityCurves()
+        self.ALPHA_LIST = self.ivc.alpha_list
+        self.alpha_index = gv.VELOCITY_CURVE
+        self.display()
+
+    def display(self):
+        first_line = 'Velocity Curve'
+        second_line = self.ALPHA_LIST[self.alpha_index][1]
+
+        gv.displayer.disp_change(first_line.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change(second_line.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+
+    def left(self):
+        if gv.ac.autochorder.chord_set_index > 0:
+            gv.ac.autochorder.chord_set_index -= 1
+            gv.ac.autochorder.change_mode(gv.ac.autochorder.chord_set_index)
+            self.display()
+
+    def right(self):
+        if gv.ac.autochorder.chord_set_index < len(self.AVAILABLE_CHORD_SETS) - 1:
+            gv.ac.autochorder.chord_set_index += 1
+            gv.ac.autochorder.change_mode(gv.ac.autochorder.chord_set_index)
+            self.display()
 
     def enter(self):
         gv.INVERT_SUSTAIN = self.invert_sustain

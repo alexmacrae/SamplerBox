@@ -15,10 +15,11 @@ configdefaults = {
     'AUDIO_DEVICE_ID': {'type': 'int', 'default': -1, 'section': 'SAMPLERBOX CONFIG'},
     'AUDIO_DEVICE_NAME': {'type': 'options', 'options': [], 'default': 'autodetect', 'section': 'SAMPLERBOX CONFIG'},
     'SYSTEM_MODE': {'type': 'options', 'options': ['1', '2'], 'default': 1, 'section': 'SAMPLERBOX CONFIG'},
-    'RAM_LIMIT_PERCENTAGE': {'type': 'range', 'min': 0, 'max': 95, 'default': 40, 'section': 'SAMPLERBOX CONFIG'},
+    'RAM_LIMIT_PERCENTAGE': {'type': 'range', 'min': 0, 'max': 80, 'default': 40, 'section': 'SAMPLERBOX CONFIG'},
     'BOXRELEASE': {'type': 'range', 'min': 1, 'max': 128, 'default': 30, 'section': 'SAMPLERBOX CONFIG'},
     'USE_GUI': {'type': 'boolean', 'default': False, 'section': 'SAMPLERBOX CONFIG'},
     'INVERT_SUSTAIN': {'type': 'boolean', 'default': True, 'section': 'SAMPLERBOX CONFIG'},
+    'VELOCITY_CURVE': {'type': 'range', 'min': 0, 'max': 6, 'default': 0, 'section': 'SAMPLERBOX CONFIG'},
 
     'PRINT_MIDI_MESSAGES': {'type': 'boolean', 'default': True, 'section': 'MISC'},
     'PRINT_LCD_MESSAGES': {'type': 'boolean', 'default': True, 'section': 'MISC'},

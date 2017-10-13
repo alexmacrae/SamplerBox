@@ -4,6 +4,8 @@ import ctypes
 from os.path import dirname, abspath
 from collections import OrderedDict
 import random
+from inputvelocitycurves import InputVelocityCurves
+
 if gv.USE_TONECONTROL:
     from filters import FilterType, Filter, FilterChain
 
@@ -15,6 +17,7 @@ class AudioControls(object):
         self.sustain = Sustain()
         self.pitchbend = PitchBend()
         self.voice = Voice()
+        self.ivc = InputVelocityCurves()
         if gv.USE_FREEVERB and gv.IS_DEBIAN:
             self.reverb = Reverb(60, 127, 0, 127, 127)
         if gv.USE_TONECONTROL:
@@ -42,6 +45,10 @@ class AudioControls(object):
                         pass
 
     def noteon(self, midinote, midichannel, velocity):
+
+        vel_alpha = self.ivc.alpha_list[int(gv.VELOCITY_CURVE)][0] # VELOCITY_CURVE is actually an index of a list of alpha values
+        velocity = self.ivc.adjust_vel(velocity, vel_alpha)
+
         try:
             midinote += gv.globaltranspose
             actual_preset = gv.samples_indices[gv.preset]

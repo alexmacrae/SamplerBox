@@ -240,12 +240,13 @@ menu = {
             'desc': 'Modify settings and save them to your config.ini',
             'submenu': {
                 0: {'name': 'Audio Device', 'desc': 'Select a different audio device', 'fn': 'AudioDevice'},
-                1: {'name': 'Max polyphony', 'desc': 'The max number of samples can be played simultaneously', 'fn': 'MaxPolyphonyConfig'},
-                2: {'name': 'MIDI channel', 'desc': '', 'fn': 'MidiChannelConfig'},
-                3: {'name': 'Buffer size', 'desc': '', 'fn': 'BufferSizeConfig'},
-                4: {'name': 'Sample rate', 'desc': '', 'fn': 'SampleRateConfig'},
-                5: {'name': 'Reverb ON/OFF', 'desc': '', 'fn': 'ToggleReverb'},
-                6: {'name': 'Set RAM limit', 'desc': 'Set the amount of RAM the system can use for samples', 'fn': 'SetRAMLimit'}
+                1: {'name': 'Velocity curve', 'desc': 'Modify the global input velocity to adjust the input velocity sensitivity of your MIDI device', 'fn': 'SetInputVelocityCurve'},
+                2: {'name': 'Max polyphony', 'desc': 'The max number of samples can be played simultaneously', 'fn': 'MaxPolyphonyConfig'},
+                3: {'name': 'MIDI channel', 'desc': '', 'fn': 'MidiChannelConfig'},
+                4: {'name': 'Buffer size', 'desc': '', 'fn': 'BufferSizeConfig'},
+                5: {'name': 'Sample rate', 'desc': '', 'fn': 'SampleRateConfig'},
+                6: {'name': 'Reverb ON/OFF', 'desc': '', 'fn': 'ToggleReverb'},
+                7: {'name': 'Set RAM limit', 'desc': 'Set the amount of RAM the system can use for samples', 'fn': 'SetRAMLimit'}
                 # 3: {'name': 'Audio channels', 'desc': '', 'fn': 'ChannelsConfig'},
 
 
@@ -253,8 +254,10 @@ menu = {
 
             },
         # 5: {'name': 'Restart', 'fn': 'gv.sysfunc.restart()'},
-        5: {'name': 'Invert Sustain', 'desc': 'Reverse your sustain pedal\s polarity', 'fn': 'InvertSustain'},
-        6: {'name': 'Reboot System', 'fn': 'gv.sysfunc.reboot()', 'desc': 'Reboot Raspberry Pi'},
+        5: {'name': 'Check IP', 'fn': 'IpCheck', 'desc': 'Get IP addresses (wireless and ethernet)'},
+        6: {'name': 'Invert Sustain', 'desc': 'Reverse your sustain pedal\s polarity', 'fn': 'InvertSustain'},
+        7: {'name': 'Reboot System', 'fn': 'gv.sysfunc.reboot()', 'desc': 'Reboot Raspberry Pi'},
+
 
     }
 }
