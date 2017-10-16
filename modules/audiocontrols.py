@@ -4,7 +4,7 @@ import ctypes
 from os.path import dirname, abspath
 from collections import OrderedDict
 import random
-from inputvelocitycurves import InputVelocityCurves
+from velocitycurves import VelocityCurves
 
 if gv.USE_TONECONTROL:
     from filters import FilterType, Filter, FilterChain
@@ -17,7 +17,7 @@ class AudioControls(object):
         self.sustain = Sustain()
         self.pitchbend = PitchBend()
         self.voice = Voice()
-        self.ivc = InputVelocityCurves()
+        self.ivc = VelocityCurves()
         if gv.USE_FREEVERB and gv.IS_DEBIAN:
             self.reverb = Reverb(60, 127, 0, 127, 127)
         if gv.USE_TONECONTROL:
@@ -75,7 +75,6 @@ class AudioControls(object):
                                 # print "clean note " + str(playnote)
                                 m.fadeout(50)
                             gv.playingnotes[midichannel][playnote] = []  # housekeeping
-
                     # Start David Hilowitz
                     # Get the list of available samples for this note and velocity
                     notesamples = gv.samples[actual_preset][playnote, velocity, gv.currvoice, midichannel]

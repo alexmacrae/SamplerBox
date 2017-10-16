@@ -17,7 +17,7 @@ from modules import definitionparser
 import configdefaultsdict as cdd
 import systemfunctions as sysfunc
 import network
-from inputvelocitycurves import InputVelocityCurves
+from velocitycurves import VelocityCurves
 
 
 # ______________________________________________________________________________
@@ -1189,37 +1189,39 @@ class WirelessNetwork(Navigator):
             self.display()
 
 
-class SetInputVelocityCurve(Navigator):
+class SetVelocityCurve(Navigator):
     def __init__(self):
-
         self.text_scroller.stop()
-        self.ivc = InputVelocityCurves()
-        self.ALPHA_LIST = self.ivc.alpha_list
+        self.vc = VelocityCurves()
         self.alpha_index = gv.VELOCITY_CURVE
         self.display()
 
     def display(self):
         first_line = 'Velocity Curve'
-        second_line = self.ALPHA_LIST[self.alpha_index][1]
+        second_line = '[%d] %s' % (self.alpha_index, self.vc.alpha_list[self.alpha_index][1])
 
         gv.displayer.disp_change(first_line.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-        gv.displayer.disp_change(second_line.center(gv.LCD_COLS, ' '), line=2, timeout=0)
+        Navigator.text_scroller.stop()
+        if len(second_line) > gv.LCD_COLS:  # make it scroll
+            Navigator.text_scroller.set_string(string=second_line, line=2)
+        else:
+            gv.displayer.disp_change(changed_var=second_line.center(gv.LCD_COLS, ' '), line=2, timeout=0)
 
     def left(self):
-        if gv.ac.autochorder.chord_set_index > 0:
-            gv.ac.autochorder.chord_set_index -= 1
-            gv.ac.autochorder.change_mode(gv.ac.autochorder.chord_set_index)
+        if self.alpha_index > 0:
+            self.alpha_index -= 1
+            gv.VELOCITY_CURVE = self.alpha_index
             self.display()
 
     def right(self):
-        if gv.ac.autochorder.chord_set_index < len(self.AVAILABLE_CHORD_SETS) - 1:
-            gv.ac.autochorder.chord_set_index += 1
-            gv.ac.autochorder.change_mode(gv.ac.autochorder.chord_set_index)
+        if self.alpha_index < len(self.vc.alpha_list) - 1:
+            self.alpha_index += 1
+            gv.VELOCITY_CURVE = self.alpha_index
             self.display()
 
     def enter(self):
-        gv.INVERT_SUSTAIN = self.invert_sustain
-        gv.cp.update_config('SAMPLERBOX CONFIG', 'INVERT_SUSTAIN', str(self.invert_sustain))
+        gv.VELOCITY_CURVE = self.alpha_index
+        gv.cp.update_config('SAMPLERBOX CONFIG', 'VELOCITY_CURVE', str(self.alpha_index))
         self.cancel()
 
     def cancel(self):

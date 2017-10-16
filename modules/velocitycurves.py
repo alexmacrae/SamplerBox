@@ -5,7 +5,7 @@ Adjusts the MIDI input velocity. Useful for devices that have poor velocity
 sensitivities that cannot be modified on the device. eg Novation's LaunchKey Mini MKII
 """
 
-class InputVelocityCurves:
+class VelocityCurves:
 
     alpha_linear = (1, 'Default (linear)')  # default, linear
     alpha_1 = (3.0, 'Extremely soft curve')
@@ -33,7 +33,7 @@ Makes it easier for others to contibute their own module/plugin features.
 #     def __init__(self):
 #
 #         self.text_scroller.stop()
-#         self.ivc = InputVelocityCurves()
+#         self.ivc = VelocityCurves()
 #         self.ALPHA_LIST = self.ivc.alpha_list
 #         self.alpha_index = gv.VELOCITY_CURVE
 #         self.display()
@@ -70,7 +70,7 @@ Makes it easier for others to contibute their own module/plugin features.
 
 if __name__ == '__main__':
 
-    ivc = InputVelocityCurves()
+    vc = VelocityCurves()
 
     for i in range(1, 128):
-        print i, ivc.adjust_vel(i, ivc.alpha_1[0])  # test it
+        print i, vc.adjust_vel(i, vc.alpha_1[0])  # test it

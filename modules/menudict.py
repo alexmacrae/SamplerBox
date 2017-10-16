@@ -15,7 +15,7 @@ menu = {
             'name': 'Edit definitions',
             'desc': 'Modify sample-set definitions',
             'fn': ['SelectSong', 'EditDefinition']
-            },
+        },
         2: {
             'name': 'Auto chords',
             'desc': 'Toggle the auto chorder: play chords based on a single note',
@@ -239,17 +239,17 @@ menu = {
         4: {'name': 'System settings',
             'desc': 'Modify settings and save them to your config.ini',
             'submenu': {
-                0: {'name': 'Audio Device', 'desc': 'Select a different audio device', 'fn': 'AudioDevice'},
-                1: {'name': 'Velocity curve', 'desc': 'Modify the global input velocity to adjust the input velocity sensitivity of your MIDI device', 'fn': 'SetInputVelocityCurve'},
-                2: {'name': 'Max polyphony', 'desc': 'The max number of samples can be played simultaneously', 'fn': 'MaxPolyphonyConfig'},
-                3: {'name': 'MIDI channel', 'desc': '', 'fn': 'MidiChannelConfig'},
-                4: {'name': 'Buffer size', 'desc': '', 'fn': 'BufferSizeConfig'},
-                5: {'name': 'Sample rate', 'desc': '', 'fn': 'SampleRateConfig'},
-                6: {'name': 'Reverb ON/OFF', 'desc': '', 'fn': 'ToggleReverb'},
-                7: {'name': 'Set RAM limit', 'desc': 'Set the amount of RAM the system can use for samples', 'fn': 'SetRAMLimit'}
+
+                0: {'name': 'Velocity curve', 'desc': '0=linear, 1-6=soft-hard curves. Modify the global input velocity to adjust the input velocity sensitivity of your MIDI device',
+                    'fn': 'SetVelocityCurve'},
+                1: {'name': 'Max polyphony', 'desc': 'The max number of samples can be played simultaneously', 'fn': 'MaxPolyphonyConfig'},
+                2: {'name': 'MIDI channel', 'desc': '', 'fn': 'MidiChannelConfig'},
+                3: {'name': 'Latency', 'desc': 'Low or High latency options. Set to High if you are experiencing audible pops and clicks during playback', 'fn': 'LatencyConfig'},
+                # 5: {'name': 'Sample rate', 'desc': '', 'fn': 'SampleRateConfig'}, # detected automatically
+                4: {'name': 'Reverb ON/OFF', 'desc': '', 'fn': 'ToggleReverb'},
+                5: {'name': 'Set RAM limit', 'desc': 'Set the amount of RAM the system can use for samples', 'fn': 'SetRAMLimit'}
+                # 6: {'name': 'Audio Device', 'desc': 'Select a different audio device', 'fn': 'AudioDevice'},
                 # 3: {'name': 'Audio channels', 'desc': '', 'fn': 'ChannelsConfig'},
-
-
             }
 
             },
@@ -257,7 +257,6 @@ menu = {
         5: {'name': 'Check IP', 'fn': 'IpCheck', 'desc': 'Get IP addresses (wireless and ethernet)'},
         6: {'name': 'Invert Sustain', 'desc': 'Reverse your sustain pedal\s polarity', 'fn': 'InvertSustain'},
         7: {'name': 'Reboot System', 'fn': 'gv.sysfunc.reboot()', 'desc': 'Reboot Raspberry Pi'},
-
 
     }
 }
