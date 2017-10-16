@@ -637,37 +637,37 @@ class MidiChannelConfig(Navigator):
 
 # ______________________________________________________________________________
 
-class BufferSizeConfig(Navigator):
+class LatencyConfig(Navigator):
     def __init__(self):
         self.text_scroller.stop()
-        self.BUFFERSIZE = gv.BUFFERSIZE
-        self.options = cdd.configdefaults.get('BUFFERSIZE').get('options')
+        self.LATENCY = gv.LATENCY
+        self.options = cdd.configdefaults.get('LATENCY').get('options')
 
-        self.i = cdd.configdefaults.get('BUFFERSIZE').get('default')
+        self.i = cdd.configdefaults.get('LATENCY').get('default')
         for x in self.options:
-            if int(x) == int(self.BUFFERSIZE):
+            if int(x) == int(self.LATENCY):
                 self.i = self.options.index(x)
         self.display()
 
     def display(self):
-        gv.displayer.disp_change('BUFFER SIZE'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
-        gv.displayer.disp_change(str(self.BUFFERSIZE).center(gv.LCD_COLS, ' '), line=2, timeout=0)
+        gv.displayer.disp_change('LATENCY'.center(gv.LCD_COLS, ' '), line=1, timeout=0)
+        gv.displayer.disp_change(str(self.LATENCY).center(gv.LCD_COLS, ' '), line=2, timeout=0)
 
     def left(self):
         if self.i > 0:
             self.i -= 1
-        self.BUFFERSIZE = max(int(self.options[self.i]), int(self.options[0]))
+        self.LATENCY = max(int(self.options[self.i]), int(self.options[0]))
         self.display()
 
     def right(self):
         if self.i < len(self.options) - 1:
             self.i += 1
-        self.BUFFERSIZE = min(int(self.options[self.i]), int(self.options[-1]))
+        self.LATENCY = min(int(self.options[self.i]), int(self.options[-1]))
         self.display()
 
     def enter(self):
-        gv.cp.update_config('SAMPLERBOX CONFIG', 'BUFFERSIZE', str(self.BUFFERSIZE))
-        gv.BUFFERSIZE = self.BUFFERSIZE
+        gv.cp.update_config('SAMPLERBOX CONFIG', 'LATENCY', str(self.LATENCY))
+        gv.LATENCY = self.LATENCY
         gv.sound.close_stream()
         gv.sound.start_sounddevice_stream()
         self.load_state(MenuNav)
