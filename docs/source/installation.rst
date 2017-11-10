@@ -1,7 +1,7 @@
 Installation
 ============
 
-1. Download the latest image from the `SamplerBox website <http://www.samplerbox.org/makeitsoftware>`_
+1. `Download the latest image here<http://www.samplerboxshop.com/2017-05-17_samplerbox.img.zip>`_ or via `GitHub <https://github.com/alexmacrae/SamplerBox>`_.
 
 2. Write the image to a formatted micro SD card from your PC. Operating system-specific instructions:
  | `Linux <https://www.raspberrypi.org/documentation/installation/installing-images/linux.md>`_
